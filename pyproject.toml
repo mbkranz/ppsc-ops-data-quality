@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.26,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ppsc-ops-data-quality"
+version = "0.1.0"
+description = "Composable Ibis comparisons and native GX validation for Salesforce history."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "great-expectations==1.24.0",
+  "ibis-framework[duckdb]==12.0.0",
+  "sqlglot==30.24.0",
+  "pyarrow>=16,<27",
+  "PyAthena[SQLAlchemy]>=3,<4",
+  "SQLAlchemy>=2,<3",
+]
+
+[project.scripts]
+ppsc-dq = "ppsc_ops_data_quality.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "ruff>=0.11,<1", "poethepoet>=0.32,<1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ppsc_ops_data_quality"]
+
+[tool.poe]
+include = "poe_tasks.yaml"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B"]
+# Ibis and GX row conditions overload == True/False as expression construction.
+ignore = ["E712"]

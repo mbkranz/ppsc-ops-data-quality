@@ -1,0 +1,27 @@
+{
+  "source": {
+    "workbook": "salesforce_schemas_combined_latest.xlsx",
+    "tab": "processing-Flow-elements",
+    "flow": "Survey_Result_Survey_Completion_Updates"
+  },
+  "record_update_ids": [
+    "FlowRecordUpdate.Copy_1_of_updateAccount1003_PositiveSF",
+    "FlowRecordUpdate.Update_Account_1007_Negative",
+    "FlowRecordUpdate.Update_Account_1007_Positive",
+    "FlowRecordUpdate.updateAccount1001_Negative",
+    "FlowRecordUpdate.updateAccount1001_Positive",
+    "FlowRecordUpdate.updateAccount1003_NegativeSF",
+    "FlowRecordUpdate.updateAccount1005",
+    "FlowRecordUpdate.updateAccount2001",
+    "FlowRecordUpdate.updateAccount2003",
+    "FlowRecordUpdate.updateAccount2005",
+    "FlowRecordUpdate.updateAccount2006",
+    "FlowRecordUpdate.updateAccount2007",
+    "FlowRecordUpdate.updateAccount2008",
+    "FlowRecordUpdate.updateAccount2009",
+    "FlowRecordUpdate.updateAccount2010",
+    "FlowRecordUpdate.updateAccount2011",
+    "FlowRecordUpdate.updateAccount2012",
+    "FlowRecordUpdate.updateAccount2013"
+  ]
+}

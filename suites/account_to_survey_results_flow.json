@@ -1,0 +1,1088 @@
+{
+  "name": "account_to_survey_results_flow",
+  "id": null,
+  "expectations": [
+    {
+      "type": "expect_table_columns_to_match_set",
+      "kwargs": {
+        "column_set": [
+          "survey_result_id",
+          "participant_contact_id",
+          "expected_account_id",
+          "observed_account_id",
+          "cabor_lookup_is_deterministic",
+          "expected__Age_at_Time_of_Consent__pc",
+          "expected__CABOR_Completion_Date__c",
+          "expected__Earliest_Primary_Consent_Date_for_Report__c",
+          "expected__Latest_Primary_Consent_Date_for_Report__c",
+          "expected__EHR_Consent_Date_Time__c",
+          "expected__EHR_Reconsent_Date_Time__c",
+          "expected__Update_to_Primary_Consent_Completed__c",
+          "expected__Basics_Date_Time__c",
+          "expected__Overall_Health_Date_Time__c",
+          "expected__Lifestyle_Date_Time__c",
+          "expected__Personal_and_Family_History_Complete__c",
+          "expected__HC_Access_Date_Time__c",
+          "expected__Life_Functioning_Date_Time__c",
+          "expected__First_Physical_Measurement_Date_Time__c",
+          "expected__Last_Physical_Measurement_Date_Time__c",
+          "expected__EH_Date_Time__c",
+          "expected__Behavioral_Health_Completion__c",
+          "expected__Environmental_Exposures_Date_Time__c",
+          "expected__Social_Determinants_of_Health_Completion__c",
+          "observed__Age_at_Time_of_Consent__pc",
+          "observed__CABOR_Completion_Date__c",
+          "observed__Earliest_Primary_Consent_Date_for_Report__c",
+          "observed__Latest_Primary_Consent_Date_for_Report__c",
+          "observed__EHR_Consent_Date_Time__c",
+          "observed__EHR_Reconsent_Date_Time__c",
+          "observed__Update_to_Primary_Consent_Completed__c",
+          "observed__Basics_Date_Time__c",
+          "observed__Overall_Health_Date_Time__c",
+          "observed__Lifestyle_Date_Time__c",
+          "observed__Personal_and_Family_History_Complete__c",
+          "observed__HC_Access_Date_Time__c",
+          "observed__Life_Functioning_Date_Time__c",
+          "observed__First_Physical_Measurement_Date_Time__c",
+          "observed__Last_Physical_Measurement_Date_Time__c",
+          "observed__EH_Date_Time__c",
+          "observed__Behavioral_Health_Completion__c",
+          "observed__Environmental_Exposures_Date_Time__c",
+          "observed__Social_Determinants_of_Health_Completion__c"
+        ],
+        "exact_match": false
+      },
+      "meta": {
+        "check_id": "flow_comparison_required_columns"
+      },
+      "description": "The joined comparison contains all identity, evidence and value columns.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "survey_result_id"
+      },
+      "meta": {
+        "check_id": "flow_survey_result_id_is_present"
+      },
+      "description": "Every survey event has survey_result_id.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "participant_contact_id"
+      },
+      "meta": {
+        "check_id": "flow_participant_contact_id_is_present"
+      },
+      "description": "Every survey event has participant_contact_id.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "expected_account_id"
+      },
+      "meta": {
+        "check_id": "flow_expected_account_id_is_present"
+      },
+      "description": "Every survey event has expected_account_id.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "observed_account_id"
+      },
+      "meta": {
+        "check_id": "flow_observed_account_id_is_present"
+      },
+      "description": "Every survey event has observed_account_id.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "survey_result_id"
+      },
+      "meta": {
+        "check_id": "one_comparison_row_per_survey_event"
+      },
+      "description": "Survey event IDs are unique in the comparison; joins do not fan out.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "cabor_lookup_is_deterministic"
+      },
+      "meta": {
+        "check_id": "permission_lookup_resolution_evidence_is_present"
+      },
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_be_in_set",
+      "kwargs": {
+        "column": "cabor_lookup_is_deterministic",
+        "value_set": [
+          true
+        ]
+      },
+      "meta": {
+        "check_id": "permission_lookup_is_deterministic",
+        "ppsc": {
+          "source_entity": "FlowRecordLookup.Get_Permission_1007",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_row": 14500,
+          "entity_type": "FlowRecordLookup",
+          "rule_id": "CABOR_Completion_Date__c_is_deterministic",
+          "description": "Signature lookup has at most one candidate on the assent route",
+          "source_entities": [
+            "FlowRecordLookup.Get_Permission_1007"
+          ]
+        }
+      },
+      "description": "The permission lookup resolves a reproducible expected CABOR value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Age_at_Time_of_Consent__pc",
+        "column_B": "expected__Age_at_Time_of_Consent__pc"
+      },
+      "meta": {
+        "check_id": "observed_Age_at_Time_of_Consent__pc_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount1001_Positive",
+            "FlowRecordUpdate.updateAccount1001_Negative",
+            "FlowRecordUpdate.Update_Account_1007_Positive",
+            "FlowRecordUpdate.Update_Account_1007_Negative",
+            "FlowFormula.formAgeCalculation"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount1001_Positive,\nFlowRecordUpdate.updateAccount1001_Negative, FlowRecordUpdate.Update_Account_1007_Positive,\nFlowRecordUpdate.Update_Account_1007_Negative, FlowFormula.formAgeCalculation.\n\nFlow updates rows 14488,14490,14503,14504 -> Account.Age_at_Time_of_Consent__pc.\n\nBoth primary-consent branches and both assent branches assign the translated\nFlowFormula.Age_At_Execution value. Other routes retain the Account BEFORE value. This is\nexecution-date age.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14488,
+            14490,
+            14503,
+            14504,
+            14573
+          ],
+          "expression": "age_at_flow_execution",
+          "branches": [
+            {
+              "rule_id": "set_age_at_flow_execution",
+              "output_fields": [
+                "Account.Age_at_Time_of_Consent__pc"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount1001_Positive",
+                "FlowRecordUpdate.updateAccount1001_Negative",
+                "FlowRecordUpdate.Update_Account_1007_Positive",
+                "FlowRecordUpdate.Update_Account_1007_Negative",
+                "FlowFormula.formAgeCalculation"
+              ],
+              "workbook_rows": [
+                14488,
+                14490,
+                14503,
+                14504,
+                14573
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "age_at_flow_execution",
+          "target_field": "Account.Age_at_Time_of_Consent__pc",
+          "description": "Age at flow execution"
+        }
+      },
+      "description": "Observed Account.Age_at_Time_of_Consent__pc equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__CABOR_Completion_Date__c",
+        "column_B": "expected__CABOR_Completion_Date__c",
+        "row_condition": {
+          "column": {
+            "name": "cabor_lookup_is_deterministic"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
+      },
+      "meta": {
+        "check_id": "observed_CABOR_Completion_Date__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount1001_Positive",
+            "FlowRecordUpdate.updateAccount1001_Negative",
+            "FlowRecordUpdate.Update_Account_1007_Positive",
+            "FlowRecordUpdate.Update_Account_1007_Negative",
+            "FlowRecordLookup.Get_Permission_1007"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount1001_Positive,\nFlowRecordUpdate.updateAccount1001_Negative, FlowRecordUpdate.Update_Account_1007_Positive,\nFlowRecordUpdate.Update_Account_1007_Negative, FlowRecordLookup.Get_Permission_1007.\n\nRows 14488,14490,14503,14504 -> Account.CABOR_Completion_Date__c.\n\nPrimary uses Record.California_Signature__c; assent uses the 1007 lookup's\nCalifornia_Signature__c, including an assigned NULL when no permission exists. An unordered\nmulti-match also returns NULL, distinguished by the output flag.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14488,
+            14490,
+            14500,
+            14503,
+            14504
+          ],
+          "expression": "california_signature_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_california_signature_from_primary_consent",
+              "output_fields": [
+                "Account.CABOR_Completion_Date__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount1001_Positive",
+                "FlowRecordUpdate.updateAccount1001_Negative"
+              ],
+              "workbook_rows": [
+                14488,
+                14490
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            },
+            {
+              "rule_id": "set_california_signature_from_pediatric_permission",
+              "output_fields": [
+                "Account.CABOR_Completion_Date__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.Update_Account_1007_Positive",
+                "FlowRecordUpdate.Update_Account_1007_Negative",
+                "FlowRecordLookup.Get_Permission_1007"
+              ],
+              "workbook_rows": [
+                14500,
+                14503,
+                14504
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "california_signature_timestamp",
+          "target_field": "Account.CABOR_Completion_Date__c",
+          "description": "California signature timestamp"
+        }
+      },
+      "description": "Observed Account.CABOR_Completion_Date__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Earliest_Primary_Consent_Date_for_Report__c",
+        "column_B": "expected__Earliest_Primary_Consent_Date_for_Report__c"
+      },
+      "meta": {
+        "check_id": "observed_Earliest_Primary_Consent_Date_for_Report__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount1001_Negative",
+            "FlowRecordUpdate.Update_Account_1007_Negative"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount1001_Negative,\nFlowRecordUpdate.Update_Account_1007_Negative.\n\nRows 14490,14504 -> Account.Earliest_Primary_Consent_Date_for_Report__c.\n\nFlowRecordUpdate.Primary_Consent_With_Prior_Yes writes the triggering completion timestamp\nwhen another Yes primary consent exists.\nFlowRecordUpdate.Assent_With_Permission_Or_Primary_Date also writes the triggering\ntimestamp. Positive branches leave this field unchanged. This is the authored assignment,\nnot MIN(consent timestamps).",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14490,
+            14504
+          ],
+          "expression": "earliest_primary_consent_report_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_earliest_primary_consent_report_timestamp",
+              "output_fields": [
+                "Account.Earliest_Primary_Consent_Date_for_Report__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount1001_Negative",
+                "FlowRecordUpdate.Update_Account_1007_Negative"
+              ],
+              "workbook_rows": [
+                14490,
+                14504
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "earliest_primary_consent_report_timestamp",
+          "target_field": "Account.Earliest_Primary_Consent_Date_for_Report__c",
+          "description": "Earliest primary consent report timestamp"
+        }
+      },
+      "description": "Observed Account.Earliest_Primary_Consent_Date_for_Report__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Latest_Primary_Consent_Date_for_Report__c",
+        "column_B": "expected__Latest_Primary_Consent_Date_for_Report__c"
+      },
+      "meta": {
+        "check_id": "observed_Latest_Primary_Consent_Date_for_Report__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount1001_Positive",
+            "FlowRecordUpdate.updateAccount1001_Negative",
+            "FlowRecordUpdate.Update_Account_1007_Positive",
+            "FlowRecordUpdate.Update_Account_1007_Negative"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount1001_Positive,\nFlowRecordUpdate.updateAccount1001_Negative, FlowRecordUpdate.Update_Account_1007_Positive,\nFlowRecordUpdate.Update_Account_1007_Negative.\n\nRows 14488,14490,14503,14504 -> Account.Latest_Primary_Consent_Date_for_Report__c.\n\nBoth primary-consent and assent routes assign Record.Completion_Status_Timestamp__c. Lineage\nis the triggering record, not MAX of all participant completion dates.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14488,
+            14490,
+            14503,
+            14504
+          ],
+          "expression": "latest_primary_consent_report_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_latest_primary_consent_report_timestamp",
+              "output_fields": [
+                "Account.Latest_Primary_Consent_Date_for_Report__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount1001_Positive",
+                "FlowRecordUpdate.updateAccount1001_Negative",
+                "FlowRecordUpdate.Update_Account_1007_Positive",
+                "FlowRecordUpdate.Update_Account_1007_Negative"
+              ],
+              "workbook_rows": [
+                14488,
+                14490,
+                14503,
+                14504
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "latest_primary_consent_report_timestamp",
+          "target_field": "Account.Latest_Primary_Consent_Date_for_Report__c",
+          "description": "Latest primary consent report timestamp"
+        }
+      },
+      "description": "Observed Account.Latest_Primary_Consent_Date_for_Report__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__EHR_Consent_Date_Time__c",
+        "column_B": "expected__EHR_Consent_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_EHR_Consent_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount1003_NegativeSF"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount1003_NegativeSF.\n\nFlowRecordUpdate.EHR_Consent_With_Prior_Yes, row 14496 -> Account.EHR_Consent_Date_Time__c.\n\nAnother Yes EHR consent exists: assign Record.Completion_Status_Timestamp__c. The no-prior\nbranch writes EHR_Reconsent_Date_Time__c instead, as authored.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14496
+          ],
+          "expression": "ehr_consent_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_ehr_consent_timestamp",
+              "output_fields": [
+                "Account.EHR_Consent_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount1003_NegativeSF"
+              ],
+              "workbook_rows": [
+                14496
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "ehr_consent_timestamp",
+          "target_field": "Account.EHR_Consent_Date_Time__c",
+          "description": "Ehr consent timestamp"
+        }
+      },
+      "description": "Observed Account.EHR_Consent_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__EHR_Reconsent_Date_Time__c",
+        "column_B": "expected__EHR_Reconsent_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_EHR_Reconsent_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.Copy_1_of_updateAccount1003_PositiveSF"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.Copy_1_of_updateAccount1003_PositiveSF.\n\nFlowRecordUpdate.EHR_Consent_Without_Prior_Yes, row 14495 ->\nAccount.EHR_Reconsent_Date_Time__c.\n\nNo other Yes EHR consent exists: assign Record.Completion_Status_Timestamp__c. This\ncounterintuitive source mapping is preserved rather than renamed.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14495
+          ],
+          "expression": "ehr_reconsent_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_ehr_reconsent_timestamp",
+              "output_fields": [
+                "Account.EHR_Reconsent_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.Copy_1_of_updateAccount1003_PositiveSF"
+              ],
+              "workbook_rows": [
+                14495
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "ehr_reconsent_timestamp",
+          "target_field": "Account.EHR_Reconsent_Date_Time__c",
+          "description": "Ehr reconsent timestamp"
+        }
+      },
+      "description": "Observed Account.EHR_Reconsent_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Update_to_Primary_Consent_Completed__c",
+        "column_B": "expected__Update_to_Primary_Consent_Completed__c"
+      },
+      "meta": {
+        "check_id": "observed_Update_to_Primary_Consent_Completed__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount1005"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount1005.\n\nFlowRecordUpdate.Primary_Consent_Update_Completion, row 14498: index 1005 -> triggering\ncompletion timestamp.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14498
+          ],
+          "expression": "primary_consent_update_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_primary_consent_update_timestamp",
+              "output_fields": [
+                "Account.Update_to_Primary_Consent_Completed__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount1005"
+              ],
+              "workbook_rows": [
+                14498
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "primary_consent_update_timestamp",
+          "target_field": "Account.Update_to_Primary_Consent_Completed__c",
+          "description": "Primary consent update timestamp"
+        }
+      },
+      "description": "Observed Account.Update_to_Primary_Consent_Completed__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Basics_Date_Time__c",
+        "column_B": "expected__Basics_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_Basics_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2001"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2001.\n\nFlowRecordUpdate.Basics_Completion, row 14506: indexes 2001/2002 -> triggering completion\ntimestamp.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14506
+          ],
+          "expression": "basics_completion_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_basics_completion_timestamp",
+              "output_fields": [
+                "Account.Basics_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2001"
+              ],
+              "workbook_rows": [
+                14506
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "basics_completion_timestamp",
+          "target_field": "Account.Basics_Date_Time__c",
+          "description": "Basics completion timestamp"
+        }
+      },
+      "description": "Observed Account.Basics_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Overall_Health_Date_Time__c",
+        "column_B": "expected__Overall_Health_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_Overall_Health_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2003"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2003.\n\nFlowRecordUpdate.Overall_Health_Completion, row 14508: indexes 2003/2004 -> triggering\ncompletion timestamp.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14508
+          ],
+          "expression": "overall_health_completion_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_overall_health_completion_timestamp",
+              "output_fields": [
+                "Account.Overall_Health_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2003"
+              ],
+              "workbook_rows": [
+                14508
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "overall_health_completion_timestamp",
+          "target_field": "Account.Overall_Health_Date_Time__c",
+          "description": "Overall health completion timestamp"
+        }
+      },
+      "description": "Observed Account.Overall_Health_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Lifestyle_Date_Time__c",
+        "column_B": "expected__Lifestyle_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_Lifestyle_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2005"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2005.\n\nFlowRecordUpdate.Lifestyle_Completion, row 14510: index 2005 -> triggering completion\ntimestamp.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14510
+          ],
+          "expression": "lifestyle_completion_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_lifestyle_completion_timestamp",
+              "output_fields": [
+                "Account.Lifestyle_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2005"
+              ],
+              "workbook_rows": [
+                14510
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "lifestyle_completion_timestamp",
+          "target_field": "Account.Lifestyle_Date_Time__c",
+          "description": "Lifestyle completion timestamp"
+        }
+      },
+      "description": "Observed Account.Lifestyle_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Personal_and_Family_History_Complete__c",
+        "column_B": "expected__Personal_and_Family_History_Complete__c"
+      },
+      "meta": {
+        "check_id": "observed_Personal_and_Family_History_Complete__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2006"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2006.\n\nFlowRecordUpdate.Personal_And_Family_History_Completion, row 14512: index 2006 -> triggering\ncompletion timestamp.\n\nThis Flow assignment does not implement the migration's retired-survey PFHH derivation;\nthose are different sources and must be authored separately.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14512
+          ],
+          "expression": "personal_and_family_history_completion_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_personal_and_family_history_completion_timestamp",
+              "output_fields": [
+                "Account.Personal_and_Family_History_Complete__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2006"
+              ],
+              "workbook_rows": [
+                14512
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "personal_and_family_history_completion_timestamp",
+          "target_field": "Account.Personal_and_Family_History_Complete__c",
+          "description": "Personal and family history completion timestamp"
+        }
+      },
+      "description": "Observed Account.Personal_and_Family_History_Complete__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__HC_Access_Date_Time__c",
+        "column_B": "expected__HC_Access_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_HC_Access_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2007"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2007.\n\nFlowRecordUpdate.Healthcare_Access_Completion, row 14514: index 2007 -> triggering\ncompletion timestamp.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14514
+          ],
+          "expression": "healthcare_access_completion_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_healthcare_access_completion_timestamp",
+              "output_fields": [
+                "Account.HC_Access_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2007"
+              ],
+              "workbook_rows": [
+                14514
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "healthcare_access_completion_timestamp",
+          "target_field": "Account.HC_Access_Date_Time__c",
+          "description": "Healthcare access completion timestamp"
+        }
+      },
+      "description": "Observed Account.HC_Access_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Life_Functioning_Date_Time__c",
+        "column_B": "expected__Life_Functioning_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_Life_Functioning_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2008"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2008.\n\nFlowRecordUpdate.Life_Functioning_Completion, row 14516: index 2008 -> triggering completion\ntimestamp.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14516
+          ],
+          "expression": "life_functioning_completion_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_life_functioning_completion_timestamp",
+              "output_fields": [
+                "Account.Life_Functioning_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2008"
+              ],
+              "workbook_rows": [
+                14516
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "life_functioning_completion_timestamp",
+          "target_field": "Account.Life_Functioning_Date_Time__c",
+          "description": "Life functioning completion timestamp"
+        }
+      },
+      "description": "Observed Account.Life_Functioning_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__First_Physical_Measurement_Date_Time__c",
+        "column_B": "expected__First_Physical_Measurement_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_First_Physical_Measurement_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2009",
+            "FlowRecordLookup.getFirstPhysicalMeasurement"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2009, FlowRecordLookup.getFirstPhysicalMeasurement.\n\nFlowRecordUpdate.Remote_Physical_Measurement_Completion, row 14519 ->\nFlowRecordLookup_First_Remote_Physical_Measurement completion timestamp.\n\nFirst value comes from the sorted lookup; it can be NULL if the earliest matching record has\na NULL completion timestamp. No coalescing is applied.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14518,
+            14519
+          ],
+          "expression": "first_remote_physical_measurement_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_first_remote_physical_measurement_timestamp",
+              "output_fields": [
+                "Account.First_Physical_Measurement_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2009",
+                "FlowRecordLookup.getFirstPhysicalMeasurement"
+              ],
+              "workbook_rows": [
+                14518,
+                14519
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "first_remote_physical_measurement_timestamp",
+          "target_field": "Account.First_Physical_Measurement_Date_Time__c",
+          "description": "First remote physical measurement timestamp"
+        }
+      },
+      "description": "Observed Account.First_Physical_Measurement_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Last_Physical_Measurement_Date_Time__c",
+        "column_B": "expected__Last_Physical_Measurement_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_Last_Physical_Measurement_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2009"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2009.\n\nFlowRecordUpdate.Remote_Physical_Measurement_Completion, row 14519 -> triggering completion\ntimestamp, not MAX.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14519
+          ],
+          "expression": "latest_processed_remote_physical_measurement_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_latest_processed_remote_physical_measurement_timestamp",
+              "output_fields": [
+                "Account.Last_Physical_Measurement_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2009"
+              ],
+              "workbook_rows": [
+                14519
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "latest_processed_remote_physical_measurement_timestamp",
+          "target_field": "Account.Last_Physical_Measurement_Date_Time__c",
+          "description": "Latest processed remote physical measurement timestamp"
+        }
+      },
+      "description": "Observed Account.Last_Physical_Measurement_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__EH_Date_Time__c",
+        "column_B": "expected__EH_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_EH_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2010"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2010.\n\nFlowRecordUpdate.Emotional_Health_Completion, row 14521: index 2010 -> triggering completion\ntimestamp.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14521
+          ],
+          "expression": "emotional_health_completion_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_emotional_health_completion_timestamp",
+              "output_fields": [
+                "Account.EH_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2010"
+              ],
+              "workbook_rows": [
+                14521
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "emotional_health_completion_timestamp",
+          "target_field": "Account.EH_Date_Time__c",
+          "description": "Emotional health completion timestamp"
+        }
+      },
+      "description": "Observed Account.EH_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Behavioral_Health_Completion__c",
+        "column_B": "expected__Behavioral_Health_Completion__c"
+      },
+      "meta": {
+        "check_id": "observed_Behavioral_Health_Completion__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2011"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2011.\n\nFlowRecordUpdate.Behavioral_Health_Completion, row 14523: index 2011 -> triggering\ncompletion timestamp.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14523
+          ],
+          "expression": "behavioral_health_completion_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_behavioral_health_completion_timestamp",
+              "output_fields": [
+                "Account.Behavioral_Health_Completion__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2011"
+              ],
+              "workbook_rows": [
+                14523
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "behavioral_health_completion_timestamp",
+          "target_field": "Account.Behavioral_Health_Completion__c",
+          "description": "Behavioral health completion timestamp"
+        }
+      },
+      "description": "Observed Account.Behavioral_Health_Completion__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Environmental_Exposures_Date_Time__c",
+        "column_B": "expected__Environmental_Exposures_Date_Time__c"
+      },
+      "meta": {
+        "check_id": "observed_Environmental_Exposures_Date_Time__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2012"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2012.\n\nFlowRecordUpdate.Environmental_Exposures_Completion, row 14525: index 2012 -> triggering\ncompletion timestamp.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14525
+          ],
+          "expression": "environmental_exposures_completion_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_environmental_exposures_completion_timestamp",
+              "output_fields": [
+                "Account.Environmental_Exposures_Date_Time__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2012"
+              ],
+              "workbook_rows": [
+                14525
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "environmental_exposures_completion_timestamp",
+          "target_field": "Account.Environmental_Exposures_Date_Time__c",
+          "description": "Environmental exposures completion timestamp"
+        }
+      },
+      "description": "Observed Account.Environmental_Exposures_Date_Time__c equals its expected AFTER value.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Social_Determinants_of_Health_Completion__c",
+        "column_B": "expected__Social_Determinants_of_Health_Completion__c"
+      },
+      "meta": {
+        "check_id": "observed_Social_Determinants_of_Health_Completion__c_equals_expected",
+        "ppsc": {
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "source_entities": [
+            "FlowRecordUpdate.updateAccount2013"
+          ],
+          "source_notes": "Sources: FlowRecordUpdate.updateAccount2013.\n\nFlowRecordUpdate.Social_Determinants_Completion, row 14527: index 2013 -> triggering\ncompletion timestamp.",
+          "workbook_tab": "processing-Flow-elements",
+          "workbook_rows": [
+            14527
+          ],
+          "expression": "social_determinants_completion_timestamp",
+          "branches": [
+            {
+              "rule_id": "set_social_determinants_completion_timestamp",
+              "output_fields": [
+                "Account.Social_Determinants_of_Health_Completion__c"
+              ],
+              "source_entities": [
+                "FlowRecordUpdate.updateAccount2013"
+              ],
+              "workbook_rows": [
+                14527
+              ],
+              "entity_type": "AccountField",
+              "workbook_tab": "processing-Flow-elements",
+              "source_flow": "Survey_Result_Survey_Completion_Updates"
+            }
+          ],
+          "entity_type": "AccountField",
+          "rule_id": "social_determinants_completion_timestamp",
+          "target_field": "Account.Social_Determinants_of_Health_Completion__c",
+          "description": "Social determinants completion timestamp"
+        }
+      },
+      "description": "Observed Account.Social_Determinants_of_Health_Completion__c equals its expected AFTER value.",
+      "severity": "critical"
+    }
+  ],
+  "meta": {
+    "grain": "survey_event",
+    "expected_state": "Account BEFORE plus one Flow event",
+    "observed_state": "independent Account AFTER the same event",
+    "great_expectations_version": "1.24.0"
+  },
+  "notes": null
+}

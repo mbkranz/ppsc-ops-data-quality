@@ -1,0 +1,16 @@
+tasks:
+  test:
+    cmd: pytest
+    help: Run synthetic query, schema, GX and runtime tests.
+  check:
+    help: Check lint, formatting and behavior.
+    sequence:
+      - cmd: ruff check .
+      - cmd: ruff format --check .
+      - ref: test
+  preview:
+    cmd: ppsc-dq preview
+    help: Compile illustrative Athena comparisons and suite JSON without AWS.
+  demo:
+    cmd: ppsc-dq demo
+    help: Run Flow and rollup validations on synthetic DuckDB history.

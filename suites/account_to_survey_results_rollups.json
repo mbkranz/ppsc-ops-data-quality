@@ -1,0 +1,891 @@
+{
+  "name": "account_to_survey_results_rollups",
+  "id": null,
+  "expectations": [
+    {
+      "type": "expect_table_columns_to_match_set",
+      "kwargs": {
+        "column_set": [
+          "expected_account_id",
+          "person_contact_id",
+          "observed_account_id",
+          "expected__EHR_Authorized__pc",
+          "expected__Count_of_Completed_EHR_Auth__pc",
+          "expected__Count_of_Completed_Primary_Consent__pc",
+          "expected__Count_of_Completed_Reconsent__pc",
+          "expected__PPI_2_Completion_Count__pc",
+          "expected__PPI_3_Completion_Count__pc",
+          "expected__EHR_Consent_Active__pc",
+          "expected__EHR_Consent_Declined__pc",
+          "expected__PP1_Basics_Survey_Complete__pc",
+          "expected__Re_Consent_Declined__pc",
+          "expected__Re_consent_Active__pc",
+          "expected__Primary_Consent_Declined__pc",
+          "expected__EHR_Consent_Ever__pc",
+          "expected__Assent_Completion_Count__pc",
+          "expected__Pediatric_Permission_Completion_Count__pc",
+          "expected__X0_6_Peds_Permission_Count__pc",
+          "expected__X0_6_Peds_Permission_Declined_Count__pc",
+          "expected__X0_6_Peds_Permission_Revoked_Count__pc",
+          "expected__EHR_Pediatric_Complete__pc",
+          "observed__EHR_Authorized__pc",
+          "observed__Count_of_Completed_EHR_Auth__pc",
+          "observed__Count_of_Completed_Primary_Consent__pc",
+          "observed__Count_of_Completed_Reconsent__pc",
+          "observed__PPI_2_Completion_Count__pc",
+          "observed__PPI_3_Completion_Count__pc",
+          "observed__EHR_Consent_Active__pc",
+          "observed__EHR_Consent_Declined__pc",
+          "observed__PP1_Basics_Survey_Complete__pc",
+          "observed__Re_Consent_Declined__pc",
+          "observed__Re_consent_Active__pc",
+          "observed__Primary_Consent_Declined__pc",
+          "observed__EHR_Consent_Ever__pc",
+          "observed__Assent_Completion_Count__pc",
+          "observed__Pediatric_Permission_Completion_Count__pc",
+          "observed__X0_6_Peds_Permission_Count__pc",
+          "observed__X0_6_Peds_Permission_Declined_Count__pc",
+          "observed__X0_6_Peds_Permission_Revoked_Count__pc",
+          "observed__EHR_Pediatric_Complete__pc"
+        ],
+        "exact_match": false
+      },
+      "meta": {
+        "check_id": "rollup_comparison_required_columns"
+      },
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "expected_account_id"
+      },
+      "meta": {
+        "check_id": "rollup_expected_account_id_is_present"
+      },
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "person_contact_id"
+      },
+      "meta": {
+        "check_id": "rollup_person_contact_id_is_present"
+      },
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_not_be_null",
+      "kwargs": {
+        "column": "observed_account_id"
+      },
+      "meta": {
+        "check_id": "rollup_observed_account_id_is_present"
+      },
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_values_to_be_unique",
+      "kwargs": {
+        "column": "expected_account_id"
+      },
+      "meta": {
+        "check_id": "one_rollup_comparison_row_per_person_account"
+      },
+      "description": "Person Account IDs are unique in the rollup comparison.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__EHR_Authorized__pc",
+        "column_B": "expected__EHR_Authorized__pc"
+      },
+      "meta": {
+        "check_id": "observed_EHR_Authorized__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.EHR_Authorized__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 442,
+          "expression": "ehr_authorized_indicator",
+          "branches": [
+            {
+              "rule_id": "count_completed_ehr_authorization",
+              "output_fields": [
+                "Account.EHR_Authorized__pc",
+                "Account.Count_of_Completed_EHR_Auth__pc"
+              ],
+              "source_entities": [
+                "Account.EHR_Authorized__pc",
+                "Account.Count_of_Completed_EHR_Auth__pc"
+              ],
+              "workbook_rows": [
+                442,
+                465
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "ehr_authorized_indicator",
+          "target_field": "Account.EHR_Authorized__pc",
+          "description": "Ehr authorized",
+          "source_entities": [
+            "Account.EHR_Authorized__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.EHR_Authorized__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Count_of_Completed_EHR_Auth__pc",
+        "column_B": "expected__Count_of_Completed_EHR_Auth__pc"
+      },
+      "meta": {
+        "check_id": "observed_Count_of_Completed_EHR_Auth__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.Count_of_Completed_EHR_Auth__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 465,
+          "expression": "count_of_completed_ehr_auth_indicator",
+          "branches": [
+            {
+              "rule_id": "count_completed_ehr_authorization",
+              "output_fields": [
+                "Account.EHR_Authorized__pc",
+                "Account.Count_of_Completed_EHR_Auth__pc"
+              ],
+              "source_entities": [
+                "Account.EHR_Authorized__pc",
+                "Account.Count_of_Completed_EHR_Auth__pc"
+              ],
+              "workbook_rows": [
+                442,
+                465
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "count_of_completed_ehr_auth_indicator",
+          "target_field": "Account.Count_of_Completed_EHR_Auth__pc",
+          "description": "Count of completed ehr auth",
+          "source_entities": [
+            "Account.Count_of_Completed_EHR_Auth__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.Count_of_Completed_EHR_Auth__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Count_of_Completed_Primary_Consent__pc",
+        "column_B": "expected__Count_of_Completed_Primary_Consent__pc"
+      },
+      "meta": {
+        "check_id": "observed_Count_of_Completed_Primary_Consent__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.Count_of_Completed_Primary_Consent__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 466,
+          "expression": "count_of_completed_primary_consent_indicator",
+          "branches": [
+            {
+              "rule_id": "count_completed_primary_consent",
+              "output_fields": [
+                "Account.Count_of_Completed_Primary_Consent__pc"
+              ],
+              "source_entities": [
+                "Account.Count_of_Completed_Primary_Consent__pc"
+              ],
+              "workbook_rows": [
+                466
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "count_of_completed_primary_consent_indicator",
+          "target_field": "Account.Count_of_Completed_Primary_Consent__pc",
+          "description": "Count of completed primary consent",
+          "source_entities": [
+            "Account.Count_of_Completed_Primary_Consent__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.Count_of_Completed_Primary_Consent__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Count_of_Completed_Reconsent__pc",
+        "column_B": "expected__Count_of_Completed_Reconsent__pc"
+      },
+      "meta": {
+        "check_id": "observed_Count_of_Completed_Reconsent__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.Count_of_Completed_Reconsent__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 467,
+          "expression": "count_of_completed_reconsent_indicator",
+          "branches": [
+            {
+              "rule_id": "count_completed_primary_consent_updates",
+              "output_fields": [
+                "Account.Count_of_Completed_Reconsent__pc"
+              ],
+              "source_entities": [
+                "Account.Count_of_Completed_Reconsent__pc"
+              ],
+              "workbook_rows": [
+                467
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "count_of_completed_reconsent_indicator",
+          "target_field": "Account.Count_of_Completed_Reconsent__pc",
+          "description": "Count of completed reconsent",
+          "source_entities": [
+            "Account.Count_of_Completed_Reconsent__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.Count_of_Completed_Reconsent__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__PPI_2_Completion_Count__pc",
+        "column_B": "expected__PPI_2_Completion_Count__pc"
+      },
+      "meta": {
+        "check_id": "observed_PPI_2_Completion_Count__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.PPI_2_Completion_Count__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 468,
+          "expression": "ppi_2_completion_count_indicator",
+          "branches": [
+            {
+              "rule_id": "count_completed_lifestyle_surveys",
+              "output_fields": [
+                "Account.PPI_2_Completion_Count__pc"
+              ],
+              "source_entities": [
+                "Account.PPI_2_Completion_Count__pc"
+              ],
+              "workbook_rows": [
+                468
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "ppi_2_completion_count_indicator",
+          "target_field": "Account.PPI_2_Completion_Count__pc",
+          "description": "Ppi 2 completion count",
+          "source_entities": [
+            "Account.PPI_2_Completion_Count__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.PPI_2_Completion_Count__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__PPI_3_Completion_Count__pc",
+        "column_B": "expected__PPI_3_Completion_Count__pc"
+      },
+      "meta": {
+        "check_id": "observed_PPI_3_Completion_Count__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.PPI_3_Completion_Count__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 469,
+          "expression": "ppi_3_completion_count_indicator",
+          "branches": [
+            {
+              "rule_id": "count_completed_overall_health_surveys",
+              "output_fields": [
+                "Account.PPI_3_Completion_Count__pc"
+              ],
+              "source_entities": [
+                "Account.PPI_3_Completion_Count__pc"
+              ],
+              "workbook_rows": [
+                469
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "ppi_3_completion_count_indicator",
+          "target_field": "Account.PPI_3_Completion_Count__pc",
+          "description": "Ppi 3 completion count",
+          "source_entities": [
+            "Account.PPI_3_Completion_Count__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.PPI_3_Completion_Count__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__EHR_Consent_Active__pc",
+        "column_B": "expected__EHR_Consent_Active__pc"
+      },
+      "meta": {
+        "check_id": "observed_EHR_Consent_Active__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.EHR_Consent_Active__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 443,
+          "expression": "ehr_consent_active_indicator",
+          "branches": [
+            {
+              "rule_id": "count_active_ehr_consent",
+              "output_fields": [
+                "Account.EHR_Consent_Active__pc"
+              ],
+              "source_entities": [
+                "Account.EHR_Consent_Active__pc"
+              ],
+              "workbook_rows": [
+                443
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "ehr_consent_active_indicator",
+          "target_field": "Account.EHR_Consent_Active__pc",
+          "description": "Ehr consent active",
+          "source_entities": [
+            "Account.EHR_Consent_Active__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.EHR_Consent_Active__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__EHR_Consent_Declined__pc",
+        "column_B": "expected__EHR_Consent_Declined__pc"
+      },
+      "meta": {
+        "check_id": "observed_EHR_Consent_Declined__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.EHR_Consent_Declined__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 540,
+          "expression": "ehr_consent_declined_indicator",
+          "branches": [
+            {
+              "rule_id": "count_declined_ehr_consent",
+              "output_fields": [
+                "Account.EHR_Consent_Declined__pc"
+              ],
+              "source_entities": [
+                "Account.EHR_Consent_Declined__pc"
+              ],
+              "workbook_rows": [
+                540
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "ehr_consent_declined_indicator",
+          "target_field": "Account.EHR_Consent_Declined__pc",
+          "description": "Ehr consent declined",
+          "source_entities": [
+            "Account.EHR_Consent_Declined__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.EHR_Consent_Declined__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__PP1_Basics_Survey_Complete__pc",
+        "column_B": "expected__PP1_Basics_Survey_Complete__pc"
+      },
+      "meta": {
+        "check_id": "observed_PP1_Basics_Survey_Complete__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.PP1_Basics_Survey_Complete__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 541,
+          "expression": "pp1_basics_survey_complete_indicator",
+          "branches": [
+            {
+              "rule_id": "count_completed_unrevoked_basics_surveys",
+              "output_fields": [
+                "Account.PP1_Basics_Survey_Complete__pc"
+              ],
+              "source_entities": [
+                "Account.PP1_Basics_Survey_Complete__pc"
+              ],
+              "workbook_rows": [
+                541
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "pp1_basics_survey_complete_indicator",
+          "target_field": "Account.PP1_Basics_Survey_Complete__pc",
+          "description": "Pp1 basics survey complete",
+          "source_entities": [
+            "Account.PP1_Basics_Survey_Complete__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.PP1_Basics_Survey_Complete__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Re_Consent_Declined__pc",
+        "column_B": "expected__Re_Consent_Declined__pc"
+      },
+      "meta": {
+        "check_id": "observed_Re_Consent_Declined__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.Re_Consent_Declined__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 542,
+          "expression": "re_consent_declined_indicator",
+          "branches": [
+            {
+              "rule_id": "count_declined_primary_consent_updates",
+              "output_fields": [
+                "Account.Re_Consent_Declined__pc"
+              ],
+              "source_entities": [
+                "Account.Re_Consent_Declined__pc"
+              ],
+              "workbook_rows": [
+                542
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "re_consent_declined_indicator",
+          "target_field": "Account.Re_Consent_Declined__pc",
+          "description": "Re consent declined",
+          "source_entities": [
+            "Account.Re_Consent_Declined__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.Re_Consent_Declined__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Re_consent_Active__pc",
+        "column_B": "expected__Re_consent_Active__pc"
+      },
+      "meta": {
+        "check_id": "observed_Re_consent_Active__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.Re_consent_Active__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 543,
+          "expression": "re_consent_active_indicator",
+          "branches": [
+            {
+              "rule_id": "count_active_primary_consent_updates",
+              "output_fields": [
+                "Account.Re_consent_Active__pc"
+              ],
+              "source_entities": [
+                "Account.Re_consent_Active__pc"
+              ],
+              "workbook_rows": [
+                543
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "re_consent_active_indicator",
+          "target_field": "Account.Re_consent_Active__pc",
+          "description": "Re consent active",
+          "source_entities": [
+            "Account.Re_consent_Active__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.Re_consent_Active__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Primary_Consent_Declined__pc",
+        "column_B": "expected__Primary_Consent_Declined__pc"
+      },
+      "meta": {
+        "check_id": "observed_Primary_Consent_Declined__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.Primary_Consent_Declined__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 555,
+          "expression": "primary_consent_declined_indicator",
+          "branches": [
+            {
+              "rule_id": "count_declined_primary_consent",
+              "output_fields": [
+                "Account.Primary_Consent_Declined__pc"
+              ],
+              "source_entities": [
+                "Account.Primary_Consent_Declined__pc"
+              ],
+              "workbook_rows": [
+                555
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "primary_consent_declined_indicator",
+          "target_field": "Account.Primary_Consent_Declined__pc",
+          "description": "Primary consent declined",
+          "source_entities": [
+            "Account.Primary_Consent_Declined__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.Primary_Consent_Declined__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__EHR_Consent_Ever__pc",
+        "column_B": "expected__EHR_Consent_Ever__pc"
+      },
+      "meta": {
+        "check_id": "observed_EHR_Consent_Ever__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.EHR_Consent_Ever__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 562,
+          "expression": "ehr_consent_ever_indicator",
+          "branches": [
+            {
+              "rule_id": "count_ever_authorized_ehr_consent",
+              "output_fields": [
+                "Account.EHR_Consent_Ever__pc"
+              ],
+              "source_entities": [
+                "Account.EHR_Consent_Ever__pc"
+              ],
+              "workbook_rows": [
+                562
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "ehr_consent_ever_indicator",
+          "target_field": "Account.EHR_Consent_Ever__pc",
+          "description": "Ehr consent ever",
+          "source_entities": [
+            "Account.EHR_Consent_Ever__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.EHR_Consent_Ever__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Assent_Completion_Count__pc",
+        "column_B": "expected__Assent_Completion_Count__pc"
+      },
+      "meta": {
+        "check_id": "observed_Assent_Completion_Count__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.Assent_Completion_Count__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 594,
+          "expression": "assent_completion_count_indicator",
+          "branches": [
+            {
+              "rule_id": "count_completed_active_assent",
+              "output_fields": [
+                "Account.Assent_Completion_Count__pc"
+              ],
+              "source_entities": [
+                "Account.Assent_Completion_Count__pc"
+              ],
+              "workbook_rows": [
+                594
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "assent_completion_count_indicator",
+          "target_field": "Account.Assent_Completion_Count__pc",
+          "description": "Assent completion count",
+          "source_entities": [
+            "Account.Assent_Completion_Count__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.Assent_Completion_Count__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__Pediatric_Permission_Completion_Count__pc",
+        "column_B": "expected__Pediatric_Permission_Completion_Count__pc"
+      },
+      "meta": {
+        "check_id": "observed_Pediatric_Permission_Completion_Count__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.Pediatric_Permission_Completion_Count__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 595,
+          "expression": "pediatric_permission_completion_count_indicator",
+          "branches": [
+            {
+              "rule_id": "count_completed_active_pediatric_permission",
+              "output_fields": [
+                "Account.Pediatric_Permission_Completion_Count__pc"
+              ],
+              "source_entities": [
+                "Account.Pediatric_Permission_Completion_Count__pc"
+              ],
+              "workbook_rows": [
+                595
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "pediatric_permission_completion_count_indicator",
+          "target_field": "Account.Pediatric_Permission_Completion_Count__pc",
+          "description": "Pediatric permission completion count",
+          "source_entities": [
+            "Account.Pediatric_Permission_Completion_Count__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.Pediatric_Permission_Completion_Count__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__X0_6_Peds_Permission_Count__pc",
+        "column_B": "expected__X0_6_Peds_Permission_Count__pc"
+      },
+      "meta": {
+        "check_id": "observed_X0_6_Peds_Permission_Count__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.X0_6_Peds_Permission_Count__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 622,
+          "expression": "x0_6_peds_permission_count_indicator",
+          "branches": [
+            {
+              "rule_id": "count_active_permission_ages_zero_to_six",
+              "output_fields": [
+                "Account.X0_6_Peds_Permission_Count__pc"
+              ],
+              "source_entities": [
+                "Account.X0_6_Peds_Permission_Count__pc"
+              ],
+              "workbook_rows": [
+                622
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "x0_6_peds_permission_count_indicator",
+          "target_field": "Account.X0_6_Peds_Permission_Count__pc",
+          "description": "X0 6 peds permission count",
+          "source_entities": [
+            "Account.X0_6_Peds_Permission_Count__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.X0_6_Peds_Permission_Count__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__X0_6_Peds_Permission_Declined_Count__pc",
+        "column_B": "expected__X0_6_Peds_Permission_Declined_Count__pc"
+      },
+      "meta": {
+        "check_id": "observed_X0_6_Peds_Permission_Declined_Count__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.X0_6_Peds_Permission_Declined_Count__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 623,
+          "expression": "x0_6_peds_permission_declined_count_indicator",
+          "branches": [
+            {
+              "rule_id": "count_declined_permission_ages_zero_to_six",
+              "output_fields": [
+                "Account.X0_6_Peds_Permission_Declined_Count__pc"
+              ],
+              "source_entities": [
+                "Account.X0_6_Peds_Permission_Declined_Count__pc"
+              ],
+              "workbook_rows": [
+                623
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "x0_6_peds_permission_declined_count_indicator",
+          "target_field": "Account.X0_6_Peds_Permission_Declined_Count__pc",
+          "description": "X0 6 peds permission declined count",
+          "source_entities": [
+            "Account.X0_6_Peds_Permission_Declined_Count__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.X0_6_Peds_Permission_Declined_Count__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__X0_6_Peds_Permission_Revoked_Count__pc",
+        "column_B": "expected__X0_6_Peds_Permission_Revoked_Count__pc"
+      },
+      "meta": {
+        "check_id": "observed_X0_6_Peds_Permission_Revoked_Count__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.X0_6_Peds_Permission_Revoked_Count__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 624,
+          "expression": "x0_6_peds_permission_revoked_count_indicator",
+          "branches": [
+            {
+              "rule_id": "count_revoked_permission_ages_zero_to_six",
+              "output_fields": [
+                "Account.X0_6_Peds_Permission_Revoked_Count__pc"
+              ],
+              "source_entities": [
+                "Account.X0_6_Peds_Permission_Revoked_Count__pc"
+              ],
+              "workbook_rows": [
+                624
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "x0_6_peds_permission_revoked_count_indicator",
+          "target_field": "Account.X0_6_Peds_Permission_Revoked_Count__pc",
+          "description": "X0 6 peds permission revoked count",
+          "source_entities": [
+            "Account.X0_6_Peds_Permission_Revoked_Count__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.X0_6_Peds_Permission_Revoked_Count__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    },
+    {
+      "type": "expect_column_pair_values_to_be_equal",
+      "kwargs": {
+        "column_A": "observed__EHR_Pediatric_Complete__pc",
+        "column_B": "expected__EHR_Pediatric_Complete__pc"
+      },
+      "meta": {
+        "check_id": "observed_EHR_Pediatric_Complete__pc_equals_expected_rollup",
+        "ppsc": {
+          "source_entity": "Account.EHR_Pediatric_Complete__pc",
+          "workbook_tab": "datamodel-Fields",
+          "workbook_row": 626,
+          "expression": "ehr_pediatric_complete_indicator",
+          "branches": [
+            {
+              "rule_id": "count_completed_active_pediatric_ehr_consent",
+              "output_fields": [
+                "Account.EHR_Pediatric_Complete__pc"
+              ],
+              "source_entities": [
+                "Account.EHR_Pediatric_Complete__pc"
+              ],
+              "workbook_rows": [
+                626
+              ],
+              "entity_type": "AccountRollup",
+              "workbook_tab": "datamodel-Fields"
+            }
+          ],
+          "entity_type": "AccountRollup",
+          "rule_id": "ehr_pediatric_complete_indicator",
+          "target_field": "Account.EHR_Pediatric_Complete__pc",
+          "description": "Ehr pediatric complete",
+          "source_entities": [
+            "Account.EHR_Pediatric_Complete__pc"
+          ]
+        }
+      },
+      "description": "Observed Account.EHR_Pediatric_Complete__pc equals its expected survey rollup count.",
+      "severity": "critical"
+    }
+  ],
+  "meta": {
+    "grain": "person_account",
+    "state": "same current snapshot for all inputs",
+    "great_expectations_version": "1.24.0"
+  },
+  "notes": null
+}

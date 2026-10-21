@@ -1,0 +1,4 @@
+interface:
+  display_name: "Author Data Quality Checks"
+  short_description: "Author native GX checks from traceable source evidence"
+  default_prompt: "Use $author-data-quality-checks to add a reviewed operational check with meaningful fixtures."

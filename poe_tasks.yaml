@@ -1,0 +1,16 @@
+tasks:
+  inspect:
+    cmd: ppsc-dq-inspect
+    help: Discover or inspect Athena sources.
+  validate:
+    cmd: ppsc-dq
+    help: Preview or run the pilot data quality suites.
+  test:
+    cmd: pytest
+    help: Run synthetic local tests.
+  check:
+    help: Check lint, formatting, and local behavior.
+    sequence:
+      - cmd: ruff check .
+      - cmd: ruff format --check .
+      - ref: test

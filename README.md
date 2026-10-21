@@ -41,7 +41,7 @@ Create one file under the existing subject, for example
 ```sql
 -- A populated Account reference must resolve in the selected Account state.
 -- Investigate parent coverage, load completeness, and effective timing.
-SELECT * FROM {batch}
+SELECT * FROM batch
 WHERE account_id IS NOT NULL
   AND TRIM(account_id) <> ''
   AND matching_account_versions = 0
@@ -49,17 +49,20 @@ WHERE account_id IS NOT NULL
 
 The file defines one check. Return failing rows; zero rows passes. The filename
 becomes the stable rule ID (`account_contact_relation_to_account.parent.exists`).
-Comments supply the explanation in Data Docs. Adding a file to an existing subject
-needs no Python edit or registration. Keep provenance and assumptions in its
+Opening `--` comments supply the explanation in Data Docs. Adding a file to an
+existing subject needs no Python edit or registration. Keep provenance and assumptions in its
 comments; accepted source evidence belongs in `docs/sources.md`.
 
 Each subject keeps its Python module for native structural validation, and adds a
 sibling directory of SQL files. All nine existing identity/reference checks use
 this format. The loader uses native `UnexpectedRowsExpectation` for full counts
 and bounded diagnostic samples. A trailing semicolon and CTEs are supported.
+There are no author-facing template placeholders: aliases, JSON, and literal
+braces use normal SQL syntax. Shared source evidence and population assumptions
+live once in suite metadata; rule descriptions and evidence live in SQL comments.
 
-Use `{batch}` for the subject population. Cross-table checks can also join
-`account_state` and `account_contact_relation_state` directly:
+Use the ordinary SQL table name `batch` for the subject population. Cross-table
+checks can also join `account_state` and `account_contact_relation_state` directly:
 
 ```sql
 -- Find populated ACR references absent from the selected Account state.
@@ -72,13 +75,14 @@ WHERE child.account_id IS NOT NULL AND TRIM(child.account_id) <> ''
 ```
 
 The runner supplies both relations using the same effective selection and pinned
-physical snapshot. Do not name physical tables in checks: that bypasses population
-selection. Unknown relations, multiple statements, and writes fail the preview.
+physical snapshot. The loader substitutes only table references with selected
+subqueries, preserving your CTE dependencies and aliases. Physical table names
+bypass population selection and are rejected. Unknown relations, multiple statements, and writes fail the preview.
 This validates the authoring contract, not a SQL security sandbox; author only
 trusted queries. Never use `LIMIT` to cap a check's total findings.
 
-Run the documented dry run to inspect the generated batch SQL and suite JSON,
-then `uv run poe check`. Tests establish the nine initial checks with synthetic
+Run the documented dry run to inspect the generated batch SQL and native GX suite
+JSON, then `uv run poe check`. Tests establish the nine initial checks with synthetic
 passing/failing rows. A new rule still needs fixtures for its own contract.
 
 ## Configure and inspect Athena
@@ -175,9 +179,10 @@ Keep real outputs, Data Docs, and local configuration out of Git and public CI.
 | Path | Responsibility |
 | --- | --- |
 | `config.py` | One YAML configuration and explicit physical bindings. |
-| `athena.py` | Connection settings, inspection, snapshot-bound sources, and SQL compilation. |
+| `athena.py` | Connection settings, inspection, and snapshot-bound sources. |
 | `batches.py` | Shared SQL state selectors and relationship queries. |
-| `gx/<subject>.py` | Native structural suites and one failing-row check per `.sql` file. |
+| `gx/<subject>.py` | Columns and assumptions; shared construction lives in `gx/__init__.py`. |
+| `gx/<subject>/*.sql` | One failing-row SELECT per check; filenames are stable rule IDs. |
 | `run.py` | Explicit suite selection, execution, results, and Data Docs. |
 | `tests/` | Synthetic DuckDB behavior and native GX/result checks. |
 | [Sources](docs/sources.md) | Reviewed evidence, assumptions, and unresolved rule candidates. |

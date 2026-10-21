@@ -2,4 +2,4 @@
 -- Source: docs/sources.md (pilot contract; not yet live acceptance).
 -- Duplicate parents make one child reference ambiguous.
 -- Inspect duplicate Accounts and effective interval overlaps.
-SELECT * FROM {batch} WHERE account_id IS NOT NULL AND TRIM(account_id) <> '' AND matching_account_versions > 1
+SELECT * FROM batch WHERE account_id IS NOT NULL AND TRIM(account_id) <> '' AND matching_account_versions > 1

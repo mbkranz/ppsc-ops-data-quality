@@ -1,32 +1,11 @@
-"""Account identity in the explicitly selected state."""
+"""Account identity in the selected state."""
 
-import great_expectations as gx
-
-from . import sql_expectations
-
-_EVIDENCE = {
-    "sources": [{"kind": "pilot_contract", "path": "docs/sources.md"}],
-    "assumptions": ["The batch represents one declared Account state."],
-}
+from . import make_suite
 
 
-def build_suite(relations: dict[str, str] | None = None) -> gx.ExpectationSuite:
-    """Keep structural validation native; discover one SQL check per file."""
-    return gx.ExpectationSuite(
-        name="account",
-        expectations=[
-            gx.expectations.ExpectTableColumnsToMatchSet(
-                column_set=["id", "valid_from", "valid_to", "is_current", "loaded_at"],
-                exact_match=False,
-                description="The Account batch includes its identity and temporal columns.",
-                meta={
-                    **_EVIDENCE,
-                    "rule_id": "account.columns",
-                    "rationale": "The selected batch must expose the fields its checks use.",
-                    "violation_grain": "batch",
-                    "investigation": "Compare the batch projection with the verified bindings.",
-                },
-            ),
-            *sql_expectations("account", relations),
-        ],
+def build_suite(relations: dict[str, str] | None = None):
+    return make_suite(
+        "account",
+        ["id", "valid_from", "valid_to", "is_current", "loaded_at"],
+        relations,
     )

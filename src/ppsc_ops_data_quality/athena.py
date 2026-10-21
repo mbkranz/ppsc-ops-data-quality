@@ -89,7 +89,6 @@ def inspect_tables(
                         {
                             "name": column["name"],
                             "type": str(column["type"]),
-                            "declared_type": str(column["type"]),
                         }
                         for column in columns
                     ]
@@ -126,10 +125,7 @@ def check_physical_schema(config: Config, report: dict) -> None:
         if "error" in entry:
             problems.append(f"{subject}: {entry['error']}")
             continue
-        actual = {
-            column["name"]: data_type(column["declared_type"])
-            for column in entry.get("columns", [])
-        }
+        actual = {column["name"]: data_type(column["type"]) for column in entry.get("columns", [])}
         for alias, column in binding.columns.items():
             if column.name not in actual:
                 problems.append(f"{subject}.{alias}: physical column {column.name!r} is missing")

@@ -1,8 +1,20 @@
-# Alternative implementation: one SQL check per file
+# Alternative implementation: simpler SQL check authoring
 
-Prepared October 20, 2026. This branch is an independent alternative to PR #1,
-based on its implementation at `d0add86`. Choose one implementation; do not merge
-both alternatives together. The initial Ibis plan is preserved in PR #1 history.
+Prepared October 20, 2026. This branch is an independent alternative to PR #3,
+based on its head `9b95662`. The original PR stays unchanged. Choose one
+implementation rather than merging both alternatives into main.
+
+## Review of PR #3
+
+| Finding | Evidence and effect | Change |
+| --- | --- | --- |
+| SQL text substitution changes literals | `WHERE id = '{batch}'` is silently compiled as `WHERE id = '__dq_batch'`. Literal braces also collide with GX string formatting. | Author `FROM batch` as normal SQL; bind table nodes and handle native GX/SQLAlchemy formatting internally. |
+| Injected CTEs can follow their consumers | `WITH selected AS (SELECT * FROM account_state) SELECT * FROM selected` puts `account_state` after `selected`; a local DuckDB execution fails with a missing-table error. | Inline the selected relation at the external table node; preserve authored CTE order and scope. |
+| Repeated suite and rule metadata obscures authoring | Three modules repeat structural-suite setup; rule metadata copies the entire description into a generic rationale. | One shared suite builder, compact subject modules, shared suite evidence, authored SQL descriptions. |
+| Inspection stores the same type twice | Every column repeats identical `type` and `declared_type` strings. | Keep `type` as the single physical schema field. |
+
+The review reproduced the first two failures before implementation. Regression
+fixtures exercise native GX execution, rather than checking only generated text.
 
 ## Design study before implementation
 
@@ -22,8 +34,8 @@ model materialization, deployment, scheduling, or state-management machinery.
 
 1. Preserve configuration, data access, batch selection, subject suites, and runner
    separation, plus all operational population semantics.
-2. Replace Ibis with the branch's authoring approach. Use SQLGlot SQL types for
-   declarations and physical schema preflight; never cast bad data into compliance.
+2. Replace placeholder substitution and CTE injection with table-node binding.
+   Retain SQLGlot type checks and physical preflight without coercing input data.
 3. Keep an explicit list of three subject populations in `run.py`. Reuse the
    existing GX validation/reporting path and existing Poe commands.
 4. Verify exact selected row identities, half-open date/timestamp boundaries,
@@ -34,23 +46,26 @@ model materialization, deployment, scheduling, or state-management machinery.
 
 ### SQL-file alternative
 
-Keep `config.py`, `athena.py`, `batches.py`, `run.py`, and all three `gx/<subject>.py`
-modules. Add only sibling `gx/<subject>/*.sql` files and a shared loader in the
-existing `gx/__init__.py`. Retain native structural expectations; represent all
-nine identity/reference predicates as one failing-row query per file.
+Keep `config.py`, `athena.py`, `batches.py`, `run.py`, and all three
+`gx/<subject>.py` modules. The subject modules supply columns and assumptions to
+one shared native suite builder in the existing `gx/__init__.py`. Each of the nine
+identity/reference checks remains in its own `gx/<subject>/*.sql` file.
 
-Use `{batch}` for the selected subject and named `account_state` /
-`account_contact_relation_state` relations for joins. The runner supplies the
-selected relation SQL. The loader adds only used relations as CTEs, rejects
-unknown/physical relations and multiple/nonquery statements, and constructs native
-GX unexpected-row expectations. File paths provide stable rule identities; SQL
-comments provide human explanations and evidence. No macro language or sidecar
-configuration is required. New files in an existing subject are discovered in
-sorted order, without editing Python or an explicit list of rules.
+Author `FROM batch` for the selected subject. Join `account_state` and
+`account_contact_relation_state` for cross-table checks. The loader binds external
+table references to selected subqueries, preserving local CTE scope and aliases.
+It constructs native GX unexpected-row expectations and rejects unknown/physical
+relations, multiple/nonquery statements, and top-level limits.
 
-`batches.py` uses short SQL functions. Remove Ibis and avoid adding Narwhals or
-DuckDB to production dependencies for this alternative. DuckDB is for tests only.
-Narwhals can still be present transitively through GX reporting dependencies.
+File paths supply stable rule identities. Opening SQL comments supply explanations
+and rule evidence. Shared sources and population assumptions live once in native
+suite metadata. There is no macro language, sidecar configuration, or registration
+step for a new check in an existing subject.
+
+`batches.py` retains short SQL functions. Dependencies are unchanged from PR #3;
+DuckDB remains a development dependency. GX formatting and SQLAlchemy escaping
+are handled at the loader boundary so SQL authors can write literal braces and
+JSON normally.
 
 ## Preserved contracts and acceptance
 

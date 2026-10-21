@@ -3,4 +3,4 @@
 -- An absent identifier prevents reliable record linkage.
 -- selected Account row
 -- Inspect the source identifier and its extraction mapping.
-SELECT * FROM {batch} WHERE id IS NULL
+SELECT * FROM batch WHERE id IS NULL

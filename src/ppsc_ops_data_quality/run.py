@@ -28,8 +28,7 @@ from .batches import account_reference_counts, current_state, state_at
 from .config import Config, load_config, validate_bindings, validate_config
 from .gx import account, account_contact_relation, account_contact_relation_to_account
 
-# The pinned GX SQL providers cap returned diagnostic records. Tests cover both
-# SQL integrity checks with >200 failures.
+# Keep full failure counts while bounding diagnostic samples.
 RESULT_FORMAT = {
     "result_format": "COMPLETE",
     "partial_unexpected_count": 200,
@@ -49,7 +48,7 @@ def build_queries(config: Config, as_of: date | None, lake_as_of: datetime) -> l
         acr_state = state_at(acr_history, as_of)
     relationship = account_reference_counts(acr_state, account_state)
     relations = {"account_state": account_state, "account_contact_relation_state": acr_state}
-    selected = [
+    return [
         ("account", account_state, account.build_suite(relations)),
         ("account_contact_relation", acr_state, account_contact_relation.build_suite(relations)),
         (
@@ -58,7 +57,6 @@ def build_queries(config: Config, as_of: date | None, lake_as_of: datetime) -> l
             account_contact_relation_to_account.build_suite(relations),
         ),
     ]
-    return selected
 
 
 def write_json(path: Path, value: dict) -> None:

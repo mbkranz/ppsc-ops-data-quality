@@ -42,7 +42,7 @@ def schema_report(athena_config):
             subject: {
                 "name": binding.name,
                 "columns": [
-                    {"name": column.name, "declared_type": column.type}
+                    {"name": column.name, "type": column.type}
                     for column in binding.columns.values()
                 ],
             }
@@ -165,7 +165,7 @@ def test_preflight_does_not_substitute_canonical_aliases_for_physical_names(
 
 
 def test_preflight_rejects_incorrect_physical_types_before_projection(athena_config, schema_report):
-    schema_report["tables"]["account"]["columns"][0]["declared_type"] = "int64"
+    schema_report["tables"]["account"]["columns"][0]["type"] = "int64"
 
     with pytest.raises(ValueError, match="account.id: expected TEXT, found BIGINT"):
         athena.check_physical_schema(athena_config, schema_report)
@@ -181,7 +181,7 @@ def test_preflight_preserves_inspection_errors(athena_config, schema_report):
 def test_preflight_allows_unreported_timestamp_precision(athena_config, schema_report):
     for column in schema_report["tables"]["account"]["columns"]:
         if column["name"] == "loaded_at":
-            column["declared_type"] = "timestamp(6)"
+            column["type"] = "timestamp(6)"
 
     athena.check_physical_schema(athena_config, schema_report)
 
@@ -195,7 +195,7 @@ def test_preflight_rejects_reported_timestamp_precision_mismatch(athena_config, 
     config = replace(athena_config, tables={**athena_config.tables, "account": account})
     for column in schema_report["tables"]["account"]["columns"]:
         if column["name"] == "loaded_at":
-            column["declared_type"] = "timestamp(3)"
+            column["type"] = "timestamp(3)"
 
     with pytest.raises(ValueError, match="expected TIMESTAMP"):
         athena.check_physical_schema(config, schema_report)

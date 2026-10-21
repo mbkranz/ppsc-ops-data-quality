@@ -67,13 +67,13 @@ def test_native_suite_json_round_trip_preserves_rule_evidence(builder):
     original = builder().to_json_dict()
     restored = gx.ExpectationSuite(**json.loads(json.dumps(original)))
     assert restored.to_json_dict() == original
+    assert restored.meta["sources"]
+    assert restored.meta["assumptions"]
     for expectation in restored.expectations:
         assert expectation.description
         assert expectation.meta["rule_id"]
-        assert expectation.meta["rationale"]
-        assert expectation.meta["sources"]
-        assert expectation.meta["assumptions"]
-        assert expectation.meta["investigation"]
+        if expectation.expectation_type == "unexpected_rows_expectation":
+            assert expectation.meta["sql_file"]
 
 
 @pytest.mark.parametrize("subject", [account, account_contact_relation])
@@ -200,27 +200,27 @@ def test_sql_files_discover_in_order_with_stable_ids_and_comments(sql_check_dire
 
     for name in ("b", "a"):
         (sql_check_directory / f"{name}.sql").write_text(
-            f"-- Explain {name}.\nWITH selected AS (SELECT * FROM {{batch}}) "
+            f"-- Explain {name}.\nWITH selected AS (SELECT * FROM batch) "
             "SELECT * FROM selected WHERE id IS NULL;\n"
         )
     checks = sql_expectations("custom")
     assert [check.meta["rule_id"] for check in checks] == ["custom.a", "custom.b"]
     assert "Explain a." in checks[0].description
-    assert "{batch}" in checks[0].unexpected_rows_query
+    assert "batch" in checks[0].unexpected_rows_query
 
 
 @pytest.mark.parametrize(
     "sql",
     [
         "-- no query",
-        "SELECT * FROM {batch}; SELECT * FROM {batch}",
-        "DELETE FROM {batch}",
-        "SELECT * INTO output_table FROM {batch}",
+        "SELECT * FROM batch; SELECT * FROM batch",
+        "DELETE FROM batch",
+        "SELECT * INTO output_table FROM batch",
         "SELECT * FROM production.account",
         "SELECT * FROM unselected_account",
         "SELECT 1",
-        "SELECT * FROM {batch} LIMIT 1",
-        "SELECT * FROM {batch} WHERE (",
+        "SELECT * FROM batch LIMIT 1",
+        "SELECT * FROM batch WHERE (",
     ],
 )
 def test_invalid_sql_files_fail_authoring_with_filename(sql_check_directory, sql):
@@ -264,3 +264,88 @@ def test_cross_table_sql_uses_selected_relations_and_native_gx(tmp_path, sql_che
     finding = by_rule(result)["custom.parent.exists"].result
     assert finding["observed_value"] == 1
     assert finding["details"]["unexpected_rows"] == [{"id": "missing", "account_id": "absent"}]
+
+
+@pytest.mark.parametrize("identifier", ["{batch}", '{"key":1}', "x{3}", "{}", "__gx_batch__"])
+def test_sql_literals_survive_binding_and_native_gx_formatting(
+    tmp_path, sql_check_directory, identifier
+):
+    from ppsc_ops_data_quality.gx import sql_expectations
+
+    (sql_check_directory / "literal.sql").write_text(
+        f"SELECT batch.* FROM batch WHERE batch.id = '{identifier}'"
+    )
+    suite = gx.ExpectationSuite(name="literals", expectations=sql_expectations("custom"))
+    result = validate_rows(tmp_path, suite, {"id": "TEXT"}, [(identifier,), ("other",)])
+    finding = by_rule(result)["custom.literal"].result
+    assert finding["observed_value"] == 1
+    assert finding["details"]["unexpected_rows"] == [{"id": identifier}]
+
+
+def test_authored_cte_can_consume_a_selected_population(tmp_path, sql_check_directory):
+    from ppsc_ops_data_quality.gx import sql_expectations
+
+    (sql_check_directory / "parent.exists.sql").write_text(
+        "WITH selected AS (SELECT * FROM account_contact_relation_state) "
+        "SELECT child.* FROM selected AS child WHERE NOT EXISTS "
+        "(SELECT 1 FROM account_state AS parent WHERE parent.id = child.account_id)"
+    )
+    suite = gx.ExpectationSuite(
+        name="cte",
+        expectations=sql_expectations(
+            "custom",
+            {
+                "account_state": "SELECT 'parent' AS id",
+                "account_contact_relation_state": "SELECT * FROM fixture",
+            },
+        ),
+    )
+    result = validate_rows(
+        tmp_path,
+        suite,
+        {"id": "TEXT", "account_id": "TEXT"},
+        [("valid", "parent"), ("missing", "absent")],
+    )
+    finding = by_rule(result)["custom.parent.exists"].result
+    assert finding["observed_value"] == 1
+    assert finding["details"]["unexpected_rows"] == [{"id": "missing", "account_id": "absent"}]
+
+
+def test_qualified_batch_alias_works_in_a_join(tmp_path, sql_check_directory):
+    from ppsc_ops_data_quality.gx import sql_expectations
+
+    (sql_check_directory / "joined.sql").write_text(
+        "SELECT child.* FROM batch AS child LEFT JOIN account_state AS parent "
+        "ON child.account_id = parent.id WHERE parent.id IS NULL"
+    )
+    suite = gx.ExpectationSuite(
+        name="joined",
+        expectations=sql_expectations("custom", {"account_state": "SELECT 'parent' AS id"}),
+    )
+    result = validate_rows(
+        tmp_path,
+        suite,
+        {"id": "TEXT", "account_id": "TEXT"},
+        [("valid", "parent"), ("missing", "absent")],
+    )
+    finding = by_rule(result)["custom.joined"].result
+    assert finding["observed_value"] == 1
+    assert finding["details"]["unexpected_rows"] == [{"id": "missing", "account_id": "absent"}]
+
+
+def test_local_cte_shadows_a_selected_population_without_being_rewritten(
+    tmp_path, sql_check_directory
+):
+    from ppsc_ops_data_quality.gx import sql_expectations
+
+    (sql_check_directory / "local.sql").write_text(
+        "WITH account_state AS (SELECT 'local' AS id) "
+        "SELECT b.* FROM batch AS b WHERE EXISTS "
+        "(SELECT 1 FROM account_state AS parent WHERE parent.id = b.id)"
+    )
+    suite = gx.ExpectationSuite(
+        name="local",
+        expectations=sql_expectations("custom", {"account_state": "SELECT 'remote' AS id"}),
+    )
+    result = validate_rows(tmp_path, suite, {"id": "TEXT"}, [("local",), ("remote",)])
+    assert by_rule(result)["custom.local"].result["details"]["unexpected_rows"] == [{"id": "local"}]

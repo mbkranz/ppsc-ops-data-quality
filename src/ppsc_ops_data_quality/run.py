@@ -24,9 +24,9 @@ from .athena import (
     source_table,
     sqlalchemy_url,
 )
-from .batches import account_reference_counts, current_state, state_at
+from .batches import current_state, state_at, survey_result_account_counts
 from .config import Config, load_config, validate_bindings, validate_config
-from .gx import account, account_contact_relation, account_contact_relation_to_account
+from .gx import account, survey_result, survey_result_to_account
 
 # Keep full failure counts while bounding diagnostic samples.
 RESULT_FORMAT = {
@@ -38,24 +38,18 @@ RESULT_FORMAT = {
 
 def build_queries(config: Config, as_of: date | None, lake_as_of: datetime) -> list[tuple]:
     """Keep the complete runtime selection visible in one place."""
-    account_history = source_table(config.tables["account"], lake_as_of)
-    acr_history = source_table(config.tables["account_contact_relation"], lake_as_of)
-    if as_of is None:
-        account_state = current_state(account_history)
-        acr_state = current_state(acr_history)
-    else:
-        account_state = state_at(account_history, as_of)
-        acr_state = state_at(acr_history, as_of)
-    relationship = account_reference_counts(acr_state, account_state)
-    relations = {"account_state": account_state, "account_contact_relation_state": acr_state}
+    states = {}
+    for subject in ("account", "contact", "survey_result"):
+        history = source_table(config.tables[subject], lake_as_of)
+        states[subject] = current_state(history) if as_of is None else state_at(history, as_of)
+    relationship = survey_result_account_counts(
+        states["survey_result"], states["contact"], states["account"]
+    )
+    relations = {f"{subject}_state": query for subject, query in states.items()}
     return [
-        ("account", account_state, account.build_suite(relations)),
-        ("account_contact_relation", acr_state, account_contact_relation.build_suite(relations)),
-        (
-            "account_contact_relation_to_account",
-            relationship,
-            account_contact_relation_to_account.build_suite(relations),
-        ),
+        ("account", states["account"], account.build_suite(relations)),
+        ("survey_result", states["survey_result"], survey_result.build_suite(relations)),
+        ("survey_result_to_account", relationship, survey_result_to_account.build_suite(relations)),
     ]
 
 
@@ -190,7 +184,9 @@ def code_identity() -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate Account and ACR state in Athena")
+    parser = argparse.ArgumentParser(
+        description="Validate Survey Result to Account integrity in Athena"
+    )
     parser.add_argument("--config", default="params.local.yaml")
     population = parser.add_mutually_exclusive_group(required=True)
     population.add_argument("--as-of", type=date.fromisoformat, help="Effective date (YYYY-MM-DD)")

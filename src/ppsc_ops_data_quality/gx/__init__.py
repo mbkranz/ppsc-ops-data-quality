@@ -1,5 +1,6 @@
 """One native structural check plus the subject's failing-row SQL files."""
 
+import re
 from importlib.resources import files
 
 import great_expectations as gx
@@ -58,6 +59,8 @@ def sql_expectations(subject: str, relations: dict[str, str] | None = None) -> l
             continue
         text = path.read_text(encoding="utf-8")
         label = f"gx/{subject}/{path.name}"
+        if not re.fullmatch(r"expect_[a-z][a-z0-9_]*\.sql", path.name):
+            raise ValueError(f"{label}: name SQL files after expectations: expect_<name>.sql")
         try:
             query = check_query(text, relations or {})
         except (SqlglotError, ValueError) as error:
@@ -72,7 +75,11 @@ def sql_expectations(subject: str, relations: dict[str, str] | None = None) -> l
                 unexpected_rows_query=query,
                 description="\n".join(comments) or path.name,
                 catch_exceptions=True,
-                meta={"rule_id": f"{subject}.{path.name[:-4]}", "sql_file": label},
+                meta={
+                    "expectation_name": path.name[:-4],
+                    "rule_id": f"{subject}.{path.name[:-4]}",
+                    "sql_file": label,
+                },
             )
         )
     if not expectations:

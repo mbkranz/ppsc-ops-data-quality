@@ -8,54 +8,64 @@ import great_expectations as gx
 import pytest
 
 from ppsc_ops_data_quality import run
+from ppsc_ops_data_quality.batches import survey_result_account_counts
 from ppsc_ops_data_quality.gx import (
     account,
-    account_contact_relation,
-    account_contact_relation_to_account,
+    survey_result,
+    survey_result_to_account,
 )
 
 CONFIG = Path(__file__).resolve().parents[1] / "params.yaml"
 
 
-def fixture_connection(tmp_path, children):
-    """The batch-function tests separately establish how parent counts are built."""
+def fixture_connection(tmp_path, surveys):
     database = tmp_path / "run_fixture.sqlite"
     with sqlite3.connect(database) as connection:
         connection.executescript(
             "CREATE TABLE account (id TEXT, valid_from TEXT, valid_to TEXT, "
             "is_current INTEGER, loaded_at TEXT);"
-            "CREATE TABLE acr (id TEXT, valid_from TEXT, valid_to TEXT, "
-            "is_current INTEGER, loaded_at TEXT, account_id TEXT, "
-            "matching_account_versions INTEGER);"
+            "CREATE TABLE contact (id TEXT, account_id TEXT);"
+            "CREATE TABLE survey (id TEXT, valid_from TEXT, valid_to TEXT, "
+            "is_current INTEGER, loaded_at TEXT, participant_id TEXT);"
         )
         connection.execute(
             "INSERT INTO account VALUES (?, ?, ?, ?, ?)",
             ("parent", "2020-01-01", None, 1, "2026-01-01"),
         )
         connection.executemany(
-            "INSERT INTO acr VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO contact VALUES (?, ?)",
+            [("participant", "parent"), ("missing-account", "absent")],
+        )
+        connection.executemany(
+            "INSERT INTO survey VALUES (?, ?, ?, ?, ?, ?)",
             [
-                (identifier, "2020-01-01", None, 1, "2026-01-01", reference, count)
-                for identifier, reference, count in children
+                (identifier, "2020-01-01", None, 1, "2026-01-01", reference)
+                for identifier, reference in surveys
             ],
         )
     return f"sqlite:///{database}"
 
 
+def relationship_query():
+    return survey_result_account_counts(
+        "SELECT * FROM survey", "SELECT * FROM contact", "SELECT * FROM account"
+    )
+
+
 @pytest.mark.parametrize("missing_parents", [0, 205])
 def test_native_validation_run_saves_results_and_data_docs(tmp_path, missing_parents):
-    children = [("valid", "parent", 1)]
-    children += [(f"missing-{number}", "absent", 0) for number in range(missing_parents)]
+    children = [("valid", "participant")]
+    children += [(f"missing-{number}", "missing-account") for number in range(missing_parents)]
     connection = fixture_connection(tmp_path, children)
     output = tmp_path / "output"
     output.mkdir()
     queries = [
         ("account", "SELECT * FROM account", account.build_suite()),
-        ("account_contact_relation", "SELECT * FROM acr", account_contact_relation.build_suite()),
+        ("survey_result", "SELECT * FROM survey", survey_result.build_suite()),
         (
-            "account_contact_relation_to_account",
-            "SELECT * FROM acr",
-            account_contact_relation_to_account.build_suite(),
+            "survey_result_to_account",
+            relationship_query(),
+            survey_result_to_account.build_suite(),
         ),
     ]
 
@@ -76,14 +86,14 @@ def test_native_validation_run_saves_results_and_data_docs(tmp_path, missing_par
     finding = next(
         rule
         for rule in relationship["rules"]
-        if rule["rule_id"] == "account_contact_relation_to_account.parent.exists"
+        if rule["rule_id"] == "survey_result_to_account.expect_survey_result_account_to_exist"
     )
     assert finding["unexpected_count"] == missing_parents
     assert finding["sample_count"] == min(missing_parents, 200)
 
 
 def test_execution_error_takes_precedence_over_an_ordinary_data_failure(tmp_path):
-    connection = fixture_connection(tmp_path, [("missing", "absent", 0)])
+    connection = fixture_connection(tmp_path, [("missing", "missing-account")])
     output = tmp_path / "mixed"
     output.mkdir()
     broken = gx.ExpectationSuite(
@@ -100,8 +110,8 @@ def test_execution_error_takes_precedence_over_an_ordinary_data_failure(tmp_path
         [
             (
                 "data_failure",
-                "SELECT * FROM acr",
-                account_contact_relation_to_account.build_suite(),
+                relationship_query(),
+                survey_result_to_account.build_suite(),
             ),
             ("execution_error", "SELECT * FROM account", broken),
         ],
@@ -167,12 +177,12 @@ def test_dry_run_writes_only_preview_artifacts_without_live_calls(
     assert record["load_completion_status"] == "unresolved"
     assert record["run_id"] == summary["run_id"] == output.name
     assert summary["assets"] == summary["errors"] == []
-    names = {"account", "account_contact_relation", "account_contact_relation_to_account"}
+    names = {"account", "survey_result", "survey_result_to_account"}
     assert {path.stem for path in (output / "sql").glob("*.sql")} == names
     assert {path.stem for path in (output / "suites").glob("*.json")} == names
     for path in (output / "sql").glob("*.sql"):
         sql = path.read_text()
-        expected_sources = 2 if path.stem == "account_contact_relation_to_account" else 1
+        expected_sources = 3 if path.stem == "survey_result_to_account" else 1
         assert sql.count("FOR TIMESTAMP AS OF") == expected_sources
     for path in (output / "suites").glob("*.json"):
         assert gx.ExpectationSuite(**json.loads(path.read_text())).expectations
@@ -195,3 +205,50 @@ def test_cli_requires_exactly_one_population_selection(tmp_path, selection):
         )
     assert error.value.code == 2
     assert not (tmp_path / "unused").exists()
+
+
+def test_real_join_reports_duplicate_hops_without_rejecting_multiple_surveys(tmp_path):
+    surveys = [
+        ("first", "participant"),
+        ("second", "participant"),
+        ("duplicate-contact", "duplicate-contact"),
+        ("duplicate-account", "contact-with-duplicate-account"),
+    ]
+    connection = fixture_connection(tmp_path, surveys)
+    with sqlite3.connect(connection.removeprefix("sqlite:///")) as database:
+        database.executemany(
+            "INSERT INTO account VALUES (?, ?, ?, ?, ?)",
+            [("duplicate-account", "2020-01-01", None, 1, "2026-01-01")] * 2,
+        )
+        database.executemany(
+            "INSERT INTO contact VALUES (?, ?)",
+            [
+                ("duplicate-contact", "parent"),
+                ("duplicate-contact", "parent"),
+                ("contact-with-duplicate-account", "duplicate-account"),
+            ],
+        )
+    output = tmp_path / "duplicate-hops"
+    output.mkdir()
+    summary = run.run_validations(
+        [
+            (
+                "survey_result_to_account",
+                relationship_query(),
+                survey_result_to_account.build_suite(),
+            )
+        ],
+        connection,
+        output,
+    )
+    assert summary["status"] == "fail"
+    findings = {r["rule_id"].rsplit(".", 1)[-1]: r for r in summary["assets"][0]["rules"]}
+    assert findings["expect_survey_result_participant_to_be_unique"]["unexpected_count"] == 1
+    assert findings["expect_survey_result_account_to_be_unique"]["unexpected_count"] == 1
+    for name, rule in findings.items():
+        if name not in {
+            "expect_survey_result_participant_to_be_unique",
+            "expect_survey_result_account_to_be_unique",
+            "columns",
+        }:
+            assert rule["unexpected_count"] == 0

@@ -1,8 +1,26 @@
-# Alternative implementation: simpler SQL check authoring
+# Alternative implementation: named Survey Result integrity expectations
 
-Prepared October 20, 2026. This branch is an independent alternative to PR #3,
-based on its head `9b95662`. The original PR stays unchanged. Choose one
-implementation rather than merging both alternatives into main.
+Prepared October 20, 2026. This branch is an independent alternative based on
+PR #4 head `eca389d`. Earlier alternatives remain unchanged.
+
+## Focus and naming
+
+- Use expectation names, in `expect_<name>.sql` files, instead of short dotted
+  labels. The expectation metadata records that name; the subject qualifies the
+  rule ID so the same identity expectation can be reused in different suites.
+- Replace the ACR pilot with Account and Survey Result suites plus
+  `survey_result_to_account`. Contact is the required relationship bridge, not an
+  assumed direct Survey Result AccountId.
+- Use the reviewed `Survey_Result__c.Participant__c → Contact.Id → Contact.AccountId
+  → Account.Id` path. Inspect real lake bindings before live acceptance.
+- Count Account matches before aggregating Contacts, then join to surveys. Keep
+  six expectations, one for each missing-reference/existence/uniqueness question
+  at each hop. Account checks apply only after one Contact resolves.
+- Keep one Survey Result row per finding opportunity, duplicate-parent counts,
+  full-state selection, all three snapshot clauses, native GX reports, and
+  ordinary `FROM batch` SQL. Account-to-survey cardinality is zero-to-many.
+- Test actual relationship SQL through native GX. Its query asset is a leading
+  `SELECT` around the CTE plan, as required by GX's query-asset validator.
 
 ## Review of PR #3
 
@@ -36,11 +54,11 @@ model materialization, deployment, scheduling, or state-management machinery.
    separation, plus all operational population semantics.
 2. Replace placeholder substitution and CTE injection with table-node binding.
    Retain SQLGlot type checks and physical preflight without coercing input data.
-3. Keep an explicit list of three subject populations in `run.py`. Reuse the
+3. Keep an explicit list of three selected sources and three suite/query pairs in `run.py`. Reuse the
    existing GX validation/reporting path and existing Poe commands.
 4. Verify exact selected row identities, half-open date/timestamp boundaries,
    null/blank keys, case/whitespace identity, duplicate/absent parents, repeated
-   children, and current flags on both sides. Verify compiled Athena SQL locally.
+   children, and current flags on all three sources. Verify compiled Athena SQL locally.
 5. Run locked lint/format/tests, the credentials-free preview, and wheel packaging.
    Preserve pending live acceptance and combined-evidence work in the existing docs.
 
@@ -48,11 +66,11 @@ model materialization, deployment, scheduling, or state-management machinery.
 
 Keep `config.py`, `athena.py`, `batches.py`, `run.py`, and all three
 `gx/<subject>.py` modules. The subject modules supply columns and assumptions to
-one shared native suite builder in the existing `gx/__init__.py`. Each of the nine
+one shared native suite builder in the existing `gx/__init__.py`. Each of the twelve
 identity/reference checks remains in its own `gx/<subject>/*.sql` file.
 
 Author `FROM batch` for the selected subject. Join `account_state` and
-`account_contact_relation_state` for cross-table checks. The loader binds external
+`contact_state` and `survey_result_state` for cross-table checks. The loader binds external
 table references to selected subqueries, preserving local CTE scope and aliases.
 It constructs native GX unexpected-row expectations and rejects unknown/physical
 relations, multiple/nonquery statements, and top-level limits.

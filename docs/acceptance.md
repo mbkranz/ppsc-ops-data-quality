@@ -6,9 +6,9 @@ Review date: October 20, 2026.
 
 | Gate | Status |
 | --- | --- |
-| Locked Python 3.12 installation, local tests, and dry run | Verified locally October 20, 2026: 71 tests passed, Ruff lint passed, and 21 Python files passed the format check. The documented dry run completed successfully. |
+| Locked Python 3.12 installation, local tests, and dry run | Verified locally October 20, 2026: 97 tests passed, Ruff lint passed, and 21 Python files passed the format check. The documented dry run completed successfully. |
 | Live GX/PyAthena/Athena compatibility | Pending AWS credentials, workgroup access, and a controlled live run. |
-| Live Account/ACR selection and schema | Pending actual bindings, verified physical types, temporal convention, and a completed delivery. |
+| Live Account/Contact/Survey Result selection and schema | Pending actual bindings, verified physical types, temporal convention, and a completed delivery. |
 | Combined operational and graph evidence | Pending. [Sources](sources.md) identifies a real job check and native Flow evidence; the saved graph subset and rule applicability still need review. |
 | Full history checks | Deferred until the temporal/version/deletion contract is confirmed. There is no history CLI option yet. |
 
@@ -160,15 +160,16 @@ compatibility layer to make the first demonstration appear complete.
 
 ## Pilot acceptance on real lake tables
 
-1. Discover and inspect sources using the README commands. Confirm required
+1. Verify the Contact and Survey Result lake tables and history model, then discover
+   and inspect all three sources using the README commands. Confirm required
    columns and physical types, and inspect available Iceberg snapshot metadata.
 2. Confirm effective interval boundaries and set
    `interval_convention_confirmed: true` for an as-of run. Confirm deletion and
    parent-population assumptions. Record completed-delivery evidence separately
    from the snapshot timestamp.
-3. Run the pilot on that selection. Review Account and ACR state checks and the
-   relationship findings at child-row grain. Verify the SQL uses the intended
-   physical bindings and snapshot on both sources.
+3. Run the pilot on that selection. Review Account and Survey Result state checks and the
+   relationship findings at Survey Result-row grain. Verify the SQL uses the intended
+   physical bindings and snapshot on all three sources.
 4. Inspect native results, summaries, and Data Docs. Confirm that configuration
    and query errors produce exit code 2, data failures produce 1, and a successful
    validation produces 0.

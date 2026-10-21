@@ -3,24 +3,45 @@
 Reviewed October 20, 2026. Source references below identify authoring evidence;
 validation runs the committed Python modules and does not retrieve these sources.
 
-## Pilot contract
+## Survey Result-to-Account pilot contract
 
-The initial Account and AccountContactRelation (ACR) suites implement the authored
-pilot contract in the repository initiation plan:
+The selected suites cover Account identity, Survey Result identity, and Survey
+Result-to-Account referential integrity. The pinned native metadata establishes
+this relationship path:
 
-- Each selected state row has a non-null, nonblank identifier; identifiers are
-  unique within that object's selected state.
-- Each selected ACR row has an Account reference that resolves to exactly one
-  Account row in the corresponding selected state. Missing references, missing
-  parents, and duplicate parents remain distinguishable.
-- Both sides use the same effective-date or current-state selection. The proposed
-  half-open effective interval convention must be confirmed against the lake.
+1. `Survey_Result__c.Participant__c` references `Contact` (catalog field 29).
+2. `Contact.AccountId` references `Account` (catalog field 21).
+3. The saved Survey Completion Flow's Account update filters `Account.Id` against
+   `$Record.Participant__r.AccountId` (recordUpdates/7/filters/0).
 
-These are explicit pilot expectations. They are not represented as checks copied
-from an existing job or automatically inferred from a complete Salesforce graph.
-The cached [AccountContactRelation API reference][acr-reference] confirms the
-meaning of `AccountId`, but it is a platform reference, not the selected org's
-field export or proof of lake-wide referential integrity.
+The catalog is pinned to `ppsc-salesforce` revision
+`e33ffbce97383ead61f4d16f16cc816723e7b907`, blob
+`b7b81d255d94c56bde342b199cc5184be1efee0a`. The Contact AccountId and Survey Result
+Participant__c records were read for this alternative. The Flow evidence below
+provides related investigation context, not a new live-org inspection.
+
+The authored pilot contract requires each selected survey to have a populated
+participant reference, exactly one selected Contact, a populated AccountId on
+that Contact, and exactly one selected Account. Missing references, absent rows,
+and duplicate versions are reported separately at each hop. Account-hop checks
+are evaluated only after one Contact resolves. Several surveys may legitimately
+resolve to the same Account, and an Account may have no surveys.
+
+This required-reference policy is an explicit pilot expectation; the presence of
+a lookup in metadata does not itself establish that it is universally required.
+Confirm applicability, deletion/withdrawal handling, and any exceptions before
+live acceptance. No test, completion-status, or recency exclusions are implicit.
+
+All three sources use the same effective date or current-state selection and
+physical snapshot timestamp. Keep old unchanged records, exact key identity, and
+duplicate-parent counts. Do not replace this path with a direct Survey Result
+AccountId or a PersonContactId assumption.
+
+Actual Contact and Survey Result lake tables, physical columns/types, history
+availability, and interval conventions are not verified. `params.yaml` uses
+illustrative API column names and placeholder table names; inspect and confirm
+all three bindings before live validation. A missing Contact table blocks this
+specific relationship contract rather than being replaced with a guessed key.
 
 ## Reviewed sources
 
@@ -136,7 +157,6 @@ Completion requires:
 
 [lake-project]: https://github.com/mbkranz/ppsc-salesforce/tree/e33ffbce97383ead61f4d16f16cc816723e7b907/projects/apmp-data-lake
 [lineage-guide]: https://github.com/mbkranz/ppsc-salesforce/blob/e33ffbce97383ead61f4d16f16cc816723e7b907/docs/salesforce/lineage.md
-[acr-reference]: https://github.com/mbkranz/ppsc-salesforce/blob/e33ffbce97383ead61f4d16f16cc816723e7b907/.agents/skills/platform-data-and-tooling-api-context-get/assets/enterprise_api/AccountContactRelation.json
 [source-job]: https://github.com/mbkranz/ppsc-calculations/blob/4c4fd6131f6535c94235ad877dd9d734e57bc4c2/glue/scripts/calculations-validate-source-data.py
 [source-rule]: https://github.com/mbkranz/ppsc-calculations/blob/4c4fd6131f6535c94235ad877dd9d734e57bc4c2/glue/scripts/calculations-validate-source-data.py#L105-L164
 [trim-helper]: https://github.com/mbkranz/ppsc-calculations/blob/4c4fd6131f6535c94235ad877dd9d734e57bc4c2/src/ppsc_calculations/calculations_utils.py#L162-L176

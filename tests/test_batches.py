@@ -6,17 +6,13 @@ import pyarrow as pa
 import pytest
 import sqlglot
 
-from ppsc_ops_data_quality.batches import account_reference_counts, current_state, state_at
+from ppsc_ops_data_quality.batches import current_state, state_at, survey_result_account_counts
 
 
 def rows(query, connection):
     sql = sqlglot.transpile(query, read="athena", write="duckdb")[0]
     found = connection.sql(sql).arrow().read_all().to_pylist()
     return sorted(found, key=lambda r: r.get("row_marker", r.get("id", "")))
-
-
-def counts(query, connection):
-    return {row["row_marker"]: row["matching_account_versions"] for row in rows(query, connection)}
 
 
 def test_state_retains_old_records_and_half_open_boundaries(
@@ -41,12 +37,12 @@ def test_state_retains_old_records_and_half_open_boundaries(
     assert [r["row_marker"] for r in before if r["id"] == "transition"] == ["transition-old"]
 
 
-def test_child_uses_same_boundary(acr_history, effective_date, duckdb_backend):
-    selected = rows(state_at(acr_history, effective_date), duckdb_backend)
-    assert [r["row_marker"] for r in selected if r["id"] == "child-transition"] == [
-        "child-transition-new"
+def test_child_uses_same_boundary(survey_history, effective_date, duckdb_backend):
+    selected = rows(state_at(survey_history, effective_date), duckdb_backend)
+    assert [r["row_marker"] for r in selected if r["id"] == "transition-survey"] == [
+        "survey-transition-new"
     ]
-    assert "future-child" not in {r["row_marker"] for r in selected}
+    assert "future-survey" not in {r["row_marker"] for r in selected}
 
 
 def test_current_uses_flag_alone(account_history, duckdb_backend):
@@ -55,39 +51,73 @@ def test_current_uses_flag_alone(account_history, duckdb_backend):
     assert "unflagged-open" not in selected and "null-flag-open" not in selected
 
 
-def test_reference_counts_preserve_children_and_exact_identity(
-    account_history, acr_history, effective_date, duckdb_backend
+def test_reference_counts_preserve_surveys_and_both_exact_hops(
+    account_history, contact_history, survey_history, effective_date, duckdb_backend
 ):
-    children = state_at(acr_history, effective_date)
-    result = account_reference_counts(children, state_at(account_history, effective_date))
-    assert counts(result, duckdb_backend) == {
-        "valid-old-parent": 1,
-        "child-transition-new": 1,
-        "missing-parent": 0,
-        "null-reference": 0,
-        "empty-reference": 0,
-        "blank-reference": 0,
-        "duplicate-parent": 2,
-        "closed-parent": 0,
-        "case-mismatch": 0,
-        "case-exact": 1,
-        "spacing-mismatch": 0,
-        "spacing-exact": 1,
-        "unpadded-exact": 1,
-        "duplicate-child-1": 1,
-        "duplicate-child-2": 1,
-    }
+    surveys = state_at(survey_history, effective_date)
+    result = survey_result_account_counts(
+        surveys,
+        state_at(contact_history, effective_date),
+        state_at(account_history, effective_date),
+    )
     actual = rows(result, duckdb_backend)
+    metrics = {
+        r["row_marker"]: (
+            r["matching_contact_versions"],
+            r["missing_account_references"],
+            r["matching_account_versions"],
+        )
+        for r in actual
+    }
+    assert metrics == {
+        "valid-old-parent": (1, 0, 1),
+        "another-survey-same-account": (1, 0, 1),
+        "survey-transition-new": (1, 0, 1),
+        "missing-account": (1, 0, 0),
+        "null-account-reference": (1, 1, 0),
+        "empty-account-reference": (1, 1, 0),
+        "blank-account-reference": (1, 1, 0),
+        "duplicate-account": (1, 0, 2),
+        "closed-account": (1, 0, 0),
+        "case-account-mismatch": (1, 0, 0),
+        "case-account-exact": (1, 0, 1),
+        "spacing-account-mismatch": (1, 0, 0),
+        "spacing-account-exact": (1, 0, 1),
+        "missing-participant": (0, 0, 0),
+        "null-participant": (0, 0, 0),
+        "empty-participant": (0, 0, 0),
+        "blank-participant": (0, 0, 0),
+        "duplicate-participant": (2, 0, 2),
+        "closed-participant": (0, 0, 0),
+        "case-participant-mismatch": (0, 0, 0),
+        "case-participant-exact": (1, 0, 1),
+        "spacing-participant-mismatch": (0, 0, 0),
+        "spacing-participant-exact": (1, 0, 1),
+        "no-direct-account-shortcut": (0, 0, 0),
+    }
     for row in actual:
-        row.pop("matching_account_versions")
-    assert actual == rows(children, duckdb_backend)
+        for field in (
+            "matching_contact_versions",
+            "missing_account_references",
+            "matching_account_versions",
+        ):
+            row.pop(field)
+    assert actual == rows(surveys, duckdb_backend)
 
 
-def test_current_relationship_selects_both_sides(account_history, acr_history, duckdb_backend):
-    result = account_reference_counts(current_state(acr_history), current_state(account_history))
-    found = counts(result, duckdb_backend)
-    assert found["future-child"] == 1 and found["closed-parent"] == 0
-    assert "child-transition-old" not in found
+def test_current_relationship_selects_all_three_sources(
+    account_history, contact_history, survey_history, duckdb_backend
+):
+    result = survey_result_account_counts(
+        current_state(survey_history),
+        current_state(contact_history),
+        current_state(account_history),
+    )
+    found = {row["row_marker"]: row for row in rows(result, duckdb_backend)}
+    assert found["future-survey"]["matching_contact_versions"] == 1
+    assert found["future-survey"]["matching_account_versions"] == 1
+    assert found["closed-participant"]["matching_contact_versions"] == 0
+    assert "survey-transition-old" not in found
 
 
 def test_timestamp_boundaries(duckdb_backend):
@@ -104,26 +134,38 @@ def test_timestamp_boundaries(duckdb_backend):
     assert [r["id"] for r in rows(state_at(table, boundary), duckdb_backend)] == ["new"]
 
 
-def test_empty_parent_state_and_identical_children(
-    account_history, acr_history, effective_date, duckdb_backend
+@pytest.mark.parametrize("empty_side", ["contact", "account"])
+def test_empty_parent_state_and_identical_surveys(
+    account_history, contact_history, survey_history, effective_date, duckdb_backend, empty_side
 ):
-    children = state_at(acr_history, effective_date)
-    empty = f"SELECT * FROM ({account_history}) WHERE FALSE"
-    repeated = f"({children}) UNION ALL ({children})"
-    result = account_reference_counts(repeated, empty)
-    found = rows(result, duckdb_backend)
-    assert len(found) == len(rows(children, duckdb_backend)) * 2
-    assert {r["matching_account_versions"] for r in found} == {0}
+    surveys = state_at(survey_history, effective_date)
+    contacts = state_at(contact_history, effective_date)
+    accounts = state_at(account_history, effective_date)
+    if empty_side == "contact":
+        contacts = f"SELECT * FROM ({contacts}) WHERE FALSE"
+    else:
+        accounts = f"SELECT * FROM ({accounts}) WHERE FALSE"
+    repeated = f"({surveys}) UNION ALL ({surveys})"
+    result = rows(survey_result_account_counts(repeated, contacts, accounts), duckdb_backend)
+    assert len(result) == len(rows(surveys, duckdb_backend)) * 2
+    assert {r["matching_account_versions"] for r in result} == {0}
+    if empty_side == "contact":
+        assert {r["matching_contact_versions"] for r in result} == {0}
+    else:
+        assert any(r["matching_contact_versions"] == 2 for r in result)
 
 
-@pytest.mark.parametrize("current", [False, True])
-def test_generated_athena_sql_executes_with_same_counts(
-    account_history, acr_history, effective_date, duckdb_backend, current
+@pytest.mark.parametrize("day, expected_account_count", [(14, 0), (15, 1)])
+def test_same_effective_selection_is_applied_to_every_hop(
+    account_history, contact_history, survey_history, duckdb_backend, day, expected_account_count
 ):
-    select = current_state if current else lambda t: state_at(t, effective_date)
-    expected = account_reference_counts(select(acr_history), select(account_history))
-    query = expected
-    actual = duckdb_backend.sql(sqlglot.transpile(query, read="athena", write="duckdb")[0])
-    assert sorted(actual.arrow().read_all().to_pylist(), key=lambda r: r["row_marker"]) == rows(
-        expected, duckdb_backend
+    effective = date(2026, 10, day)
+    result = survey_result_account_counts(
+        state_at(survey_history, effective),
+        state_at(contact_history, effective),
+        state_at(account_history, effective),
     )
+    transition = [row for row in rows(result, duckdb_backend) if row["id"] == "transition-survey"]
+    assert len(transition) == 1
+    assert transition[0]["matching_contact_versions"] == 1
+    assert transition[0]["matching_account_versions"] == expected_account_count

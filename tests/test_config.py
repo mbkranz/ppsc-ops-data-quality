@@ -20,7 +20,8 @@ def configuration_data():
         profile="fixture-profile",
     )
     data["tables"]["account"]["name"] = "account_history"
-    data["tables"]["account_contact_relation"]["name"] = "acr_history"
+    data["tables"]["contact"]["name"] = "contact_history"
+    data["tables"]["survey_result"]["name"] = "survey_history"
     return data
 
 
@@ -90,7 +91,7 @@ def test_live_configuration_rejects_unresolved_placeholders(
         validate_config(config, live=True)
 
 
-@pytest.mark.parametrize("subject", ["account", "account_contact_relation"])
+@pytest.mark.parametrize("subject", ["account", "contact", "survey_result"])
 def test_validation_requires_both_subject_bindings(configuration_data, read_configuration, subject):
     configuration_data["tables"].pop(subject)
 
@@ -100,7 +101,7 @@ def test_validation_requires_both_subject_bindings(configuration_data, read_conf
 
 @pytest.mark.parametrize(
     ("subject", "column"),
-    [("account", "valid_from"), ("account_contact_relation", "account_id")],
+    [("account", "valid_from"), ("contact", "account_id"), ("survey_result", "participant_id")],
 )
 def test_validation_requires_columns_used_by_the_queries(
     configuration_data, read_configuration, subject, column
@@ -115,7 +116,8 @@ def test_validation_requires_columns_used_by_the_queries(
     ("subject", "changes", "message"),
     [
         ("account", {"id": "int64"}, "must be a string"),
-        ("account_contact_relation", {"account_id": "int64"}, "must be a string"),
+        ("contact", {"account_id": "int64"}, "must be a string"),
+        ("survey_result", {"participant_id": "int64"}, "must be a string"),
         ("account", {"is_current": "string"}, "must be boolean"),
         (
             "account",
@@ -140,7 +142,7 @@ def test_validation_rejects_incompatible_declared_types(
 def test_multiple_aliases_cannot_hide_a_missing_physical_column(
     configuration_data, read_configuration
 ):
-    columns = configuration_data["tables"]["account_contact_relation"]["columns"]
+    columns = configuration_data["tables"]["contact"]["columns"]
     columns["account_id"]["name"] = columns["id"]["name"]
 
     with pytest.raises(ValueError, match="physical column bindings must be unique"):
@@ -183,7 +185,7 @@ def test_configuration_retains_physical_names_and_serializable_run_settings(
     recorded = config.as_dict()
 
     assert config.tables["account"].columns["id"].name == "Id"
-    assert config.tables["account_contact_relation"].columns["account_id"].name == "AccountId"
+    assert config.tables["contact"].columns["account_id"].name == "AccountId"
     assert recorded["output"] == "build/runs"
     assert recorded["interval_convention_confirmed"] is True
     assert recorded["load_completion_evidence"] == "Synthetic completed-delivery fixture"

@@ -137,11 +137,16 @@ def data_type(value: str) -> exp.DataType:
 def validate_bindings(config: Config) -> None:
     """Check the declared SQL types without accessing AWS."""
     required = {"id", "valid_from", "valid_to", "is_current", "loaded_at"}
-    for subject in ("account", "account_contact_relation"):
+    for subject in ("account", "contact", "survey_result"):
         if subject not in config.tables:
             raise ValueError(f"Missing tables.{subject}")
         binding = config.tables[subject]
-        needed = required | ({"account_id"} if subject == "account_contact_relation" else set())
+        reference = {
+            "account": set(),
+            "contact": {"account_id"},
+            "survey_result": {"participant_id"},
+        }
+        needed = required | reference[subject]
         missing = needed - binding.columns.keys()
         if missing:
             raise ValueError(f"{subject}: missing column bindings {', '.join(sorted(missing))}")
@@ -149,7 +154,7 @@ def validate_bindings(config: Config) -> None:
         if len(physical) != len(set(physical)):
             raise ValueError(f"{subject}: physical column bindings must be unique")
         types = {alias: data_type(column.type) for alias, column in binding.columns.items()}
-        for name in ("id", "account_id"):
+        for name in ("id", "account_id", "participant_id"):
             if name in types and not types[name].is_type("TEXT", "VARCHAR", "CHAR"):
                 raise ValueError(
                     f"{subject}.{name} must be a string; do not cast IDs into compliance"

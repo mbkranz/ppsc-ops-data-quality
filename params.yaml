@@ -17,11 +17,21 @@ tables:
       valid_to: {name: valid_to, type: date}
       is_current: {name: is_current, type: boolean}
       loaded_at: {name: loaded_at, type: timestamp}
-  account_contact_relation:
-    name: <ACR_TABLE>
+  contact:
+    name: <CONTACT_TABLE>
     columns:
       id: {name: Id, type: string}
       account_id: {name: AccountId, type: string}
+      valid_from: {name: valid_from, type: date}
+      valid_to: {name: valid_to, type: date}
+      is_current: {name: is_current, type: boolean}
+      loaded_at: {name: loaded_at, type: timestamp}
+
+  survey_result:
+    name: <SURVEY_RESULT_TABLE>
+    columns:
+      id: {name: Id, type: string}
+      participant_id: {name: Participant__c, type: string}
       valid_from: {name: valid_from, type: date}
       valid_to: {name: valid_to, type: date}
       is_current: {name: is_current, type: boolean}

@@ -1,14 +1,16 @@
 # PPSC Ops Data Quality
 
-Repeatable data quality checks for Account, AccountContactRelation (ACR), and their
-relationship in the operational Iceberg lake. Readable SQL defines the selected data;
-native Great Expectations (GX) suites validate it through Athena and PyAthena.
+Referential integrity checks for Survey Results and Accounts in the operational
+Iceberg lake. The reviewed metadata defines the path as
+`Survey_Result__c.Participant__c → Contact.Id → Contact.AccountId → Account.Id`.
+SQL defines the selected populations; native Great Expectations (GX) runs checks
+through Athena and PyAthena.
 
-The repository keeps one explicit runner and one module per subject. Graphs,
-metadata, and existing jobs inform rule authoring; routine runs use committed code.
-Live Athena acceptance and the combined operational/graph evidence milestone are
-tracked in [Acceptance](docs/acceptance.md).
-The [implementation plan](docs/implementation-plan.md) records the reviewed tool patterns and this branch’s design.
+One `expect_*.sql` file defines one expectation. The repository keeps configuration,
+Athena access, population selection, subject suites, and execution separate.
+Live bindings and the remaining acceptance gates are documented in
+[Acceptance](docs/acceptance.md); [Sources](docs/sources.md) separates reviewed
+metadata from the authored integrity contract.
 
 ## Get started
 
@@ -33,57 +35,68 @@ The command creates a unique directory under `build/runs/` with SQL, native suit
 JSON, and run metadata. The example dates and bindings are illustrative; a
 successful preview does not establish live validation.
 
-## Add a SQL integrity check
+## Author an expectation
 
-Create one file under the existing subject, for example
-`src/ppsc_ops_data_quality/gx/account_contact_relation_to_account/parent.exists.sql`:
+Name the SQL file after its expectation, in lower snake case beginning with
+`expect_`. For example:
+`src/ppsc_ops_data_quality/gx/survey_result_to_account/expect_survey_result_account_to_exist.sql`:
 
 ```sql
--- A populated Account reference must resolve in the selected Account state.
--- Investigate parent coverage, load completeness, and effective timing.
+-- A uniquely resolved Contact with a populated AccountId resolves to an Account.
+-- Investigate Contact.AccountId and completed-delivery coverage.
 SELECT * FROM batch
-WHERE account_id IS NOT NULL
-  AND TRIM(account_id) <> ''
+WHERE matching_contact_versions = 1
+  AND missing_account_references = 0
   AND matching_account_versions = 0
 ```
 
-The file defines one check. Return failing rows; zero rows passes. The filename
-becomes the stable rule ID (`account_contact_relation_to_account.parent.exists`).
-Opening `--` comments supply the explanation in Data Docs. Adding a file to an
-existing subject needs no Python edit or registration. Keep provenance and assumptions in its
-comments; accepted source evidence belongs in `docs/sources.md`.
+Return failing rows; zero rows passes. The filename supplies the expectation name,
+`expect_survey_result_account_to_exist`. The subject qualifies its stable rule ID,
+`survey_result_to_account.expect_survey_result_account_to_exist`. These are named
+project checks executed by native GX `UnexpectedRowsExpectation`, not new GX
+Python classes.
 
-Each subject keeps its Python module for native structural validation, and adds a
-sibling directory of SQL files. All nine existing identity/reference checks use
-this format. The loader uses native `UnexpectedRowsExpectation` for full counts
-and bounded diagnostic samples. A trailing semicolon and CTEs are supported.
-There are no author-facing template placeholders: aliases, JSON, and literal
-braces use normal SQL syntax. Shared source evidence and population assumptions
-live once in suite metadata; rule descriptions and evidence live in SQL comments.
+Opening `--` comments supply the description and evidence in Data Docs. New files
+in an existing subject run automatically, without Python registration. Shared
+sources and population assumptions live on the suite; each expectation records its
+name, rule ID, and SQL path. One trailing semicolon and local CTEs are supported.
+Write ordinary SQL, including aliases and literal braces; there are no authored
+format placeholders. Unknown populations, invalid filenames, writes, multiple
+statements, and top-level limits fail the preview.
 
-Use the ordinary SQL table name `batch` for the subject population. Cross-table
-checks can also join `account_state` and `account_contact_relation_state` directly:
+Use `batch` for the selected subject. Cross-table checks can use `account_state`,
+`contact_state`, and `survey_result_state`; the loader binds their table nodes to
+the same selected populations. Physical table names bypass that selection and
+are rejected. Accepted business checks still need their own passing/failing
+fixtures and evidence.
 
-```sql
--- Find populated ACR references absent from the selected Account state.
-SELECT child.*
-FROM account_contact_relation_state AS child
-WHERE child.account_id IS NOT NULL AND TRIM(child.account_id) <> ''
-  AND NOT EXISTS (
-    SELECT 1 FROM account_state AS parent WHERE parent.id = child.account_id
-  )
-```
+## Referential integrity expectations
 
-The runner supplies both relations using the same effective selection and pinned
-physical snapshot. The loader substitutes only table references with selected
-subqueries, preserving your CTE dependencies and aliases. Physical table names
-bypass population selection and are rejected. Unknown relations, multiple statements, and writes fail the preview.
-This validates the authoring contract, not a SQL security sandbox; author only
-trusted queries. Never use `LIMIT` to cap a check's total findings.
+The relationship batch counts eligible Accounts by exact ID, then Contacts by
+exact ID, before joining Survey Results. This retains every survey row, including
+identical duplicates, without multiplying surveys when a parent is duplicated.
+No key is normalized or deduplicated to hide a finding.
 
-Run the documented dry run to inspect the generated batch SQL and native GX suite
-JSON, then `uv run poe check`. Tests establish the nine initial checks with synthetic
-passing/failing rows. A new rule still needs fixtures for its own contract.
+| SQL filename (under `gx/survey_result_to_account/`) | Failure condition |
+| --- | --- |
+| `expect_survey_result_participant_reference_to_be_present.sql` | Missing or space-only Participant reference. |
+| `expect_survey_result_participant_to_exist.sql` | Populated reference has no selected Contact. |
+| `expect_survey_result_participant_to_be_unique.sql` | Reference matches multiple selected Contact versions. |
+| `expect_survey_result_account_reference_to_be_present.sql` | One Contact resolves, but its AccountId is missing or space-only. |
+| `expect_survey_result_account_to_exist.sql` | One Contact with a populated AccountId has no selected Account. |
+| `expect_survey_result_account_to_be_unique.sql` | That AccountId matches multiple selected Account versions. |
+
+The Account and Survey Result suites each also contain
+`expect_column_values_to_not_be_null.sql`,
+`expect_column_values_to_not_be_blank.sql`, and
+`expect_column_values_to_be_unique.sql`, scoped to their `id` columns. Structural
+column checks remain native GX expectations. There are 12 SQL files in total.
+
+An Account may have zero or many Survey Results. This contract requires every
+selected survey to resolve through one Contact to one Account; it does not require
+every Account to have a survey. Account-hop checks wait for exactly one Contact,
+so a missing/ambiguous participant is reported at its own hop rather than as a
+second Account failure.
 
 ## Configure and inspect Athena
 
@@ -97,7 +110,7 @@ Discovery needs connection settings but does not need table or column bindings:
 uv run poe inspect --config params.local.yaml --discover
 ```
 
-Set the Account and ACR table names, then inspect their physical schema:
+Set the Account, Contact, and Survey Result table names, then inspect their physical schema:
 
 ```sh
 uv run poe inspect --config params.local.yaml \
@@ -137,14 +150,14 @@ to choose a different output root.
 | `--as-of DATE` | Rows where `valid_from <= DATE` and `valid_to > DATE OR valid_to IS NULL`, under the confirmed interval convention. |
 | `--current` | Rows marked `is_current = TRUE` within the selected physical snapshot. |
 | `--lake-as-of TIMESTAMP` | One timezone-aware timestamp used for Iceberg time travel on every source table. This is separate from the effective date. |
-| Relationship batch | ACR and Account use the same state selection. Parent-match counts distinguish missing and ambiguous references while preserving child-row grain. |
+| Relationship batch | Survey Result, Contact, and Account share the state selection. Counts distinguish missing/ambiguous references at each hop while retaining survey-row grain. |
 
 Old unchanged records remain in the selected state. The queries do not select
 only recently loaded rows or silently deduplicate parents. A shared snapshot
 timestamp does not prove a coordinated multi-table delivery completed.
 
 The initial suites check projected columns, required/nonblank/unique identifiers,
-and Account-reference integrity. Full history validation is deferred.
+and Survey Result-to-Account reference integrity. Full history validation is deferred.
 
 ## Commands and results
 
@@ -182,7 +195,7 @@ Keep real outputs, Data Docs, and local configuration out of Git and public CI.
 | `athena.py` | Connection settings, inspection, and snapshot-bound sources. |
 | `batches.py` | Shared SQL state selectors and relationship queries. |
 | `gx/<subject>.py` | Columns and assumptions; shared construction lives in `gx/__init__.py`. |
-| `gx/<subject>/*.sql` | One failing-row SELECT per check; filenames are stable rule IDs. |
+| `gx/<subject>/expect_*.sql` | One failing-row SELECT per named expectation; rule IDs include the subject. |
 | `run.py` | Explicit suite selection, execution, results, and Data Docs. |
 | `tests/` | Synthetic DuckDB behavior and native GX/result checks. |
 | [Sources](docs/sources.md) | Reviewed evidence, assumptions, and unresolved rule candidates. |

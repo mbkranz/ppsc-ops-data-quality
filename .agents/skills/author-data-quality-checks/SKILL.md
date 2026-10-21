@@ -6,8 +6,8 @@ description: Author or update operational quality checks in ppsc-ops-data-qualit
 # Author data quality checks
 
 Read `AGENTS.md`, `docs/sources.md`, and the existing subject suite before editing.
-Use `gx/account_contact_relation_to_account.py` and `tests/test_gx.py` as the worked
-example of a native rule with separate missing-key, missing-parent, and ambiguous-parent findings.
+Use `gx/survey_result_to_account.py` and `tests/test_gx.py` as the worked
+example of a native rule with separate missing-reference, missing-row, and duplicate-match findings at both hops.
 
 1. Identify the operational question and the source job/notebook. Read its upstream
    filters, joins, missing-value handling, and treatment of findings. Record the
@@ -24,15 +24,16 @@ example of a native rule with separate missing-key, missing-parent, and ambiguou
    Event-triggered Flow assignments need event evidence or an explicit business
    state requirement; a current MIN/MAX does not establish Flow conformance.
 5. Add ordinary SQL functions to `batches.py` when relational composition is needed.
-   Put each integrity query in `gx/<subject>/<rule>.sql`; the filename becomes its
-   rule ID and SQL comments describe its evidence and assumptions. Use the ordinary SQL relation `batch`,
-   `account_state`, or `account_contact_relation_state` for selected populations.
-   Native structural checks remain in the existing Python suite module. Make any
-   additional relation and its selection explicit; never deduplicate away an integrity finding.
-6. Put rule explanations, grain, source pointers, and investigation guidance in
-   opening SQL comments. The filename supplies `rule_id`; the loader records the
-   SQL path. Keep shared source evidence and assumptions once in the native suite
-   metadata, and run-specific bindings and dates in `run.json`.
+   Put each integrity query in `gx/<subject>/expect_<name>.sql`. Use the ordinary
+   SQL relations `batch`, `account_state`, `contact_state`, or `survey_result_state`
+   for selected populations. Native structural checks stay in the subject module.
+   Make additional relations and selections explicit. Survey Results link through
+   Participant__c → Contact.Id → Contact.AccountId → Account.Id; preserve duplicate
+   matches instead of selecting one to make an integrity failure disappear.
+6. Put explanations, grain, source pointers, and investigation guidance in opening
+   SQL comments. The filename supplies the expectation name; the subject qualifies
+   its `rule_id`. The loader records the SQL path. Keep shared source evidence and
+   assumptions once in suite metadata, and run-specific bindings/dates in `run.json`.
 7. Add fixtures that demonstrate the meaningful passing and failing records,
    temporal boundaries, and duplicate/null behavior. Verify full failure counts
    separately from bounded diagnostic samples. Run `uv run poe check` and a dry run.

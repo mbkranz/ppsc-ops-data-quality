@@ -22,7 +22,11 @@ def athena_config():
         s3_staging_dir="s3://fixture-results/quality/",
         profile="fixture-profile",
     )
-    names = {"account": "account_history", "account_contact_relation": "acr_history"}
+    names = {
+        "account": "account_history",
+        "contact": "contact_history",
+        "survey_result": "survey_history",
+    }
     tables = {
         subject: replace(
             binding,
@@ -61,10 +65,10 @@ def test_sources_and_relationship_compile_offline_with_both_snapshots(athena_con
         athena_config, date(2026, 10, 15), athena.snapshot_time("2026-10-17T07:00:00-05:00")
     )
     query = queries[-1][1]
-    for table_name in ("account_history", "acr_history"):
+    for table_name in ("account_history", "contact_history", "survey_history"):
         assert f'"AwsDataCatalog"."fixture_lake"."{table_name}"' in query
-    assert query.count("FOR TIMESTAMP AS OF") == 2
-    assert query.count("2026-10-17 12:00:00") == 2
+    assert query.count("FOR TIMESTAMP AS OF") == 3
+    assert query.count("2026-10-17 12:00:00") == 3
     unexpected_access.assert_not_called()
 
 

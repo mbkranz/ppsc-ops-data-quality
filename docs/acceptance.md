@@ -12,7 +12,7 @@ Review date: October 20, 2026.
 | Combined operational and graph evidence | Pending. [Sources](sources.md) identifies a real job check and native Flow evidence; the saved graph subset and rule applicability still need review. |
 | Full history checks | Deferred until the temporal/version/deletion contract is confirmed. There is no history CLI option yet. |
 
-The current lock resolves GX 1.24.0, Ibis 12.0.0, PyAthena 4.2.0, and SQLAlchemy
+The current lock resolves GX 1.24.0, SQLGlot 30.24.0, PyAthena 4.2.0, and SQLAlchemy
 2.1.5. Record the installed versions with every acceptance run. Local DuckDB and
 SQLite checks establish their tested behavior; they do not establish Athena
 compatibility. GX lists Athena and AWS Glue among integrations without an ongoing
@@ -47,7 +47,7 @@ repositories: [checkout v7.0.1][checkout], [setup-python v7.0.0][setup-python],
 Set real Athena connection settings in ignored `params.local.yaml` and select an
 authorized AWS profile/role. These probes require Athena and the configured query
 result location, but use synthetic read-only SELECTs instead of participant data.
-Run them before debugging Ibis or real table checks.
+Run them before debugging SQL or real table checks.
 
 The gate must show:
 
@@ -103,7 +103,7 @@ for name, query, row_count, unexpected_query, expected, failures in cases:
     )
     queries.append((name, query, suite))
 
-packages = ("great-expectations", "ibis-framework", "PyAthena", "SQLAlchemy")
+packages = ("great-expectations", "sqlglot", "PyAthena", "SQLAlchemy")
 write_json(output / "run.json", {
     "mode": "controlled_live_acceptance",
     "code": code_identity(),

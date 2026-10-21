@@ -1,4 +1,4 @@
-"""Explicit Ibis query / native GX suite selection and one-run result handling."""
+"""Explicit SQL query / native GX suite selection and one-run result handling."""
 
 import argparse
 import hashlib
@@ -19,7 +19,6 @@ from great_expectations.data_context.types.base import (
 
 from .athena import (
     check_physical_schema,
-    compile_query,
     inspect_tables,
     snapshot_time,
     source_table,
@@ -30,7 +29,7 @@ from .config import Config, load_config, validate_bindings, validate_config
 from .gx import account, account_contact_relation, account_contact_relation_to_account
 
 # The pinned GX SQL providers cap returned diagnostic records. Tests cover both
-# built-in ID checks and UnexpectedRowsExpectation with >200 failures.
+# SQL integrity checks with >200 failures.
 RESULT_FORMAT = {
     "result_format": "COMPLETE",
     "partial_unexpected_count": 200,
@@ -49,16 +48,17 @@ def build_queries(config: Config, as_of: date | None, lake_as_of: datetime) -> l
         account_state = state_at(account_history, as_of)
         acr_state = state_at(acr_history, as_of)
     relationship = account_reference_counts(acr_state, account_state)
+    relations = {"account_state": account_state, "account_contact_relation_state": acr_state}
     selected = [
-        ("account", account_state, account.build_suite()),
-        ("account_contact_relation", acr_state, account_contact_relation.build_suite()),
+        ("account", account_state, account.build_suite(relations)),
+        ("account_contact_relation", acr_state, account_contact_relation.build_suite(relations)),
         (
             "account_contact_relation_to_account",
             relationship,
-            account_contact_relation_to_account.build_suite(),
+            account_contact_relation_to_account.build_suite(relations),
         ),
     ]
-    return [(name, compile_query(expression), suite) for name, expression, suite in selected]
+    return selected
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -231,7 +231,7 @@ def main(argv: list[str] | None = None) -> int:
                 for name in (
                     "ppsc-ops-data-quality",
                     "great-expectations",
-                    "ibis-framework",
+                    "sqlglot",
                     "PyAthena",
                     "SQLAlchemy",
                 )

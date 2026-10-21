@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "great-expectations>=1.24,<2",
-  "ibis-framework[athena]>=12,<13",
+  "sqlglot>=30,<31",
   "PyAthena[SQLAlchemy]>=3.0,<5",
   "SQLAlchemy>=2,<3",
   "PyYAML>=6,<7",
@@ -22,7 +22,8 @@ ppsc-dq-inspect = "ppsc_ops_data_quality.athena:main"
 
 [dependency-groups]
 dev = [
-  "ibis-framework[duckdb]>=12,<13",
+  "duckdb>=1.4,<2",
+  "pyarrow>=18,<25",
   "pytest>=8,<10",
   "ruff>=0.11,<1",
   "poethepoet>=0.32,<1",

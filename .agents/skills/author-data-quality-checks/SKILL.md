@@ -1,6 +1,6 @@
 ---
 name: author-data-quality-checks
-description: Author or update operational quality checks in ppsc-ops-data-quality from existing job or notebook logic and relevant Salesforce graph/native metadata. Use for adding a subject suite, relationship rule, Ibis validation population, or meaningful check fixtures.
+description: Author or update operational quality checks in ppsc-ops-data-quality from existing job or notebook logic and relevant Salesforce graph/native metadata. Use for adding a subject suite, relationship rule, SQL validation population, or meaningful check fixtures.
 ---
 
 # Author data quality checks
@@ -23,17 +23,20 @@ example of a native rule with separate missing-key, missing-parent, and ambiguou
    behavior, and timing assumptions. Preserve monitoring versus blocking treatment.
    Event-triggered Flow assignments need event evidence or an explicit business
    state requirement; a current MIN/MAX does not establish Flow conformance.
-5. Add ordinary Ibis functions to `batches.py` when relational composition is needed.
-   Put native GX expectations in the owning `gx/<subject>.py` suite builder. Keep
-   queries scoped to `{batch}`. Make any additional relation and its selection
-   explicit; never deduplicate away an integrity finding.
+5. Add ordinary SQL functions to `batches.py` when relational composition is needed.
+   Put each integrity query in `gx/<subject>/<rule>.sql`; the filename becomes its
+   rule ID and SQL comments describe its evidence and assumptions. Use `{batch}`,
+   `account_state`, or `account_contact_relation_state` for selected populations.
+   Native structural checks remain in the existing Python suite module. Make any
+   additional relation and its selection explicit; never deduplicate away an integrity finding.
 6. Keep rule metadata compact: stable `rule_id`, native description, rationale,
    violation grain, source revision/pointer, assumptions, and investigation guidance.
    Keep run-specific bindings and dates in `run.json`.
 7. Add fixtures that demonstrate the meaningful passing and failing records,
    temporal boundaries, and duplicate/null behavior. Verify full failure counts
    separately from bounded diagnostic samples. Run `uv run poe check` and a dry run.
-8. Add a rule to an existing selected suite, or explicitly add a new query/suite pair
+8. New SQL files in an existing selected subject run automatically; keep candidates
+   outside these directories. Explicitly add a new subject query/suite pair
    to `build_queries` in `run.py`, only when its contract is established. Record
    unresolved candidates in `docs/sources.md` and leave them outside selection.
    Metadata such as `status: candidate` does not control execution.

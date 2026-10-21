@@ -99,9 +99,9 @@ def test_identity_suite_keeps_null_blank_and_duplicate_findings_separate(tmp_pat
     assert not result.success
     rules = by_rule(result)
     assert rules[f"{suite.name}.columns"].success
-    assert rules[f"{suite.name}.id.required"].result["unexpected_count"] == 1
+    assert rules[f"{suite.name}.id.required"].result["observed_value"] == 1
     assert rules[f"{suite.name}.id.nonblank"].result["observed_value"] == 2
-    assert rules[f"{suite.name}.id.unique"].result["unexpected_count"] == 2
+    assert rules[f"{suite.name}.id.unique"].result["observed_value"] == 2
 
 
 @pytest.mark.parametrize("subject", [account, account_contact_relation])
@@ -159,14 +159,11 @@ def test_native_identity_counts_remain_complete_with_bounded_samples(tmp_path):
     rows = [(identifier, "2020-01-01", None, 1, "2026-01-01") for identifier in identifiers]
     result = validate_rows(tmp_path, account.build_suite(), STATE_COLUMNS, rows)
     rules = by_rule(result)
-    assert rules["account.id.unique"].result["unexpected_count"] == 410
-    assert rules["account.id.required"].result["unexpected_count"] == 205
+    assert rules["account.id.unique"].result["observed_value"] == 410
+    assert rules["account.id.required"].result["observed_value"] == 205
     for rule_id in ("account.id.unique", "account.id.required"):
         finding = rules[rule_id].result
-        assert len(finding["partial_unexpected_list"]) == 200
-        assert len(finding["unexpected_list"]) == 200
-        assert len(finding["partial_unexpected_counts"]) <= 200
-        assert not finding.get("unexpected_index_query")
+        assert len(finding["details"]["unexpected_rows"]) == 200
     assert not result.success
 
 
@@ -186,3 +183,84 @@ def test_query_error_is_retained_as_an_execution_exception(tmp_path):
     assert errors
     assert "missing_column" in json.dumps(errors)
     assert all(info["raised_exception"] for info in errors.values())
+
+
+@pytest.fixture
+def sql_check_directory(tmp_path, monkeypatch):
+    from ppsc_ops_data_quality import gx as suites
+
+    subject = tmp_path / "custom"
+    subject.mkdir()
+    monkeypatch.setattr(suites, "files", lambda _: tmp_path)
+    return subject
+
+
+def test_sql_files_discover_in_order_with_stable_ids_and_comments(sql_check_directory):
+    from ppsc_ops_data_quality.gx import sql_expectations
+
+    for name in ("b", "a"):
+        (sql_check_directory / f"{name}.sql").write_text(
+            f"-- Explain {name}.\nWITH selected AS (SELECT * FROM {{batch}}) "
+            "SELECT * FROM selected WHERE id IS NULL;\n"
+        )
+    checks = sql_expectations("custom")
+    assert [check.meta["rule_id"] for check in checks] == ["custom.a", "custom.b"]
+    assert "Explain a." in checks[0].description
+    assert "{batch}" in checks[0].unexpected_rows_query
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "-- no query",
+        "SELECT * FROM {batch}; SELECT * FROM {batch}",
+        "DELETE FROM {batch}",
+        "SELECT * INTO output_table FROM {batch}",
+        "SELECT * FROM production.account",
+        "SELECT * FROM unselected_account",
+        "SELECT 1",
+        "SELECT * FROM {batch} LIMIT 1",
+        "SELECT * FROM {batch} WHERE (",
+    ],
+)
+def test_invalid_sql_files_fail_authoring_with_filename(sql_check_directory, sql):
+    from ppsc_ops_data_quality.gx import sql_expectations
+
+    (sql_check_directory / "invalid.sql").write_text(sql)
+    with pytest.raises(ValueError, match="custom/invalid.sql"):
+        sql_expectations("custom")
+
+
+def test_empty_check_directory_cannot_silently_pass(sql_check_directory):
+    from ppsc_ops_data_quality.gx import sql_expectations
+
+    with pytest.raises(ValueError, match="no SQL checks"):
+        sql_expectations("custom")
+
+
+def test_cross_table_sql_uses_selected_relations_and_native_gx(tmp_path, sql_check_directory):
+    from ppsc_ops_data_quality.gx import sql_expectations
+
+    (sql_check_directory / "parent.exists.sql").write_text(
+        "-- A populated child reference must resolve in the selected Account state.\n"
+        "SELECT child.* FROM account_contact_relation_state AS child "
+        "WHERE child.account_id IS NOT NULL AND NOT EXISTS "
+        "(SELECT 1 FROM account_state AS parent WHERE parent.id = child.account_id)"
+    )
+    checks = sql_expectations(
+        "custom",
+        {
+            "account_state": "SELECT 'parent' AS id",
+            "account_contact_relation_state": "SELECT * FROM fixture",
+        },
+    )
+    suite = gx.ExpectationSuite(name="custom", expectations=checks)
+    result = validate_rows(
+        tmp_path,
+        suite,
+        {"id": "TEXT", "account_id": "TEXT"},
+        [("valid", "parent"), ("missing", "absent"), ("null", None)],
+    )
+    finding = by_rule(result)["custom.parent.exists"].result
+    assert finding["observed_value"] == 1
+    assert finding["details"]["unexpected_rows"] == [{"id": "missing", "account_id": "absent"}]

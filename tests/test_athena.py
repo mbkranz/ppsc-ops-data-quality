@@ -1,15 +1,13 @@
-"""Use real Ibis compilation and isolate only external Athena access."""
+"""Use real SQL compilation and isolate only external Athena access."""
 
 from dataclasses import replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 from unittest.mock import Mock
 
-import ibis
 import pytest
 
 from ppsc_ops_data_quality import athena
-from ppsc_ops_data_quality.batches import account_reference_counts, state_at
 from ppsc_ops_data_quality.config import AthenaSettings, Column, load_config
 
 
@@ -44,7 +42,7 @@ def schema_report(athena_config):
             subject: {
                 "name": binding.name,
                 "columns": [
-                    {"name": column.name, "ibis_type": column.type}
+                    {"name": column.name, "declared_type": column.type}
                     for column in binding.columns.values()
                 ],
             }
@@ -54,49 +52,31 @@ def schema_report(athena_config):
 
 
 def test_sources_and_relationship_compile_offline_with_both_snapshots(athena_config, monkeypatch):
+    from ppsc_ops_data_quality.run import build_queries
+
     unexpected_access = Mock(side_effect=AssertionError("Compilation must not access AWS"))
-    unexpected_inference = Mock(side_effect=AssertionError("Use the declared physical schema"))
     monkeypatch.setattr(athena, "create_engine", unexpected_access)
-    monkeypatch.setattr(athena.Backend, "do_connect", unexpected_access)
     monkeypatch.setattr("pyathena.connect", unexpected_access)
-    monkeypatch.setattr(athena.Backend, "_get_schema_using_query", unexpected_inference)
-
-    physical_time = athena.snapshot_time("2026-10-17T07:00:00-05:00")
-    account_source = athena.source_table(athena_config.tables["account"], physical_time)
-    acr_source = athena.source_table(
-        athena_config.tables["account_contact_relation"], physical_time
+    queries = build_queries(
+        athena_config, date(2026, 10, 15), athena.snapshot_time("2026-10-17T07:00:00-05:00")
     )
-    relationship = account_reference_counts(
-        state_at(acr_source, date(2026, 10, 15)),
-        state_at(account_source, date(2026, 10, 15)),
-    )
-    query = athena.compile_query(relationship)
-
+    query = queries[-1][1]
     for table_name in ("account_history", "acr_history"):
-        assert (f'FROM "AwsDataCatalog"."fixture_lake"."{table_name}" FOR TIMESTAMP AS OF') in query
+        assert f'"AwsDataCatalog"."fixture_lake"."{table_name}"' in query
     assert query.count("FOR TIMESTAMP AS OF") == 2
     assert query.count("2026-10-17 12:00:00") == 2
-    assert relationship.columns == (*acr_source.columns, "matching_account_versions")
     unexpected_access.assert_not_called()
-    unexpected_inference.assert_not_called()
 
 
 def test_source_quotes_identifiers_without_changing_their_identity(athena_config):
     binding = athena_config.tables["account"]
     columns = {**binding.columns, "id": Column('ID"name', "string")}
     binding = replace(
-        binding,
-        catalog='Cat"alog',
-        database='db"name',
-        name='account"name.part',
-        columns=columns,
+        binding, catalog='Cat"alog', database='db"name', name='account"name.part', columns=columns
     )
-    source = athena.source_table(binding, datetime(2026, 10, 17, 12, tzinfo=UTC))
-    query = athena.compile_query(source)
-
+    query = athena.source_table(binding, datetime(2026, 10, 17, 12, tzinfo=UTC))
     assert '"Cat""alog"."db""name"."account""name.part"' in query
     assert '"ID""name" AS "id"' in query
-    assert source.schema()["id"] == ibis.dtype("string")
 
 
 @pytest.mark.parametrize(
@@ -127,10 +107,9 @@ def test_source_rejects_a_naive_snapshot_datetime(athena_config):
 
 def test_compilation_preserves_snapshot_fractional_seconds(athena_config):
     instant = athena.snapshot_time("2026-10-17T07:00:00.123456-05:00")
-    query = athena.compile_query(athena.source_table(athena_config.tables["account"], instant))
+    query = athena.source_table(athena_config.tables["account"], instant)
 
     assert "2026-10-17 12:00:00.123456" in query
-    assert "TIMESTAMP(6)" in query
 
 
 def test_connection_url_uses_a_profile_and_the_standard_credential_chain(athena_config):
@@ -186,9 +165,9 @@ def test_preflight_does_not_substitute_canonical_aliases_for_physical_names(
 
 
 def test_preflight_rejects_incorrect_physical_types_before_projection(athena_config, schema_report):
-    schema_report["tables"]["account"]["columns"][0]["ibis_type"] = "int64"
+    schema_report["tables"]["account"]["columns"][0]["declared_type"] = "int64"
 
-    with pytest.raises(ValueError, match="account.id: expected string, found int64"):
+    with pytest.raises(ValueError, match="account.id: expected TEXT, found BIGINT"):
         athena.check_physical_schema(athena_config, schema_report)
 
 
@@ -202,7 +181,7 @@ def test_preflight_preserves_inspection_errors(athena_config, schema_report):
 def test_preflight_allows_unreported_timestamp_precision(athena_config, schema_report):
     for column in schema_report["tables"]["account"]["columns"]:
         if column["name"] == "loaded_at":
-            column["ibis_type"] = "timestamp(6)"
+            column["declared_type"] = "timestamp(6)"
 
     athena.check_physical_schema(athena_config, schema_report)
 
@@ -216,7 +195,7 @@ def test_preflight_rejects_reported_timestamp_precision_mismatch(athena_config, 
     config = replace(athena_config, tables={**athena_config.tables, "account": account})
     for column in schema_report["tables"]["account"]["columns"]:
         if column["name"] == "loaded_at":
-            column["ibis_type"] = "timestamp(3)"
+            column["declared_type"] = "timestamp(3)"
 
-    with pytest.raises(ValueError, match="expected timestamp"):
+    with pytest.raises(ValueError, match="expected TIMESTAMP"):
         athena.check_physical_schema(config, schema_report)

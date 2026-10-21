@@ -1,0 +1,35 @@
+# Illustrative bindings for offline compilation. Inspect the physical schema,
+# then put actual settings in the ignored params.local.yaml.
+athena:
+  region: <AWS_REGION>
+  catalog: AwsDataCatalog
+  database: <ATHENA_DATABASE>
+  workgroup: <ATHENA_WORKGROUP>
+  s3_staging_dir: s3://<ATHENA_RESULTS_BUCKET>/<PREFIX>/
+  profile: null
+
+tables:
+  account:
+    name: <ACCOUNT_TABLE>
+    columns:
+      id: {name: Id, type: string}
+      valid_from: {name: valid_from, type: date}
+      valid_to: {name: valid_to, type: date}
+      is_current: {name: is_current, type: boolean}
+      loaded_at: {name: loaded_at, type: timestamp}
+  account_contact_relation:
+    name: <ACR_TABLE>
+    columns:
+      id: {name: Id, type: string}
+      account_id: {name: AccountId, type: string}
+      valid_from: {name: valid_from, type: date}
+      valid_to: {name: valid_to, type: date}
+      is_current: {name: is_current, type: boolean}
+      loaded_at: {name: loaded_at, type: timestamp}
+
+# Confirm [valid_from, valid_to) with the data owner before a live as-of run.
+interval_convention_confirmed: false
+# Describe how this selected delivery was confirmed complete; timestamps alone
+# are not evidence of coordinated load completion.
+load_completion_evidence: null
+output: build/runs

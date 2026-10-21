@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling>=1.26,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ppsc-ops-data-quality"
+version = "0.1.0"
+description = "Explicit operational data quality checks over Athena Iceberg tables."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "great-expectations>=1.24,<2",
+  "ibis-framework[athena]>=12,<13",
+  "PyAthena[SQLAlchemy]>=3.0,<5",
+  "SQLAlchemy>=2,<3",
+  "PyYAML>=6,<7",
+]
+
+[project.scripts]
+ppsc-dq = "ppsc_ops_data_quality.run:main"
+ppsc-dq-inspect = "ppsc_ops_data_quality.athena:main"
+
+[dependency-groups]
+dev = [
+  "ibis-framework[duckdb]>=12,<13",
+  "pytest>=8,<10",
+  "ruff>=0.11,<1",
+  "poethepoet>=0.32,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ppsc_ops_data_quality"]
+
+[tool.poe]
+include = "poe_tasks.yaml"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

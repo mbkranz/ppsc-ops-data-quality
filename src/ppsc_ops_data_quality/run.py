@@ -1,4 +1,4 @@
-"""Explicit Ibis query / native GX suite selection and one-run result handling."""
+"""Explicit SQL query / native GX suite selection and one-run result handling."""
 
 import argparse
 import hashlib
@@ -10,7 +10,9 @@ from datetime import UTC, date, datetime
 from importlib.metadata import version
 from pathlib import Path
 
+import duckdb
 import great_expectations as gx
+import narwhals as nw
 from great_expectations.core import RunIdentifier
 from great_expectations.data_context.types.base import (
     DataContextConfig,
@@ -26,7 +28,7 @@ from .athena import (
     sqlalchemy_url,
 )
 from .batches import account_reference_counts, current_state, state_at
-from .config import Config, load_config, validate_bindings, validate_config
+from .config import Config, data_type, load_config, validate_bindings, validate_config
 from .gx import account, account_contact_relation, account_contact_relation_to_account
 
 # The pinned GX SQL providers cap returned diagnostic records. Tests cover both
@@ -40,25 +42,32 @@ RESULT_FORMAT = {
 
 def build_queries(config: Config, as_of: date | None, lake_as_of: datetime) -> list[tuple]:
     """Keep the complete runtime selection visible in one place."""
-    account_history = source_table(config.tables["account"], lake_as_of)
-    acr_history = source_table(config.tables["account_contact_relation"], lake_as_of)
-    if as_of is None:
-        account_state = current_state(account_history)
-        acr_state = current_state(acr_history)
-    else:
-        account_state = state_at(account_history, as_of)
-        acr_state = state_at(acr_history, as_of)
-    relationship = account_reference_counts(acr_state, account_state)
-    selected = [
-        ("account", account_state, account.build_suite()),
-        ("account_contact_relation", acr_state, account_contact_relation.build_suite()),
-        (
-            "account_contact_relation_to_account",
-            relationship,
-            account_contact_relation_to_account.build_suite(),
-        ),
-    ]
-    return [(name, compile_query(expression), suite) for name, expression, suite in selected]
+    # Empty typed relations provide a compiler, never a local copy of lake data.
+    sources = {name: source_table(binding, lake_as_of) for name, binding in config.tables.items()}
+    with duckdb.connect() as connection:
+        tables = {}
+        for name in ("account", "account_contact_relation"):
+            binding = config.tables[name]
+            fields = ", ".join(
+                f'"{alias.replace(chr(34), chr(34) * 2)}" '
+                f"{data_type(column.type).sql(dialect='duckdb')}"
+                for alias, column in binding.columns.items()
+            )
+            connection.execute(f'CREATE TABLE "{name}" ({fields})')
+            tables[name] = nw.from_native(connection.table(name))
+        select = current_state if as_of is None else lambda table: state_at(table, as_of)
+        account_state = select(tables["account"])
+        acr_state = select(tables["account_contact_relation"])
+        selected = [
+            ("account", account_state, account.build_suite()),
+            ("account_contact_relation", acr_state, account_contact_relation.build_suite()),
+            (
+                "account_contact_relation_to_account",
+                account_reference_counts(acr_state, account_state),
+                account_contact_relation_to_account.build_suite(),
+            ),
+        ]
+        return [(name, compile_query(query, sources), suite) for name, query, suite in selected]
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -231,7 +240,9 @@ def main(argv: list[str] | None = None) -> int:
                 for name in (
                     "ppsc-ops-data-quality",
                     "great-expectations",
-                    "ibis-framework",
+                    "sqlglot",
+                    "narwhals",
+                    "duckdb",
                     "PyAthena",
                     "SQLAlchemy",
                 )

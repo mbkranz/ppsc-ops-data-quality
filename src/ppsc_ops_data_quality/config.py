@@ -4,8 +4,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-import ibis
 import yaml
+from sqlglot import exp
 
 
 @dataclass(frozen=True)
@@ -129,8 +129,13 @@ def validate_config(config: Config, *, live: bool, discovery: bool = False) -> N
                     )
 
 
+def data_type(value: str) -> exp.DataType:
+    """Parse declared SQL types; DuckDB also accepts the original string/int64 aliases."""
+    return exp.DataType.build(value, dialect="duckdb")
+
+
 def validate_bindings(config: Config) -> None:
-    """Check the declared types used by Ibis without accessing AWS."""
+    """Check the declared SQL types without accessing AWS."""
     required = {"id", "valid_from", "valid_to", "is_current", "loaded_at"}
     for subject in ("account", "account_contact_relation"):
         if subject not in config.tables:
@@ -143,18 +148,24 @@ def validate_bindings(config: Config) -> None:
         physical = [column.name for column in binding.columns.values()]
         if len(physical) != len(set(physical)):
             raise ValueError(f"{subject}: physical column bindings must be unique")
-        types = {alias: ibis.dtype(column.type) for alias, column in binding.columns.items()}
+        types = {alias: data_type(column.type) for alias, column in binding.columns.items()}
         for name in ("id", "account_id"):
-            if name in types and not types[name].is_string():
+            if name in types and not types[name].is_type("TEXT", "VARCHAR", "CHAR"):
                 raise ValueError(
                     f"{subject}.{name} must be a string; do not cast IDs into compliance"
                 )
-        if not types["is_current"].is_boolean():
+        if not types["is_current"].is_type("BOOLEAN"):
             raise ValueError(f"{subject}.is_current must be boolean")
         start, end = types["valid_from"], types["valid_to"]
-        if not (start.is_date() or start.is_timestamp()) or start != end:
+        if (
+            not (start.is_type("DATE") or start.is_type("TIMESTAMP", "TIMESTAMPNTZ", "TIMESTAMPTZ"))
+            or start != end
+        ):
             raise ValueError(
                 f"{subject}: valid_from and valid_to need the same date/timestamp type"
             )
-        if not (types["loaded_at"].is_date() or types["loaded_at"].is_timestamp()):
+        if not (
+            types["loaded_at"].is_type("DATE")
+            or types["loaded_at"].is_type("TIMESTAMP", "TIMESTAMPNTZ", "TIMESTAMPTZ")
+        ):
             raise ValueError(f"{subject}.loaded_at must be a date/timestamp")

@@ -1,6 +1,6 @@
 ---
 name: author-data-quality-checks
-description: Author or update operational quality checks in ppsc-ops-data-quality from existing job or notebook logic and relevant Salesforce graph/native metadata. Use for adding a subject suite, relationship rule, Ibis validation population, or meaningful check fixtures.
+description: Author or update operational quality checks in ppsc-ops-data-quality from existing job or notebook logic and relevant Salesforce graph/native metadata. Use for adding a subject suite, relationship rule, Narwhals validation population, or meaningful check fixtures.
 ---
 
 # Author data quality checks
@@ -23,7 +23,7 @@ example of a native rule with separate missing-key, missing-parent, and ambiguou
    behavior, and timing assumptions. Preserve monitoring versus blocking treatment.
    Event-triggered Flow assignments need event evidence or an explicit business
    state requirement; a current MIN/MAX does not establish Flow conformance.
-5. Add ordinary Ibis functions to `batches.py` when relational composition is needed.
+5. Add ordinary Narwhals functions to `batches.py` when relational composition is needed.
    Put native GX expectations in the owning `gx/<subject>.py` suite builder. Keep
    queries scoped to `{batch}`. Make any additional relation and its selection
    explicit; never deduplicate away an integrity finding.

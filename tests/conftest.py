@@ -2,15 +2,17 @@
 
 from datetime import date, datetime
 
-import ibis
+import duckdb
+import narwhals as nw
+import pyarrow as pa
 import pytest
 
 
 @pytest.fixture
 def duckdb_backend():
-    backend = ibis.duckdb.connect()
+    backend = duckdb.connect()
     yield backend
-    backend.disconnect()
+    backend.close()
 
 
 @pytest.fixture
@@ -80,14 +82,16 @@ def account_history(duckdb_backend):
         dict(base, row_marker="padded-parent", id="exact "),
     ]
     schema = {
-        "row_marker": "string",
-        "id": "string",
-        "valid_from": "date",
-        "valid_to": "date",
-        "is_current": "boolean",
-        "loaded_at": "timestamp",
+        "row_marker": pa.string(),
+        "id": pa.string(),
+        "valid_from": pa.date32(),
+        "valid_to": pa.date32(),
+        "is_current": pa.bool_(),
+        "loaded_at": pa.timestamp("us"),
     }
-    return duckdb_backend.create_table("account_history", ibis.memtable(rows, schema=schema))
+    data = pa.Table.from_pylist(rows, schema=pa.schema(schema))
+    duckdb_backend.from_arrow(data).create_view("account_history")
+    return nw.from_native(duckdb_backend.table("account_history"))
 
 
 @pytest.fixture
@@ -139,12 +143,14 @@ def acr_history(duckdb_backend):
         ),
     ]
     schema = {
-        "row_marker": "string",
-        "id": "string",
-        "account_id": "string",
-        "valid_from": "date",
-        "valid_to": "date",
-        "is_current": "boolean",
-        "loaded_at": "timestamp",
+        "row_marker": pa.string(),
+        "id": pa.string(),
+        "account_id": pa.string(),
+        "valid_from": pa.date32(),
+        "valid_to": pa.date32(),
+        "is_current": pa.bool_(),
+        "loaded_at": pa.timestamp("us"),
     }
-    return duckdb_backend.create_table("acr_history", ibis.memtable(rows, schema=schema))
+    data = pa.Table.from_pylist(rows, schema=pa.schema(schema))
+    duckdb_backend.from_arrow(data).create_view("acr_history")
+    return nw.from_native(duckdb_backend.table("acr_history"))

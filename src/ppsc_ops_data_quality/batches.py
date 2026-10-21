@@ -1,52 +1,30 @@
-"""Construct validation populations without reading data or executing checks."""
+"""Reusable Narwhals populations; no connections, execution, or GX rules."""
 
 from datetime import date, datetime
 
-import ibis.expr.types as ir
+import narwhals as nw
 
 
-def state_at(table: ir.Table, effective_date: date | datetime) -> ir.Table:
-    """Select every version effective in the half-open interval [from, to).
-
-    An open-ended version has a null ``valid_to``. The selection deliberately
-    ignores ``is_current`` and ``loaded_at`` so unchanged older versions remain
-    eligible. Physical snapshot selection belongs to the source table.
-    """
+def state_at(table: nw.LazyFrame, effective_date: date | datetime) -> nw.LazyFrame:
+    """Retain all rows effective in [valid_from, valid_to), including old records."""
     return table.filter(
-        table.valid_from <= effective_date,
-        (table.valid_to > effective_date) | table.valid_to.isnull(),
+        nw.col("valid_from") <= effective_date,
+        (nw.col("valid_to") > effective_date) | nw.col("valid_to").is_null(),
     )
 
 
-def current_state(table: ir.Table) -> ir.Table:
-    """Select versions explicitly flagged current, retaining flag inconsistencies.
-
-    False and null flags are excluded. Additional date predicates could conceal
-    an inconsistent flag; checking those inconsistencies requires the history.
-    """
-    return table.filter(table.is_current)
+def current_state(table: nw.LazyFrame) -> nw.LazyFrame:
+    """Use the current flag alone, retaining inconsistent dates for investigation."""
+    return table.filter(nw.col("is_current"))
 
 
-def account_reference_counts(acr_state: ir.Table, account_state: ir.Table) -> ir.Table:
-    """Keep each ACR row and count its exact matches in the selected Account state.
-
-    Null and blank Account IDs are ineligible parents. Trimming is used only to
-    identify blank IDs: the join preserves the original case and whitespace of
-    both identifiers. Grouping parents before the left join retains duplicate
-    parent counts without multiplying child rows.
-    """
-    eligible_accounts = account_state.filter(
-        account_state.id.notnull(),
-        account_state.id.strip() != "",
+def account_reference_counts(acr_state: nw.LazyFrame, account_state: nw.LazyFrame) -> nw.LazyFrame:
+    """Count exact eligible parents without multiplying or deduplicating children."""
+    parents = (
+        account_state.filter(~nw.col("id").is_null(), nw.col("id").str.strip_chars(" ") != "")
+        .group_by("id")
+        .agg(nw.len().alias("matching_account_versions"))
     )
-    parent_counts = eligible_accounts.group_by(parent_id=eligible_accounts.id).aggregate(
-        matching_account_versions=eligible_accounts.count(),
-    )
-    joined = acr_state.left_join(
-        parent_counts,
-        acr_state.account_id == parent_counts.parent_id,
-    )
-    return joined.select(
-        acr_state,
-        matching_account_versions=parent_counts.matching_account_versions.fill_null(0),
+    return acr_state.join(parents, left_on="account_id", right_on="id", how="left").with_columns(
+        nw.col("matching_account_versions").fill_null(0)
     )

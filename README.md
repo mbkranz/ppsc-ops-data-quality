@@ -1,15 +1,14 @@
 # PPSC Ops Data Quality
 
 Repeatable data quality checks for Account, AccountContactRelation (ACR), and their
-relationship in the operational Iceberg lake. Ibis defines the selected data;
+relationship in the operational Iceberg lake. Narwhals defines the selected data;
 native Great Expectations (GX) suites validate it through Athena and PyAthena.
 
 The repository keeps one explicit runner and one module per subject. Graphs,
 metadata, and existing jobs inform rule authoring; routine runs use committed code.
 Live Athena acceptance and the combined operational/graph evidence milestone are
 tracked in [Acceptance](docs/acceptance.md).
-The [implementation plan](docs/implementation-plan.md) records the initial scope
-and sequence.
+The [implementation plan](docs/implementation-plan.md) records the reviewed tool patterns and this branch’s design.
 
 ## Get started
 
@@ -34,6 +33,28 @@ The command creates a unique directory under `build/runs/` with SQL, native suit
 JSON, and run metadata. The example dates and bindings are illustrative; a
 successful preview does not establish live validation.
 
+## Author with Narwhals
+
+`batches.py` uses the familiar Polars-style `nw.col`, `filter`, `group_by`, and
+`join` operations. For example:
+
+```python
+return table.filter(
+    nw.col("valid_from") <= effective_date,
+    (nw.col("valid_to") > effective_date) | nw.col("valid_to").is_null(),
+)
+```
+
+The runner creates empty, typed DuckDB relations, applies those functions, and
+compiles the resulting plan with SQLGlot. It substitutes the snapshot-bound
+physical sources at SQL table nodes. DuckDB never reads the lake: GX executes the
+compiled Athena SQL through PyAthena. No Ibis dependency remains.
+
+Native GX subject suites, explicit query selection, Poe commands, configuration,
+results, and Data Docs retain their existing locations. Inspect the generated SQL
+before a live run. The compiler is tested for these operations, rather than a
+promise that every Narwhals function translates to Athena.
+
 ## Configure and inspect Athena
 
 Copy `params.yaml` to the ignored `params.local.yaml`. Set the real region,
@@ -53,7 +74,7 @@ uv run poe inspect --config params.local.yaml \
   --lake-as-of 2026-10-17T12:00:00Z
 ```
 
-Update column names and Ibis types from that report. Inspection reads schema, DDL,
+Update column names and SQL types from that report. Inspection reads schema, DDL,
 and optional snapshot metadata. Validation preflight rejects missing or mistyped
 physical inputs before selecting the batch.
 
@@ -129,10 +150,10 @@ Keep real outputs, Data Docs, and local configuration out of Git and public CI.
 | --- | --- |
 | `config.py` | One YAML configuration and explicit physical bindings. |
 | `athena.py` | Connection settings, inspection, snapshot-bound sources, and SQL compilation. |
-| `batches.py` | Reusable state selectors and relationship expressions. |
+| `batches.py` | Reusable Narwhals state selectors and relationship expressions. |
 | `gx/<subject>.py` | Native suite builders for a subject or relationship. |
 | `run.py` | Explicit suite selection, execution, results, and Data Docs. |
-| `tests/` | Synthetic Ibis/DuckDB behavior and native GX/result checks. |
+| `tests/` | Synthetic DuckDB behavior and native GX/result checks. |
 | [Sources](docs/sources.md) | Reviewed evidence, assumptions, and unresolved rule candidates. |
 
 Python module paths are relative to `src/ppsc_ops_data_quality/`. Add a named query

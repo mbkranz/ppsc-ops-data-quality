@@ -72,6 +72,9 @@ def join_account(Survey_Result__c: ir.Table, Contact: ir.Table, Account: ir.Tabl
     Contact.Birthdate supplies $Record.Participant__r.Birthdate. All joins are left
     joins; missing parents remain visible through NULL relationship columns.
     """
+    Survey_Result__c = Survey_Result__c.alias("Survey_Result__c")
+    Contact = Contact.alias("Contact")
+    Account = Account.alias("Account")
     Record = Survey_Result__c.select(
         "Id",
         "Participant__c",
@@ -104,7 +107,7 @@ def _append_first_FlowRecordLookup(Record, Candidate, resource, sort_field, *, e
     FIRST. Equal sort keys may pick any tied row, as in the source lookup. Only
     existence (consent) or the equal sort value (physical) is consumed downstream.
     """
-    Candidate = Candidate.view()
+    Candidate = Candidate.alias(resource.replace(".", "_"))
     conditions = [Record.Participant__c == Candidate.Participant__c]
     if exclude_Record:
         conditions.append(Record.Id != Candidate.Id)
@@ -116,7 +119,9 @@ def _append_first_FlowRecordLookup(Record, Candidate, resource, sort_field, *, e
         group_by=joined.Id,
         order_by=joined[f"{resource}.{sort_field}"].asc(nulls_first=True),
     )
-    ranked = joined.mutate(_lookup_rank=ibis.row_number().over(window))
+    ranked = joined.mutate(_lookup_rank=ibis.row_number().over(window)).alias(
+        resource.replace(".", "_") + "_Ranked"
+    )
     return ranked.filter(ranked._lookup_rank == 0).drop("_lookup_rank")
 
 
@@ -217,13 +222,17 @@ def FlowRecordLookup_Pediatric_Permission_For_Assent(
         (Survey_Result__c.Survey_Index_Number__c == "1007")
         & (Survey_Result__c.Consent_Status__c == "Yes")
     )
-    Permission = Permission.group_by("Participant__c").aggregate(
-        Id=Permission.Id.min(),
-        match_count=Permission.count(),
-        California_Signature__c=ibis.cases(
-            (Permission.count() == 1, Permission.California_Signature__c.min()),
-            else_=ibis.null().cast("timestamp"),
-        ),
+    Permission = (
+        Permission.group_by("Participant__c")
+        .aggregate(
+            Id=Permission.Id.min(),
+            match_count=Permission.count(),
+            California_Signature__c=ibis.cases(
+                (Permission.count() == 1, Permission.California_Signature__c.min()),
+                else_=ibis.null().cast("timestamp"),
+            ),
+        )
+        .alias("Pediatric_Permission")
     )
     # Restrict the lookup to its actual 1008 route. It is not a generic 1007 self-lookup.
     return Record.left_join(
@@ -337,7 +346,7 @@ def add_flow_context(
         else_=ibis.null().cast("string"),
     ).name("FlowDecision_Survey_Completion_Route_target")
 
-    Record = Record.mutate(survey_completion_flow_decision)
+    Record = Record.mutate(survey_completion_flow_decision).alias("Survey_Completion_Route")
     Record = FlowRecordLookup_Earliest_Other_Yes_Primary_Consent(Record, Survey_Result__c)
     Record = FlowRecordLookup_Earliest_Other_Yes_EHR_Consent(Record, Survey_Result__c)
     Record = FlowRecordLookup_First_Remote_Physical_Measurement(Record, Survey_Result__c)
@@ -404,7 +413,7 @@ def add_flow_context(
     )
     return Record.mutate(
         FlowFormula_Age_At_Execution=FlowFormula_Age_At_Execution(Record, flow_run_date)
-    )
+    ).alias("Flow_Context")
 
 
 def derived_account_expressions(Record: ir.Table) -> tuple[ir.Value, ...]:
@@ -846,14 +855,18 @@ def expected_survey_rollups(Account: ir.Table, Survey_Result__c: ir.Table) -> ir
     upstream. This is a snapshot aggregation, independent of the per-event Flow
     projection; no arbitrary event is selected to consolidate Account state.
     """
-    Account = Account.filter(Account.IsPersonAccount).select("Id", "PersonContactId")
+    Account = (
+        Account.filter(Account.IsPersonAccount)
+        .select("Id", "PersonContactId")
+        .alias("Person_Account")
+    )
     Survey_Result__c = Survey_Result__c.select(
         "Participant__c",
         "Completion_Status__c",
         "Survey_Index_Number__c",
         "Consent_Status__c",
         "Consent_Revoked__c",
-    )
+    ).alias("Survey_Result__c")
     Record = Account.left_join(
         Survey_Result__c,
         Account.PersonContactId == Survey_Result__c.Participant__c,
@@ -899,11 +912,12 @@ def flow_account_comparison(
     retain an unknown predicate. This is a business scope, not a FlowDecision.
     Pre-launch events remain available for profiling and migration reconciliation.
     """
+    ExpectedAccount = ExpectedAccount.alias("Expected_Account")
     survey_completion_occurred_on_or_after_launch = (
         ExpectedAccount.Completion_Status_Timestamp__c.date()
         >= ibis.literal(SURVEY_COMPLETION_FLOW_LAUNCH_DATE, type="date")
     ).name("survey_completion_occurred_on_or_after_launch")
-    AccountAfter = AccountAfter.view()
+    AccountAfter = AccountAfter.alias("Account_After")
     Joined = ExpectedAccount.left_join(
         AccountAfter,
         [
@@ -937,7 +951,8 @@ def rollup_account_comparison(ExpectedRollups: ir.Table, AccountSnapshot: ir.Tab
     row per person Account grain; a duplicate observed Account produces duplicate
     expected_account_id values and fails the uniqueness expectation.
     """
-    AccountSnapshot = AccountSnapshot.view()
+    ExpectedRollups = ExpectedRollups.alias("Expected_Rollups")
+    AccountSnapshot = AccountSnapshot.alias("Account_Snapshot")
     Joined = ExpectedRollups.left_join(
         AccountSnapshot, ExpectedRollups["Account.Id"] == AccountSnapshot.Id
     )
@@ -988,11 +1003,17 @@ def flow_account_query(
     if not ordered:
         raise ValueError("Require account_before_at < execution_at < account_after_at")
 
-    AccountBefore = snapshot(history["Account"], as_of=account_before_at)
-    ContactAtExecution = snapshot(history["Contact"], as_of=execution_at)
-    Survey_Result__c = snapshot(history["Survey_Result__c"], as_of=execution_at)
+    AccountBefore = snapshot(history["Account"], as_of=account_before_at).alias("Account_Before")
+    ContactAtExecution = snapshot(history["Contact"], as_of=execution_at).alias(
+        "Contact_At_Execution"
+    )
+    Survey_Result__c = snapshot(history["Survey_Result__c"], as_of=execution_at).alias(
+        "Survey_Results_At_Execution"
+    )
     AccountAfter = snapshot(history["Account"], as_of=account_after_at)
-    Trigger = Survey_Result__c.filter(Survey_Result__c.Id == survey_result_id)
+    Trigger = Survey_Result__c.filter(Survey_Result__c.Id == survey_result_id).alias(
+        "Trigger_Survey_Result"
+    )
     Record = join_account(Trigger, ContactAtExecution, AccountBefore)
     Record = add_flow_context(Record, Survey_Result__c, flow_run_date=ibis.literal(flow_run_date))
     ExpectedAccount = expected_account_values(Record)
@@ -1009,7 +1030,9 @@ def rollup_account_query(
     existing 19 field formulas -> expected/observed comparison. as_of=None uses
     current flags on both relations. Preserve zero-child Accounts and duplicates.
     """
-    AccountSnapshot = snapshot(history["Account"], as_of=as_of)
-    SurveyResultSnapshot = snapshot(history["Survey_Result__c"], as_of=as_of)
+    AccountSnapshot = snapshot(history["Account"], as_of=as_of).alias("Account_At_Snapshot")
+    SurveyResultSnapshot = snapshot(history["Survey_Result__c"], as_of=as_of).alias(
+        "Survey_Results_At_Snapshot"
+    )
     ExpectedRollups = expected_survey_rollups(AccountSnapshot, SurveyResultSnapshot)
     return rollup_account_comparison(ExpectedRollups, AccountSnapshot)

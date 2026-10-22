@@ -1,366 +1,353 @@
-"""Document GX suites with field diagrams and an optional native Ibis graph.
+"""Export staged native Ibis graphs grouped by their parent entities.
 
-Expectation diagrams use the comparison schema and actual GX configurations.
-Fields are grouped within their exact row condition. Ibis's native exporter is
-used unchanged for optional expression diagnostics. No query or validation runs.
+Queries use illustrative unbound history tables; no data or validation runs.
 Requires the Python graphviz dependency and Graphviz's `dot` executable.
 """
 
 import argparse
-import json
-import re
 import shutil
+from collections import defaultdict
+from dataclasses import dataclass
 from datetime import date, datetime
-from html import escape
+from functools import cache
 from pathlib import Path
 
 import graphviz
-import great_expectations as gx
 import ibis
+import ibis.expr.operations as ops
 import ibis.expr.types as ir
 from ibis.expr.visualize import to_graph
 
-from ppsc_ops_data_quality.account_to_survey_results.gx import (
-    flow_account_suite,
-    rollup_account_suite,
+from ppsc_ops_data_quality.account_to_survey_results.lineage import (
+    FLOW_ENTITY_LINEAGE,
+    PROJECTION_LINEAGE,
 )
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
-    flow_account_query,
-    rollup_account_query,
+    FlowRecordLookup_Earliest_Other_Yes_EHR_Consent,
+    FlowRecordLookup_Earliest_Other_Yes_Primary_Consent,
+    FlowRecordLookup_First_Remote_Physical_Measurement,
+    FlowRecordLookup_Pediatric_Permission_For_Assent,
+    add_flow_context,
+    expected_account_values,
+    expected_survey_rollups,
+    flow_account_comparison,
+    join_account,
+    rollup_account_comparison,
 )
-from ppsc_ops_data_quality.account_to_survey_results.schemas import (
-    FLOW_ACCOUNT_COMPARISON,
-    ROLLUP_ACCOUNT_COMPARISON,
-)
-from ppsc_ops_data_quality.core.queries import history_tables
+from ppsc_ops_data_quality.core.queries import history_tables, snapshot
 
-NODE_STYLES = {
-    "column": {"fillcolor": "honeydew"},
-    "expectation": {"fillcolor": "aliceblue"},
-    "table": {"fillcolor": "whitesmoke"},
+SHARED_PARENT = "Shared / query mechanics"
+PARENT_COLORS = {
+    "Salesforce object: Account": "#DCEBFF",
+    "Salesforce object: Contact": "#DDF4E4",
+    "Salesforce object: Survey_Result__c": "#FFF0D6",
+    **{f"Flow: {entry['source_flow']}": "#EADFFA" for entry in FLOW_ENTITY_LINEAGE.values()},
+    SHARED_PARENT: "#EEEEEE",
+}
+SOURCE_PARENTS = {
+    f"{name}_History": f"Salesforce object: {name}"
+    for name in ("Account", "Contact", "Survey_Result__c")
 }
 
 
-def expectation_columns(kwargs: dict) -> list[tuple[str, str]]:
-    """Read GX column arguments, preserving each column's argument role."""
-    columns = [(key, kwargs[key]) for key in ("column", "column_A", "column_B") if key in kwargs]
-    for key in ("column_list", "column_set"):
-        columns.extend((key, column) for column in kwargs.get(key, ()))
-    return columns
+def _metadata_parent(name: str) -> str | None:
+    metadata = PROJECTION_LINEAGE.get(name, {})
+    if target := metadata.get("target_field"):
+        return "Salesforce object: " + target.split(".", 1)[0]
+    if metadata.get("entity_type", "").startswith("Flow"):
+        return "Flow: " + metadata["source_flow"]
+    if metadata.get("entity_type") in ("SalesforceField", "BusinessCondition"):
+        objects = {source.split(".", 1)[0] for source in metadata["source_entities"]}
+        if len(objects) == 1:
+            return "Salesforce object: " + objects.pop()
+    return None
 
 
-def condition_columns(condition) -> list[str]:
-    """Read input columns from a native GX condition, including AND/OR children."""
-    if condition is None:
-        return []
-    if isinstance(condition, str):
-        raise TypeError("Suite diagrams require native GX Column row conditions")
-    column = getattr(condition, "column", None)
-    columns = [column.name] if column is not None else []
-    children = getattr(condition, "conditions", ())
-    if column is None and not children:
-        raise TypeError(f"Unsupported GX row condition: {type(condition).__name__}")
-    for child in children:
-        columns.extend(condition_columns(child))
-    return list(dict.fromkeys(columns))
+def _relation_values(node: ops.Relation) -> dict[str, ops.Value]:
+    if isinstance(node, (ops.Project, ops.JoinChain)):
+        return dict(node.values)
+    if isinstance(node, ops.Aggregate):
+        return {**node.groups, **node.metrics}
+    if isinstance(node, ops.UnboundTable):
+        return {}
+    parent = getattr(node, "parent", None)
+    if not isinstance(parent, ops.Relation):
+        raise TypeError(f"Unsupported diagram relation: {type(node).__name__}")
+    return dict(parent.fields)
 
 
-def row_condition_text(expectation) -> str:
-    """Display the actual GX predicate without translating its meaning."""
-    condition = getattr(expectation, "row_condition", None)
-    return repr(condition) if condition is not None else "All rows"
+def node_parents(
+    expression: ir.Table, inputs: dict[str, dict[str, str]]
+) -> tuple[dict[ops.Node, str], dict[str, str]]:
+    """Resolve ownership separately from dependencies, retaining boundary field owners."""
+    declared: defaultdict[ops.Node, set[str]] = defaultdict(set)
+    for relation in expression.op().find(ops.Relation):
+        for name, value in _relation_values(relation).items():
+            if parent := _metadata_parent(name):
+                # A direct source field keeps its object, even when read by a Flow.
+                if not isinstance(value, ops.Field):
+                    declared[value].add(parent)
 
-
-def expectation_group_name(expectation) -> str:
-    """Group paired output fields, identities and table checks for presentation.
-
-    Matching expected__/observed__ suffixes identify a displayed field group;
-    this naming convention is not used to infer upstream data lineage.
-    """
-    config = expectation.configuration
-    kwargs = config.kwargs
-    if config.type.startswith("expect_table_"):
-        return "Schema and table checks"
-    if "column_A" in kwargs and "column_B" in kwargs:
-        observed = kwargs["column_A"].removeprefix("observed__")
-        expected = kwargs["column_B"].removeprefix("expected__")
-        if observed == expected:
-            return f"Field: {expected}"
-        return f"Columns: {kwargs['column_A']} / {kwargs['column_B']}"
-    column = kwargs.get("column", "Multiple columns")
-    return "Identity checks" if column.endswith("_id") else f"Column: {column}"
-
-
-def group_expectations(suite: gx.ExpectationSuite) -> dict:
-    """Group by exact serialized row condition and then by displayed field name."""
-    groups = {}
-    for index, expectation in enumerate(suite.expectations):
-        condition = expectation.configuration.kwargs.get("row_condition")
-        key = (json.dumps(condition, sort_keys=True), expectation_group_name(expectation))
-        groups.setdefault(key, []).append((index, expectation))
-    return groups
-
-
-def create_diagram(title: str) -> graphviz.Digraph:
-    """Use Graphviz's hierarchical layout with one shared set of display defaults."""
-    return graphviz.Digraph(
-        graph_attr={
-            "label": title,
-            "labelloc": "t",
-            "rankdir": "LR",
-            "fontname": "Helvetica",
-            "nodesep": "0.3",
-            "ranksep": "0.6",
-        },
-        node_attr={
-            "shape": "box",
-            "style": "rounded,filled",
-            "fontname": "Helvetica",
-            "fontsize": "11",
-        },
-        edge_attr={"fontname": "Helvetica", "fontsize": "9"},
-    )
-
-
-def build_suite_overview(suite: gx.ExpectationSuite, groups: dict) -> graphviz.Digraph:
-    """Show field groups within shared row-condition clusters, once per scope."""
-    graph = create_diagram(suite.name)
-    graph.node("suite", label=suite.name, **NODE_STYLES["table"])
-    scopes = list(dict.fromkeys(condition for condition, _ in groups))
-    for scope_index, condition in enumerate(scopes):
-        with graph.subgraph(name=f"cluster_scope_{scope_index}") as cluster:
-            checks = next(checks for (key, _), checks in groups.items() if key == condition)
-            label = row_condition_text(checks[0][1]).replace(" AND ", "\nAND ")
-            cluster.attr(label=graphviz.escape(f"Scope {scope_index + 1}: {label}"), color="gray70")
-            for index, ((key, name), checks) in enumerate(groups.items()):
-                if key == condition:
-                    cluster.node(
-                        f"group_{index}",
-                        label=graphviz.escape(f"{name}\nExpectations: {len(checks)}"),
-                        **NODE_STYLES["expectation"],
-                    )
-                    graph.edge("suite", f"group_{index}")
-    return graph
-
-
-def build_field_diagram(schema: ibis.Schema, name: str, checks: list) -> graphviz.Digraph:
-    """Connect actual GX targets to checks inside a single row-condition scope.
-
-    The scope label applies to every check in the cluster. No condition-to-check
-    fanout edges or Ibis operation IDs are needed. Table checks bind to a table
-    node; their complete column requirements remain in the Markdown configuration.
-    """
-    conditions = {
-        json.dumps(e.configuration.kwargs.get("row_condition"), sort_keys=True) for _, e in checks
-    }
-    if len(conditions) != 1:
-        raise ValueError("A field diagram must have exactly one row-condition scope")
-    graph = create_diagram(name)
-    column_ids = {}
-    with graph.subgraph(name="cluster_scope") as cluster:
-        cluster.attr(
-            label=graphviz.escape("Row condition: " + row_condition_text(checks[0][1])),
-            color="gray70",
-        )
-        for index, expectation in checks:
-            config = expectation.configuration
-            targets = expectation_columns(config.kwargs)
-            referenced_columns = [column for _, column in targets]
-            referenced_columns += condition_columns(getattr(expectation, "row_condition", None))
-            for column in referenced_columns:
-                if column not in schema:
-                    raise ValueError(
-                        f"{config.type} references missing comparison column: {column}"
-                    )
-            expectation_id = f"expectation_{index}"
-            cluster.node(
-                expectation_id,
-                label=f"{index + 1}. {type(expectation).__name__}",
-                tooltip=config.meta.get("check_id", config.type),
-                **NODE_STYLES["expectation"],
-            )
-            if config.type.startswith("expect_table_") or not targets:
-                cluster.node("comparison", label="Comparison table", **NODE_STYLES["table"])
-                cluster.edge("comparison", expectation_id, label="table")
+    for root, parents in list(declared.items()):
+        pending = list(root.__children__)
+        visited = set()
+        while pending:
+            node = pending.pop()
+            if node in visited or isinstance(node, (ops.Field, ops.Relation)):
                 continue
-            for role, column in targets:
-                if column not in column_ids:
-                    column_ids[column] = f"column_{len(column_ids)}"
-                    cluster.node(
-                        column_ids[column],
-                        label=graphviz.escape(f"{column}\n{schema[column]}"),
-                        **NODE_STYLES["column"],
-                    )
-                cluster.edge(column_ids[column], expectation_id, label=role)
+            visited.add(node)
+            declared[node].update(parents)
+            pending.extend(node.__children__)
+
+    @cache
+    def owners(node: ops.Node) -> frozenset[str]:
+        if isinstance(node, ops.Field):
+            if isinstance(node.rel, ops.UnboundTable):
+                if node.rel.name in inputs:
+                    return frozenset({inputs[node.rel.name][node.name]})
+                parent = SOURCE_PARENTS.get(node.rel.name, SHARED_PARENT)
+                return frozenset({parent})
+            if parent := _metadata_parent(node.name):
+                return frozenset({parent})
+            return owners(_relation_values(node.rel)[node.name])
+        if declared.get(node):
+            return frozenset(declared[node])
+        if isinstance(node, ops.Relation):
+            if isinstance(node, ops.UnboundTable):
+                return frozenset(
+                    parent for name in node.schema for parent in owners(node.fields[name])
+                )
+            values = _relation_values(node).values()
+        else:
+            values = (child for child in node.__children__ if not isinstance(child, ops.Relation))
+        return frozenset(parent for value in values for parent in owners(value))
+
+    def single_parent(node: ops.Node) -> str:
+        parents = owners(node)
+        return next(iter(parents)) if len(parents) == 1 else SHARED_PARENT
+
+    nodes = {node: single_parent(node) for node in expression.op().find(ops.Node)}
+    outputs = {name: single_parent(value) for name, value in expression.op().fields.items()}
+    return nodes, outputs
+
+
+def build_parent_graph(expression: ir.Table, parents: dict[ops.Node, str]) -> graphviz.Digraph:
+    """Keep Ibis's nodes/edges and labels; add parent colors and Graphviz clusters."""
+
+    def attributes(node: ops.Node) -> dict[str, str]:
+        parent = parents[node]
+        return {
+            "fillcolor": PARENT_COLORS[parent],
+            "style": "rounded,filled",
+            "group": parent,
+            "tooltip": "Parent entity: " + parent,
+        }
+
+    graph = to_graph(expression, node_attr_getter=attributes)
+    for index, parent in enumerate(sorted(set(parents.values()))):
+        with graph.subgraph(name=f"cluster_parent_{index}") as cluster:
+            cluster.attr(label=parent, color=PARENT_COLORS[parent], style="rounded")
+            for node, owner in parents.items():
+                if owner == parent:
+                    cluster.node(str(hash(node)))
     return graph
 
 
-def write_diagram(graph: graphviz.Digraph, stem: Path) -> None:
-    """Write SVG and editable DOT using the standard Graphviz renderer."""
-    Path(f"{stem}.svg").write_bytes(graph.pipe(format="svg"))
-    Path(f"{stem}.dot").write_text(graph.source, encoding="utf-8")
+@dataclass(frozen=True)
+class DiagramPart:
+    name: str
+    builder: str
+    expression: ir.Table
 
 
-def markdown_cell(value) -> str:
-    return escape(str(value)).replace("|", "&#124;").replace("\n", " ")
+def _add_part(parts: list[DiagramPart], name: str, builder: str, expression: ir.Table) -> ir.Table:
+    parts.append(DiagramPart(name, builder, expression))
+    return ibis.table(expression.schema(), name=name)
 
 
-def write_suite_document(
-    schema: ibis.Schema,
-    suite: gx.ExpectationSuite,
-    output: Path,
-    *,
-    expression: ir.Table | None = None,
-) -> Path:
-    """Write a suite overview and expandable field sections from authored metadata."""
-    output.mkdir(parents=True, exist_ok=True)
-    slug = re.sub(r"[^A-Za-z0-9_.-]+", "_", suite.name).strip("._") or "suite"
-    groups = group_expectations(suite)
-    scopes = list(dict.fromkeys(condition for condition, _ in groups))
-    write_diagram(build_suite_overview(suite, groups), output / slug)
-    lines = [
-        f"# {suite.name}",
-        "",
-        "Generated by `scripts/generate_suite_diagrams.py` from the comparison schema "
-        "and native GX suite builders. Bindings/events are illustrative; no data was queried.",
-        "",
-        f"{len(suite.expectations)} expectations; {len(schema)} comparison columns.",
-        "",
-        "The overview groups fields by their exact GX row condition. Expand a field to see "
-        "its columns, checks and configuration. Scope labels apply to every contained check; "
-        "they do not filter the Ibis input. Green nodes are columns; blue nodes are expectations.",
-        "",
-        f"![Suite overview grouped by row condition]({slug}.svg)",
-        "",
-        f"[Overview SVG]({slug}.svg) · [Overview DOT]({slug}.dot)",
-        "",
-    ]
-    for group_index, ((condition, name), checks) in enumerate(groups.items()):
-        stem = f"{slug}_{group_index:02d}"
-        write_diagram(build_field_diagram(schema, name, checks), output / stem)
-        lines.extend(
-            [
-                "<details>",
-                f"<summary>{escape(name)} (scope {scopes.index(condition) + 1}; "
-                f"expectations: {len(checks)})</summary>",
-                "",
-                f"Row condition: `{row_condition_text(checks[0][1])}`",
-                "",
-                f"![Columns and expectations for {escape(name)}]({stem}.svg)",
-                "",
-                f"[Field SVG]({stem}.svg) · [Field DOT]({stem}.dot)",
-                "",
-                "| # | Check ID | Expectation | Target columns | Row condition |",
-                "| --- | --- | --- | --- | --- |",
-            ]
-        )
-        for index, expectation in checks:
-            config = expectation.configuration
-            targets = expectation_columns(config.kwargs)
-            columns = "; ".join(f"{role}: {column}" for role, column in targets) or "Table"
-            if "column_set" in config.kwargs:
-                columns = (
-                    f"Schema: {len(config.kwargs['column_set'])} required columns (listed below)"
-                )
-            values = (
-                index + 1,
-                config.meta.get("check_id", config.type),
-                type(expectation).__name__,
-                columns,
-                row_condition_text(expectation),
-            )
-            lines.append("| " + " | ".join(map(markdown_cell, values)) + " |")
-        for _, expectation in checks:
-            if expectation.configuration.type.startswith("expect_table_"):
-                lines.extend(
-                    [
-                        "",
-                        "```json",
-                        json.dumps(expectation.configuration.kwargs, indent=2, ensure_ascii=False),
-                        "```",
-                    ]
-                )
-        lines.extend(["", "</details>", ""])
-    if expression is not None:
-        write_diagram(to_graph(expression), output / f"{slug}_ibis")
-        lines.extend(
-            [
-                "<details>",
-                "<summary>Native Ibis expression graph (diagnostic)</summary>",
-                "",
-                "Unmodified Ibis output; expectation bindings are documented in the field sections.",
-                "",
-                f"[Native Ibis SVG]({slug}_ibis.svg) · [Native Ibis DOT]({slug}_ibis.dot)",
-                "",
-                f"![Native Ibis expression graph]({slug}_ibis.svg)",
-                "",
-                "</details>",
-                "",
-            ]
-        )
-    lines.extend(
-        [
-            "## Suite metadata",
-            "",
-            "```json",
-            json.dumps(suite.meta, indent=2),
-            "```",
-            "",
-            "Python suite builders remain authoritative. These are authored expectations, "
-            "not validation outcomes. Optional row-count checks appear only when supplied.",
-            "",
-        ]
-    )
-    document = output / f"{slug}.md"
-    document.write_text("\n".join(lines), encoding="utf-8")
-    return document
+def _cut_input(expression: ir.Table, original: ir.Table, boundary: ir.Table) -> ir.Table:
+    if original.op() not in expression.op().find(ops.Relation):
+        raise ValueError("Diagram boundary must occur in the expression")
+    return expression.op().replace({original.op(): boundary.op()}).to_expr()
 
 
-def illustrative_comparisons() -> dict[str, ir.Table]:
-    """Explicit nonexecuted bindings for optional native expression diagnostics."""
-    history = history_tables(
+def illustrative_parts() -> dict[str, list[DiagramPart]]:
+    """Stop each native graph at schema-preserving, diagram-only table inputs."""
+    sources = history_tables(
         account_database="example_account",
         contact_database="example_contact",
         survey_result_database="example_survey_result",
     )
-    return {
-        "flow": flow_account_query(
-            history,
-            survey_result_id="ILLUSTRATIVE_EVENT",
-            account_before_at=datetime(2026, 10, 21, 11, 59, 59),
-            execution_at=datetime(2026, 10, 21, 12),
-            account_after_at=datetime(2026, 10, 21, 12, 5),
-            flow_run_date=date(2026, 10, 21),
-        ),
-        "rollups": rollup_account_query(history, as_of=datetime(2026, 10, 21, 12, 5)),
+    history = {
+        name: ibis.table(table.schema(), name=f"{name}_History") for name, table in sources.items()
     }
+    before_at = datetime(2026, 10, 21, 11, 59, 59)
+    execution_at = datetime(2026, 10, 21, 12)
+    after_at = datetime(2026, 10, 21, 12, 5)
+    event_id = ibis.literal("ILLUSTRATIVE_EVENT")
+    flow = []
+    AccountBefore = _add_part(
+        flow,
+        "Account_Before",
+        "snapshot",
+        snapshot(history["Account"], as_of=before_at),
+    )
+    Contact = _add_part(
+        flow,
+        "Contact_At_Execution",
+        "snapshot",
+        snapshot(history["Contact"], as_of=execution_at),
+    )
+    Survey = _add_part(
+        flow,
+        "Survey_Results_At_Execution",
+        "snapshot",
+        snapshot(history["Survey_Result__c"], as_of=execution_at),
+    )
+    Trigger = _add_part(
+        flow,
+        "Trigger_Survey_Result",
+        "flow_account_query",
+        Survey.filter(Survey.Id == event_id),
+    )
+    Record = _add_part(
+        flow, "Joined_Record", "join_account", join_account(Trigger, Contact, AccountBefore)
+    )
+    Context = add_flow_context(Record, Survey, flow_run_date=ibis.literal(date(2026, 10, 21)))
+    routes = [
+        op.to_expr()
+        for op in Context.op().find(ops.AliasedRelation)
+        if op.name == "Survey_Completion_Route"
+    ]
+    if len(routes) != 1:
+        raise ValueError("Expected one Survey_Completion_Route boundary in add_flow_context")
+    previous = routes[0]
+    boundary = _add_part(flow, "Survey_Completion_Route", "add_flow_context", previous)
+    for name, lookup in (
+        ("Record_With_Primary_Consent", FlowRecordLookup_Earliest_Other_Yes_Primary_Consent),
+        ("Record_With_EHR_Consent", FlowRecordLookup_Earliest_Other_Yes_EHR_Consent),
+        ("Record_With_Physical_Measurement", FlowRecordLookup_First_Remote_Physical_Measurement),
+        ("Record_With_Pediatric_Permission", FlowRecordLookup_Pediatric_Permission_For_Assent),
+    ):
+        result = lookup(previous, Survey)
+        boundary = _add_part(flow, name, lookup.__name__, _cut_input(result, previous, boundary))
+        previous = result
+    Context = _add_part(
+        flow, "Flow_Context", "add_flow_context", _cut_input(Context, previous, boundary)
+    )
+    Expected = _add_part(
+        flow, "Expected_Account", "expected_account_values", expected_account_values(Context)
+    )
+    AccountAfter = _add_part(
+        flow, "Account_After", "snapshot", snapshot(history["Account"], as_of=after_at)
+    )
+    Observed = _add_part(
+        flow,
+        "Account_After_By_Survey_Event",
+        "flow_account_query",
+        AccountAfter.mutate(survey_result_id=event_id),
+    )
+    _add_part(
+        flow,
+        "Flow_Comparison",
+        "flow_account_comparison",
+        flow_account_comparison(Expected, Observed),
+    )
+
+    rollups = []
+    AccountSnapshot = _add_part(
+        rollups, "Account_Snapshot", "snapshot", snapshot(history["Account"], as_of=after_at)
+    )
+    SurveySnapshot = _add_part(
+        rollups,
+        "Survey_Result_Snapshot",
+        "snapshot",
+        snapshot(history["Survey_Result__c"], as_of=after_at),
+    )
+    ExpectedRollups = _add_part(
+        rollups,
+        "Expected_Rollups",
+        "expected_survey_rollups",
+        expected_survey_rollups(AccountSnapshot, SurveySnapshot),
+    )
+    _add_part(
+        rollups,
+        "Rollup_Comparison",
+        "rollup_account_comparison",
+        rollup_account_comparison(ExpectedRollups, AccountSnapshot),
+    )
+    return {"flow": flow, "rollups": rollups}
+
+
+def write_parts_document(parts: list[DiagramPart], name: str, output: Path) -> Path:
+    """Export parent-grouped Ibis graphs with an index of their function boundaries."""
+    output.mkdir(parents=True, exist_ok=True)
+    lines = [
+        f"# {name}",
+        "",
+        "Native Ibis table graphs, split at function and intermediate-table boundaries. "
+        "Each named input has the exact schema of its preceding stage, but no upstream "
+        "expression graph. These are diagram-only boundaries, not materialized runtime tables.",
+        "",
+        "Bindings and events are illustrative; no data was queried. "
+        "Graphs retain Ibis's native nodes, edges and labels, with parent-entity colors and "
+        "clusters; there are no GX overlays.",
+        "",
+        "Fields are grouped by their Salesforce object, including expected and observed fields. "
+        "Flow elements are grouped by their owning Flow from the authoritative lineage. "
+        "Field ownership is preserved across diagram boundaries. Shared expressions, "
+        "mixed-object relations and unmapped query mechanics are neutral gray.",
+        "",
+        "| Parent entity | Fill color |",
+        "| --- | --- |",
+        *[f"| {parent} | `{color}` |" for parent, color in PARENT_COLORS.items()],
+        "",
+        "| Output / diagram | Builder | Inputs |",
+        "| --- | --- | --- |",
+    ]
+    for part in parts:
+        inputs = sorted(op.name for op in part.expression.op().find(ops.UnboundTable))
+        stem = f"{name}_{part.name}"
+        lines.append(
+            f"| [{part.name}]({stem}.svg) | `{part.builder}()` | "
+            + ", ".join(f"`{input_name}`" for input_name in inputs)
+            + " |"
+        )
+    inputs = {}
+    for part in parts:
+        stem = f"{name}_{part.name}"
+        parents, outputs = node_parents(part.expression, inputs)
+        graph = build_parent_graph(part.expression, parents)
+        inputs[part.name] = outputs
+        (output / f"{stem}.svg").write_bytes(graph.pipe(format="svg"))
+        (output / f"{stem}.dot").write_text(graph.source, encoding="utf-8")
+        lines.extend(
+            [
+                "",
+                f"## {part.name}",
+                "",
+                f"Builder: `{part.builder}()`",
+                "",
+                f"![Native Ibis table graph: {part.name}]({stem}.svg)",
+                "",
+                f"[SVG]({stem}.svg) | [DOT]({stem}.dot)",
+            ]
+        )
+    document = output / f"{name}.md"
+    document.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return document
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=Path("docs/suites"))
     parser.add_argument("--suite", choices=("all", "flow", "rollups"), default="all")
-    parser.add_argument(
-        "--include-expression-graph",
-        action="store_true",
-        help="Also render the unmodified native Ibis graph as a diagnostic",
-    )
     args = parser.parse_args(argv)
     if shutil.which("dot") is None:
         parser.error("Install Graphviz's 'dot' executable (for example: apt-get install graphviz)")
-    schemas = {"flow": FLOW_ACCOUNT_COMPARISON, "rollups": ROLLUP_ACCOUNT_COMPARISON}
-    queries = illustrative_comparisons() if args.include_expression_graph else {}
-    suites = {"flow": flow_account_suite(), "rollups": rollup_account_suite()}
-    for name, suite in suites.items():
+    for name, parts in illustrative_parts().items():
         if args.suite in ("all", name):
-            print(
-                write_suite_document(
-                    schemas[name],
-                    suite,
-                    args.output,
-                    expression=queries.get(name),
-                )
-            )
+            print(write_parts_document(parts, f"account_to_survey_results_{name}", args.output))
     return 0
 
 

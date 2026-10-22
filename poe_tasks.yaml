@@ -10,7 +10,7 @@ tasks:
       - ref: test
   suite-diagrams:
     cmd: python scripts/generate_suite_diagrams.py
-    help: Generate suite overviews and expandable field diagrams grouped by GX row condition.
+    help: Export staged Ibis graphs grouped and colored by parent Flow or Salesforce object.
   validate:
     cmd: ppsc-dq validate
     help: Run Athena validation with --config and a fresh --run-dir.
@@ -163,6 +163,9 @@ tasks:
   check-queries:
     cmd: python -m scripts.check_validation compile
     help: Compile illustrative Athena queries and native suites without credentials.
+  render-queries:
+    cmd: python -m scripts.check_validation render
+    help: Regenerate illustrative expected-value and GX comparison SQL in sql/.
   check-synthetic:
     cmd: python -m scripts.check_validation synthetic
     help: Validate independently authored synthetic history and preserve native report evidence.

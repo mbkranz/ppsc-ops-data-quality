@@ -19,9 +19,87 @@ from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_L
 from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_comparison
 from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 from ppsc_ops_data_quality.gx_queries import query_asset_sql, query_batch_definition
+from scripts.check_validation import comparisons, render_examples, synthetic_history_tables
 
 
 class QueryAssetTests(unittest.TestCase):
+    def test_compiled_sources_have_descriptive_aliases(self):
+        expected_sources = {
+            "flow": {"Account", "Contact", "Expected_Account", "Account_After", "Flow_Context"},
+            "rollup": {
+                "Person_Account",
+                "Survey_Result__c",
+                "Expected_Rollups",
+                "Account_Snapshot",
+            },
+        }
+        for name, comparison in example_queries().items():
+            with self.subTest(name=name):
+                query = to_sqlglot(comparison)
+                aliases = {node.name for node in query.find_all(exp.TableAlias)}
+                self.assertTrue(expected_sources[name] <= aliases)
+                for alias in aliases:
+                    self.assertNotRegex(alias, r"^t\d+$")
+                for column in query.find_all(exp.Column):
+                    self.assertNotRegex(column.table, r"^t\d+$")
+                self.assertEqual(
+                    query.sql(dialect="athena"),
+                    to_sqlglot(comparison).sql(dialect="athena"),
+                )
+
+    def test_aliases_preserve_self_joins_and_literal_values(self):
+        backend = ibis.duckdb.connect()
+        try:
+            table = backend.create_table(
+                "Account", ibis.memtable({"Id": ["a", "b"], "label": ["t1", "t2"]})
+            )
+            other = table.view()
+            expression = table.left_join(other, table.Id == other.Id).select(
+                table.Id,
+                table.label,
+                other.label.name("t3"),
+                marker=ibis.literal("t7"),
+            )
+            query = to_sqlglot(expression)
+            actual = backend.raw_sql(query.sql(dialect="duckdb")).fetchall()
+            self.assertCountEqual(actual, [("a", "t1", "t1", "t7"), ("b", "t2", "t2", "t7")])
+            self.assertEqual(query.named_selects, ["Id", "label", "t3", "marker"])
+            self.assertEqual(
+                {node.name for node in query.find_all(exp.TableAlias)},
+                {"Account", "Account_2"},
+            )
+        finally:
+            backend.disconnect()
+
+    def test_rendered_comparisons_preserve_synthetic_results(self):
+        backend = ibis.duckdb.connect()
+        try:
+            for name, comparison in comparisons(synthetic_history_tables(backend)).items():
+                with self.subTest(name=name):
+                    original = backend.raw_sql(backend.compile(comparison)).fetchall()
+                    rendered = to_sqlglot(comparison).sql(dialect="duckdb")
+                    self.assertCountEqual(backend.raw_sql(rendered).fetchall(), original)
+        finally:
+            backend.disconnect()
+
+    def test_checked_in_sql_examples_match_builders(self):
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            render_examples(output)
+            for generated in output.glob("*.sql"):
+                self.assertEqual(
+                    generated.read_text(encoding="utf-8"),
+                    (root / "sql" / generated.name).read_text(encoding="utf-8"),
+                )
+                queries = sqlglot.parse(generated.read_text(encoding="utf-8"), read="athena")
+                self.assertEqual(len(queries), 2)
+                for query in queries:
+                    for alias in query.find_all(exp.TableAlias):
+                        self.assertNotRegex(alias.name, r"^t\d+$")
+                    for column in query.find_all(exp.Column):
+                        self.assertNotRegex(column.table, r"^t\d+$")
+
     def test_compiled_ctes_and_lineage_are_accepted_by_gx(self):
         for name, comparison in example_queries().items():
             sql = query_asset_sql(comparison, projection_lineage=PROJECTION_LINEAGE)

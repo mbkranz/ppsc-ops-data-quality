@@ -5,6 +5,17 @@ Athena SQL, and passes that SELECT to a native GX Query Asset. The built-in GX
 suites compare expected and independently observed values. No Athena views or
 intermediate tables are required.
 
+Query builders explicitly name source objects and intermediate relations (for
+example, `Account`, `Contact`, `Flow_Context`, and `Expected_Account`) using native
+Ibis aliases. The shared Athena renderer replaces compiler-generated `tN` source
+references with those relation names, adding numeric suffixes where necessary.
+Renaming is SQL-scope-aware and does not change physical table bindings, output
+column names, lineage, or literal values. Named relations compile to query-local
+CTEs; they do not publish database views.
+
+Regenerate both illustrative SQL files with `uv run poe render-queries`. This only
+compiles expressions locally; it does not execute SQL or contact AWS.
+
 ## Files
 
 | File | Responsibility |

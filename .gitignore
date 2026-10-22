@@ -10,3 +10,5 @@ dist/
 .aws/
 params.local.toml
 credentials*
+
+glue/environments.local.toml

@@ -61,7 +61,7 @@ src/ppsc_ops_data_quality/
     schemas/                                 # Explicit inputs and inferred derived schemas
     runtime/                                 # Athena/DuckDB preparation, runner and suite export
     views.py                                 # Optional final-query view publishing
-    cli.py                                   # Offline preview/demo commands
+    cli.py                                   # Installed preview/demo/validate commands
     demo.py                                  # Synthetic source data and selected event
 examples/validate_athena.py                   # Explicit live-runtime setup example
 params.example.toml                          # Illustrative bindings and temporal parameters
@@ -114,7 +114,7 @@ including zero-child Accounts.
 
 ## Run against Athena
 
-`examples/validate_athena.py` shows complete GX/SQLAlchemy setup using the runtime:
+`ppsc-dq validate` provides the packaged GX/SQLAlchemy runtime; the example script delegates to it:
 
 1. Copy `params.example.toml` to ignored `params.local.toml`.
 2. Bind the actual databases and verify the physical columns/types, validity
@@ -123,7 +123,7 @@ including zero-child Accounts.
 4. Run with a new output directory:
 
 ```bash
-uv run python examples/validate_athena.py \
+uv run ppsc-dq validate \
   --config params.local.toml --run-dir build/athena-run-001
 ```
 
@@ -145,10 +145,12 @@ several states within a day. An effective `as_of` does not pin an Iceberg physic
 version: late corrections can change results. Use verified physical source pins
 upstream or materialized run inputs when immutable evidence is required.
 
-Glue is a hosting environment. No Spark adapter, Glue job provisioning or job
-submission wrapper is included. GX 1.24 requires Python 3.10+, whereas the documented
-Glue Python Shell runtime is 3.9; select a compatible host and test its dependencies.
-Retain operational AWS commands in the deployment/Poe layer.
+Glue 5.0 hosts the same Athena runtime on Python 3.11. Build a hashed wheel bundle,
+render an account-checked deployment plan, create/update the job, and submit a
+hash-pinned runtime configuration through Poe. See the
+[build, deployment and Glue acceptance plan](docs/build-deployment.md) for commands,
+reference review, rollback and remaining live acceptance. Athena executes the SQL;
+the Glue driver does not initialize Spark.
 
 ## Rules, schemas and lineage
 
@@ -230,6 +232,7 @@ verifies the generator. Keep generated diagnostic graphs under `build/`.
 - [Schema contracts and conversions](src/ppsc_ops_data_quality/schemas/README.md)
 - [Runtime setup and native definitions](src/ppsc_ops_data_quality/runtime/README.md)
 - [Authored SQL-file execution and metadata/comment standards TODO](src/ppsc_ops_data_quality/runtime/TODO.md)
+- [Build, deployment and Glue acceptance](docs/build-deployment.md)
 - [S3 reports, format decision and catalog registration](docs/validation-reports.md)
 - [Athena catalog DDL templates](sql/validation_reports_catalog.sql)
 
@@ -239,4 +242,4 @@ binding and audit/round-trip behavior. Generated SQL files are not runtime input
 
 A Query Asset or normal Athena view does not promise one computation for all GX
 metrics. Measure query count, scan bytes and runtime before adding materialization.
-No automatic migration, deployment, data cleaning or quarantine behavior is included.
+Deployment is explicit through Poe. No data cleaning or quarantine behavior is included.

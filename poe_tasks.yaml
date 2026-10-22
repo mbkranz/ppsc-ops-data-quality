@@ -17,3 +17,134 @@ tasks:
   suite-diagrams:
     cmd: python scripts/generate_suite_diagrams.py
     help: Generate suite overviews and expandable field diagrams grouped by GX row condition.
+  validate:
+    cmd: ppsc-dq validate
+    help: Run Athena validation with --config and a fresh --run-dir.
+  _aws-account:
+    cmd: aws sts get-caller-identity --query Account --output text
+  build-release:
+    help: Build a locked CPython 3.11/Linux Glue wheel bundle from a clean checkout.
+    uses:
+      REVISION: _source-revision
+    sequence:
+      - shell: |
+          set -eu
+          test -z "$(git status --porcelain)" || { echo 'Commit source changes before release building' >&2; exit 1; }
+          python -c 'import sys; assert sys.version_info[:2] == (3, 11), "Build releases with Python 3.11"'
+          test ! -e build/release || { echo 'Use a fresh checkout/build directory' >&2; exit 1; }
+          mkdir -p build/release/wheels
+      - cmd: uv export --locked --no-dev --no-emit-project --format requirements-txt --output-file build/release/requirements.txt
+      - cmd: uv build --wheel --no-sources --out-dir build/release/project
+        env:
+          SOURCE_DATE_EPOCH: '315532800'
+      - cmd: >-
+          uv run --no-project --python 3.11 --with pip==25.3 python -m pip download
+          --require-hashes --only-binary=:all: --no-deps
+          --python-version 3.11 --implementation cp --abi cp311
+          --platform manylinux_2_34_x86_64 --platform manylinux_2_28_x86_64
+          --platform manylinux2014_x86_64
+          --requirement build/release/requirements.txt --dest build/release/wheels
+      - cmd: python -m scripts.package_release --revision ${REVISION}
+  _source-revision:
+    cmd: git rev-parse HEAD
+  smoke-release:
+    help: Install the release without an index and run the installed preview and demo.
+    sequence:
+      - cmd: python -m zipfile -e build/release/bundle/dependencies.gluewheels.zip build/release/smoke-wheels
+      - cmd: uv venv --python 3.11 build/release/smoke-env
+      - cmd: >-
+          uv pip install --python build/release/smoke-env/bin/python --no-index
+          --find-links build/release/smoke-wheels ppsc-ops-data-quality
+      - cmd: uv pip check --python build/release/smoke-env/bin/python
+      - cmd: build/release/smoke-env/bin/ppsc-dq preview --output build/release/smoke-preview
+      - cmd: build/release/smoke-env/bin/ppsc-dq demo --run-dir build/release/smoke-demo
+  plan-deployment:
+    help: Resolve STS account and render a verified release deployment; no AWS writes.
+    args:
+      - {name: config, options: [--config], default: glue/environments.local.toml}
+      - {name: environment, options: [--environment], required: true}
+      - {name: bundle, options: [--bundle], default: build/release/bundle}
+      - {name: output, options: [--output], required: true}
+    uses:
+      ACCOUNT: _aws-account
+    cmd: >-
+      python -m scripts.plan_deployment --config ${config} --account ${ACCOUNT}
+      --environment ${environment} --bundle ${bundle} --output ${output}
+  _check-plan-account:
+    args:
+      - {name: plan, options: [--plan], required: true}
+    shell: |
+      set -eu
+      actual=$(aws sts get-caller-identity --query Account --output text)
+      test "$actual" = "$(jq -r .account_id "${plan}/target.json")" || { echo 'AWS account differs from deployment plan' >&2; exit 1; }
+  deploy:
+    help: Upload verified artifacts and explicitly create or update the declared Glue job.
+    args:
+      - {name: plan, options: [--plan], required: true}
+      - {name: operation, options: [--operation], required: true}
+    sequence:
+      - ref: _check-plan-account --plan ${plan}
+      - cmd: python -m scripts.package_release --verify-plan ${plan}
+      - shell: |
+          set -eu
+          case "${operation}" in create|update) ;; *) echo 'operation must be create or update' >&2; exit 1;; esac
+          region=$(jq -r .region "${plan}/target.json")
+          while IFS="$(printf '\t')" read -r source destination; do
+            aws s3 cp "$source" "$destination" --region "$region" --only-show-errors
+          done < "${plan}/uploads.tsv"
+          aws glue "${operation}-job" --region "$region" --cli-input-json "file://${plan}/${operation}-job.json"
+  run-glue:
+    help: Submit a hash-pinned runtime config to the exact deployed release in a plan.
+    args:
+      - {name: plan, options: [--plan], required: true}
+      - {name: config_uri, options: [--config-uri], required: true}
+      - {name: config_sha256, options: [--config-sha256], required: true}
+    sequence:
+      - ref: _check-plan-account --plan ${plan}
+      - shell: |
+          set -eu
+          region=$(jq -r .region "${plan}/target.json")
+          name=$(jq -r .job_name "${plan}/target.json")
+          aws glue get-job --region "$region" --job-name "$name" --query Job --output json > "${plan}/live-job.json"
+          jq -e --slurpfile expected "${plan}/update-job.json" \
+            '.Command == $expected[0].JobUpdate.Command and .DefaultArguments == $expected[0].JobUpdate.DefaultArguments' \
+            "${plan}/live-job.json" > /dev/null
+          arguments=$(jq -cn --arg uri "${config_uri}" --arg hash "${config_sha256}" \
+            '{"--config_uri":$uri,"--config_sha256":$hash}')
+          aws glue start-job-run --region "$region" --job-name "$name" --arguments "$arguments" \
+            --output json > "${plan}/run.json"
+          cat "${plan}/run.json"
+  glue-status:
+    help: Inspect a submitted run. Repeat until terminal; retain the printed run ID.
+    args:
+      - {name: plan, options: [--plan], required: true}
+      - {name: run_id, options: [--run-id], required: true}
+    sequence:
+      - ref: _check-plan-account --plan ${plan}
+      - shell: |
+          set -eu
+          region=$(jq -r .region "${plan}/target.json")
+          name=$(jq -r .job_name "${plan}/target.json")
+          aws glue get-job-run --region "$region" --job-name "$name" --run-id "${run_id}" \
+            --query 'JobRun.{State:JobRunState,Error:ErrorMessage,Started:StartedOn,Completed:CompletedOn,LogGroup:LogGroupName}'
+  render-report-catalog:
+    help: Render two report DDL statements without contacting AWS.
+    cmd: python -m scripts.render_report_catalog
+  register-report-catalog:
+    help: Submit previously rendered DDL; inspect both Athena query IDs for completion.
+    args:
+      - {name: plan, options: [--plan], required: true}
+      - {name: catalog, options: [--catalog], required: true}
+    sequence:
+      - ref: _check-plan-account --plan ${plan}
+      - shell: |
+          set -eu
+          region=$(jq -r .region "${catalog}/target.json")
+          workgroup=$(jq -r .work_group "${catalog}/target.json")
+          context=$(jq -c .context "${catalog}/target.json")
+          results=$(jq -c .results "${catalog}/target.json")
+          for sql in "${catalog}"/00.sql "${catalog}"/01.sql; do
+            aws athena start-query-execution --region "$region" --work-group "$workgroup" \
+              --query-execution-context "$context" --result-configuration "$results" \
+              --query-string "file://$sql" --output json
+          done

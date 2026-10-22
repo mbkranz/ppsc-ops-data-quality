@@ -139,8 +139,15 @@ def main(argv=None):
     demo_parser = commands.add_parser("demo", help="Validate synthetic DuckDB history")
     demo_parser.add_argument("--run-dir", type=Path)
     demo_parser.add_argument("--s3-uri", help="Publish this synthetic run to an existing S3 prefix")
+    live_parser = commands.add_parser("validate", help="Validate configured Athena history")
+    live_parser.add_argument("--config", type=Path, required=True)
+    live_parser.add_argument("--run-dir", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
+        if args.command == "validate":
+            from ppsc_ops_data_quality.runtime.job import validate_athena
+
+            return validate_athena(args.config, args.run_dir)
         if args.command == "preview":
             summary = preview(
                 args.output

@@ -1,0 +1,15 @@
+# Copy to ignored glue/environments.local.toml and use verified account settings.
+# STS selects a unique account; --environment is an assertion of that selection.
+[environments.dev]
+account_id = "REPLACE_WITH_DEV_ACCOUNT"
+region = "REPLACE_WITH_REGION"
+artifact_s3_uri = "s3://REPLACE_WITH_ARTIFACT_BUCKET/ppsc-data-quality/"
+glue_role = "arn:aws:iam::REPLACE_WITH_DEV_ACCOUNT:role/REPLACE_WITH_GLUE_ROLE"
+job_name = "ppsc-ops-data-quality-dev"
+
+[environments.prod]
+account_id = "REPLACE_WITH_PROD_ACCOUNT"
+region = "REPLACE_WITH_REGION"
+artifact_s3_uri = "s3://REPLACE_WITH_ARTIFACT_BUCKET/ppsc-data-quality/"
+glue_role = "arn:aws:iam::REPLACE_WITH_PROD_ACCOUNT:role/REPLACE_WITH_GLUE_ROLE"
+job_name = "ppsc-ops-data-quality-prod"

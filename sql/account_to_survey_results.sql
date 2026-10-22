@@ -7,6 +7,7 @@ SELECT
   "t37"."Participant__r.Account.Id" AS "Account.Id", /* Source identity: Account.Id; source: Account.Id */
   "t37"."Participant__c", /* Source identity: Participant__c; source: Survey_Result__c.Participant__c */
   "t37"."Survey_Index_Number__c", /* Source identity: Survey_Index_Number__c; source: Survey_Result__c.Survey_Index_Number__c */
+  "t37"."Completion_Status_Timestamp__c", /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
   "t37"."FlowDecision_Survey_Completion_Route_target", /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */
   "t37"."FlowDecision_Primary_Consent_Account_Update_target", /* Translated FlowDecision.Primary_Consent_Account_Update; source: FlowDecision.Previous_Primary_Consent_Exists */
   "t37"."FlowDecision_EHR_Consent_Account_Update_target", /* Translated FlowDecision.EHR_Consent_Account_Update; source: FlowDecision.Previous_EHR_Exists */
@@ -34,7 +35,7 @@ SELECT
     OR (
       "t37"."FlowDecision_Assent_Account_Update_target" /* Translated FlowDecision.Assent_Account_Update; source: FlowDecision.Decision_4 */ = 'FlowRecordUpdate.Assent_With_Permission_Or_Primary_Date'
     )
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
   END AS "Earliest_Primary_Consent_Date_for_Report__c", /* Earliest primary consent report timestamp; source: FlowRecordUpdate.updateAccount1001_Negative, FlowRecordUpdate.Update_Account_1007_Negative */
   CASE
@@ -42,52 +43,52 @@ SELECT
       'FlowRecordLookup.Earliest_Other_Yes_Primary_Consent',
       'FlowRecordLookup.Pediatric_Permission_For_Assent'
     )
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c"
   END AS "Latest_Primary_Consent_Date_for_Report__c", /* Latest primary consent report timestamp; source: FlowRecordUpdate.updateAccount1001_Positive, FlowRecordUpdate.updateAccount1001_Negative, FlowRecordUpdate.Update_Account_1007_Positive, FlowRecordUpdate.Update_Account_1007_Negative */
   CASE
     WHEN "t37"."FlowDecision_EHR_Consent_Account_Update_target" /* Translated FlowDecision.EHR_Consent_Account_Update; source: FlowDecision.Previous_EHR_Exists */ = 'FlowRecordUpdate.EHR_Consent_With_Prior_Yes'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.EHR_Consent_Date_Time__c"
   END AS "EHR_Consent_Date_Time__c", /* Ehr consent timestamp; source: FlowRecordUpdate.updateAccount1003_NegativeSF */
   CASE
     WHEN "t37"."FlowDecision_EHR_Consent_Account_Update_target" /* Translated FlowDecision.EHR_Consent_Account_Update; source: FlowDecision.Previous_EHR_Exists */ = 'FlowRecordUpdate.EHR_Consent_Without_Prior_Yes'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.EHR_Reconsent_Date_Time__c"
   END AS "EHR_Reconsent_Date_Time__c", /* Ehr reconsent timestamp; source: FlowRecordUpdate.Copy_1_of_updateAccount1003_PositiveSF */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Primary_Consent_Update_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Update_to_Primary_Consent_Completed__c"
   END AS "Update_to_Primary_Consent_Completed__c", /* Primary consent update timestamp; source: FlowRecordUpdate.updateAccount1005 */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Basics_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Basics_Date_Time__c"
   END AS "Basics_Date_Time__c", /* Basics completion timestamp; source: FlowRecordUpdate.updateAccount2001 */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Overall_Health_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Overall_Health_Date_Time__c"
   END AS "Overall_Health_Date_Time__c", /* Overall health completion timestamp; source: FlowRecordUpdate.updateAccount2003 */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Lifestyle_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Lifestyle_Date_Time__c"
   END AS "Lifestyle_Date_Time__c", /* Lifestyle completion timestamp; source: FlowRecordUpdate.updateAccount2005 */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Personal_And_Family_History_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Personal_and_Family_History_Complete__c"
   END AS "Personal_and_Family_History_Complete__c", /* Personal and family history completion timestamp; source: FlowRecordUpdate.updateAccount2006 */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Healthcare_Access_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.HC_Access_Date_Time__c"
   END AS "HC_Access_Date_Time__c", /* Healthcare access completion timestamp; source: FlowRecordUpdate.updateAccount2007 */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Life_Functioning_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Life_Functioning_Date_Time__c"
   END AS "Life_Functioning_Date_Time__c", /* Life functioning completion timestamp; source: FlowRecordUpdate.updateAccount2008 */
   CASE
@@ -97,27 +98,27 @@ SELECT
   END AS "First_Physical_Measurement_Date_Time__c", /* First remote physical measurement timestamp; source: FlowRecordUpdate.updateAccount2009, FlowRecordLookup.getFirstPhysicalMeasurement */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordLookup.First_Remote_Physical_Measurement'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c"
   END AS "Last_Physical_Measurement_Date_Time__c", /* Latest processed remote physical measurement timestamp; source: FlowRecordUpdate.updateAccount2009 */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Emotional_Health_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.EH_Date_Time__c"
   END AS "EH_Date_Time__c", /* Emotional health completion timestamp; source: FlowRecordUpdate.updateAccount2010 */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Behavioral_Health_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Behavioral_Health_Completion__c"
   END AS "Behavioral_Health_Completion__c", /* Behavioral health completion timestamp; source: FlowRecordUpdate.updateAccount2011 */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Environmental_Exposures_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Environmental_Exposures_Date_Time__c"
   END AS "Environmental_Exposures_Date_Time__c", /* Environmental exposures completion timestamp; source: FlowRecordUpdate.updateAccount2012 */
   CASE
     WHEN "t37"."FlowDecision_Survey_Completion_Route_target" /* Translated FlowDecision.Survey_Completion_Route; source: FlowDecision.Survey_Index, FlowStart.start */ = 'FlowRecordUpdate.Social_Determinants_Completion'
-    THEN "t37"."Completion_Status_Timestamp__c"
+    THEN "t37"."Completion_Status_Timestamp__c" /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
     ELSE "t37"."Participant__r.Account.Social_Determinants_of_Health_Completion__c"
   END AS "Social_Determinants_of_Health_Completion__c", /* Social determinants completion timestamp; source: FlowRecordUpdate.updateAccount2013 */
   NOT (

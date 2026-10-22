@@ -1345,6 +1345,7 @@ for _alias, _source in (
     ("Account.Id", "Account.Id"),
     ("Participant__c", "Survey_Result__c.Participant__c"),
     ("Survey_Index_Number__c", "Survey_Result__c.Survey_Index_Number__c"),
+    ("Completion_Status_Timestamp__c", "Survey_Result__c.Completion_Status_Timestamp__c"),
     ("PersonContactId", "Account.PersonContactId"),
 ):
     PROJECTION_LINEAGE[_alias] = {
@@ -1381,6 +1382,7 @@ for _alias, _source_alias, _role in (
     ("observed_account_id", "Account.Id", "observed"),
     ("person_contact_id", "PersonContactId", "identity"),
     ("survey_index_number", "Survey_Index_Number__c", "evidence"),
+    ("survey_completion_timestamp", "Completion_Status_Timestamp__c", "evidence"),
     (
         "cabor_lookup_is_deterministic",
         "CABOR_Completion_Date__c_is_deterministic",
@@ -1391,3 +1393,16 @@ for _alias, _source_alias, _role in (
         **PROJECTION_LINEAGE[_source_alias],
         "comparison_role": _role,
     }
+
+PROJECTION_LINEAGE["survey_completion_occurred_on_or_after_launch"] = {
+    "rule_id": "survey_completion_occurred_on_or_after_launch",
+    "entity_type": "BusinessCondition",
+    "comparison_role": "scope",
+    "description": "Survey completion calendar date is on or after launch (2024-12-16)",
+    "source_entities": ["Survey_Result__c.Completion_Status_Timestamp__c"],
+    "source_requirement": "User-specified post-launch scope for Account completion updates",
+    "launch_date": "2024-12-16",
+    "boundary": "inclusive",
+    "timestamp_semantics": "Completion timestamp calendar date; normalize business timezone upstream",
+    "null_policy": "Unknown completion timestamps retain NULL scope and are not Flow-validated",
+}

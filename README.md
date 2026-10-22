@@ -145,6 +145,23 @@ an optional independent row-count check. They cover required columns, identity,
 unique grain, permission-lookup resolution and 19 expected/observed field pairs.
 The demo supplies counts of one, yielding 28 and 25 expectations respectively.
 
+Flow row checks use the named Ibis predicate
+`survey_completion_occurred_on_or_after_launch`, consumed by the GX
+`POST_LAUNCH_COMPLETION` row condition. It compares the calendar date of
+`Survey_Result__c.Completion_Status_Timestamp__c` with the inclusive launch date
+`2024-12-16`. Normalize timestamps to the agreed business timezone upstream;
+the query does not infer or convert it. The completion timestamp and predicate
+remain in the comparison, and no launch filter removes rows from the query.
+All Flow row checks, including the optional count, validate only that cohort;
+the required-columns check remains batch-wide. CABOR also requires a deterministic
+lookup. Rollup checks retain their separate snapshot contract.
+
+Pre-launch records and NULL completion timestamps remain available for profiling
+but are excluded from Flow row checks. A NULL timestamp gives a NULL predicate;
+it is not classified as migrated. Migration reconciliation and independent
+timestamp/population coverage checks remain separate work. When supplied, the
+Flow `expected_row_count` must count post-launch source events independently.
+
 Two NULLs are excluded together by the pair equality policy; a one-sided NULL
 fails. Unresolved pediatric-permission lookups fail their determinism check; only
 CABOR equality is conditioned on resolution. Empty batches require an explicit

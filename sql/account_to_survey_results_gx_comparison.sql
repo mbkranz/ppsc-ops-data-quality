@@ -12,6 +12,8 @@ FROM (
     "t41"."Account.Id" AS "expected_account_id", /* Source identity: Account.Id; source: Account.Id */
     "t11"."Id" AS "observed_account_id", /* Source identity: Account.Id; source: Account.Id */
     "t41"."Survey_Index_Number__c" AS "survey_index_number", /* Source identity: Survey_Index_Number__c; source: Survey_Result__c.Survey_Index_Number__c */
+    "t41"."Completion_Status_Timestamp__c" AS "survey_completion_timestamp", /* Source identity: Completion_Status_Timestamp__c; source: Survey_Result__c.Completion_Status_Timestamp__c */
+    DATE("t41"."Completion_Status_Timestamp__c") >= FROM_ISO8601_DATE('2024-12-16') AS "survey_completion_occurred_on_or_after_launch", /* Survey completion calendar date is on or after launch (2024-12-16); source: Survey_Result__c.Completion_Status_Timestamp__c */
     "t41"."CABOR_Completion_Date__c_is_deterministic" AS "cabor_lookup_is_deterministic", /* Signature lookup has at most one candidate on the assent route; source: FlowRecordLookup.Get_Permission_1007 */
     "t41"."Age_at_Time_of_Consent__pc" AS "expected__Age_at_Time_of_Consent__pc", /* Expected Account.Age_at_Time_of_Consent__pc: Age at flow execution; source: FlowRecordUpdate.updateAccount1001_Positive, FlowRecordUpdate.updateAccount1001_Negative, FlowRecordUpdate.Update_Account_1007_Positive, FlowRecordUpdate.Update_Account_1007_Negative, FlowFormula.formAgeCalculation */
     "t41"."CABOR_Completion_Date__c" AS "expected__CABOR_Completion_Date__c", /* Expected Account.CABOR_Completion_Date__c: California signature timestamp; source: FlowRecordUpdate.updateAccount1001_Positive, FlowRecordUpdate.updateAccount1001_Negative, FlowRecordUpdate.Update_Account_1007_Positive, FlowRecordUpdate.Update_Account_1007_Negative, FlowRecordLookup.Get_Permission_1007 */
@@ -57,6 +59,7 @@ FROM (
       "t39"."Participant__r.Account.Id" AS "Account.Id",
       "t39"."Participant__c",
       "t39"."Survey_Index_Number__c",
+      "t39"."Completion_Status_Timestamp__c",
       "t39"."FlowDecision_Survey_Completion_Route_target",
       "t39"."FlowDecision_Primary_Consent_Account_Update_target",
       "t39"."FlowDecision_EHR_Consent_Account_Update_target",

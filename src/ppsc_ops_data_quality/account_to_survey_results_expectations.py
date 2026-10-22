@@ -23,7 +23,10 @@ NULL policy: ignore only pairs where both values are missing. A one-sided NULL i
 a mismatch; no sentinel values or additional nullity flags are used. An ambiguous
 unsorted permission lookup fails the resolution expectation, while the CABOR
 value comparison alone is limited to rows with a deterministic expected value.
-This is an evidence condition, not a reintroduction of Flow applicability rules.
+All row-scoped Flow checks, including the optional count, apply only to completion
+dates on/after 2024-12-16. The query projects this business scope without filtering
+the batch. Pre-launch and unknown-date rows remain available for profiling but
+are not validated by these Flow checks. Structural checks remain batch-wide.
 
 Documentation and reviewed skill references are listed in the accompanying README.
 """
@@ -50,6 +53,10 @@ ROLLUP_IDENTITY_COLUMNS = (
     "observed_account_id",
 )
 
+# The Ibis query owns the date comparison; GX consumes its named result so the
+# cutoff and timestamp semantics are not independently reimplemented here.
+POST_LAUNCH_COMPLETION = Column("survey_completion_occurred_on_or_after_launch") == True
+
 
 def flow_account_suite(*, expected_row_count: int | None = None) -> gx.ExpectationSuite:
     """Return built-in expectations for the survey-event comparison dataset.
@@ -57,7 +64,8 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
     The base suite has 27 expectations: required columns; four non-null identity
     columns; unique survey event Id; two lookup-resolution checks; and 19 value
     comparisons. Optional expected_row_count adds an independent source-count
-    check. Empty batches are allowed when no count contract is supplied.
+    check for post-launch completions. Empty eligible cohorts are allowed when
+    no count contract is supplied. The required-columns check is batch-wide.
     """
     expectations = []
     expectations.append(
@@ -65,6 +73,8 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
             column_set=[
                 *FLOW_IDENTITY_COLUMNS,
                 "cabor_lookup_is_deterministic",
+                "survey_completion_timestamp",
+                "survey_completion_occurred_on_or_after_launch",
                 *[f"expected__{field}" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
                 *[f"observed__{field}" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
             ],
@@ -77,6 +87,7 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
         expectations.append(
             gxe.ExpectColumnValuesToNotBeNull(
                 column=column,
+                row_condition=POST_LAUNCH_COMPLETION,
                 mostly=1,
                 description=f"Every survey event has {column}.",
                 meta={"check_id": f"flow_{column}_is_present"},
@@ -85,6 +96,7 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
     expectations.append(
         gxe.ExpectColumnValuesToBeUnique(
             column="survey_result_id",
+            row_condition=POST_LAUNCH_COMPLETION,
             mostly=1,
             description="Survey event IDs are unique in the comparison; joins do not fan out.",
             meta={"check_id": "one_comparison_row_per_survey_event"},
@@ -93,6 +105,7 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
     expectations.append(
         gxe.ExpectColumnValuesToNotBeNull(
             column="cabor_lookup_is_deterministic",
+            row_condition=POST_LAUNCH_COMPLETION,
             mostly=1,
             meta={"check_id": "permission_lookup_resolution_evidence_is_present"},
         )
@@ -101,6 +114,7 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
         gxe.ExpectColumnValuesToBeInSet(
             column="cabor_lookup_is_deterministic",
             value_set=[True],
+            row_condition=POST_LAUNCH_COMPLETION,
             mostly=1,
             description="The permission lookup resolves a reproducible expected CABOR value.",
             meta={
@@ -110,9 +124,9 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
         )
     )
     for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW:
-        comparison_options = {}
+        row_condition = POST_LAUNCH_COMPLETION
         if field == "CABOR_Completion_Date__c":
-            comparison_options["row_condition"] = Column("cabor_lookup_is_deterministic") == True
+            row_condition = row_condition & (Column("cabor_lookup_is_deterministic") == True)
         expectations.append(
             gxe.ExpectColumnPairValuesToBeEqual(
                 column_A=f"observed__{field}",
@@ -124,14 +138,15 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
                     "check_id": f"observed_{field}_equals_expected",
                     "ppsc": deepcopy(PROJECTION_LINEAGE[field]),
                 },
-                **comparison_options,
+                row_condition=row_condition,
             )
         )
     if expected_row_count is not None:
         expectations.append(
             gxe.ExpectTableRowCountToEqual(
                 value=expected_row_count,
-                description="Comparison row count equals the independent source event count.",
+                row_condition=POST_LAUNCH_COMPLETION,
+                description="Post-launch comparison row count equals the independent source count.",
                 meta={"check_id": "flow_comparison_row_count_matches_source"},
             )
         )
@@ -141,6 +156,9 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
             "grain": "survey_event",
             "expected_state": "Account BEFORE plus one Flow event",
             "observed_state": "independent Account AFTER the same event",
+            "row_scope": deepcopy(
+                PROJECTION_LINEAGE["survey_completion_occurred_on_or_after_launch"]
+            ),
         },
         expectations=expectations,
     )

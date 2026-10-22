@@ -22,6 +22,7 @@ from ppsc_ops_data_quality.account_to_survey_results_lineage import ROLLUP_FIELD
 from ppsc_ops_data_quality.snapshot import snapshot
 
 ROLLUP_ACCOUNT_FIELDS = tuple(field.removeprefix("Account.") for field in ROLLUP_FIELD_LINEAGE)
+SURVEY_COMPLETION_FLOW_LAUNCH_DATE = date(2024, 12, 16)
 
 
 def bind_history_tables(
@@ -61,7 +62,17 @@ def flow_account_comparison(
     Retain missing observed Accounts and duplicate observed IDs: integrity checks
     must detect these conditions. Account IDs are deliberately not unique at this
     grain; several survey events may refer to one Account.
+
+    Project the completion timestamp and the inclusive launch predicate without
+    filtering rows. The predicate uses the timestamp's calendar date; normalize
+    source timestamps to the agreed business timezone upstream. NULL timestamps
+    retain an unknown predicate. This is a business scope, not a FlowDecision.
+    Pre-launch events remain available for profiling and migration reconciliation.
     """
+    survey_completion_occurred_on_or_after_launch = (
+        ExpectedAccount.Completion_Status_Timestamp__c.date()
+        >= ibis.literal(SURVEY_COMPLETION_FLOW_LAUNCH_DATE, type="date")
+    ).name("survey_completion_occurred_on_or_after_launch")
     AccountAfter = AccountAfter.view()
     Joined = ExpectedAccount.left_join(
         AccountAfter,
@@ -76,6 +87,8 @@ def flow_account_comparison(
         ExpectedAccount["Account.Id"].name("expected_account_id"),
         AccountAfter.Id.name("observed_account_id"),
         ExpectedAccount.Survey_Index_Number__c.name("survey_index_number"),
+        ExpectedAccount.Completion_Status_Timestamp__c.name("survey_completion_timestamp"),
+        survey_completion_occurred_on_or_after_launch,
         ExpectedAccount.CABOR_Completion_Date__c_is_deterministic.name(
             "cabor_lookup_is_deterministic"
         ),

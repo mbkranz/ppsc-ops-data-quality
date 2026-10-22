@@ -15,10 +15,10 @@ from ppsc_ops_data_quality import account_to_survey_results_expectations as chec
 from ppsc_ops_data_quality import queries
 
 OLD = dt.datetime(2001, 1, 1)
-NEW = dt.datetime(2024, 1, 1)
+NEW = dt.datetime(2025, 1, 1)
 
 
-def flow_inputs():
+def flow_inputs(*, completion_timestamp=NEW):
     survey = ibis.memtable(
         [
             {
@@ -27,7 +27,7 @@ def flow_inputs():
                 "Survey_Index_Number__c": "2001",
                 "Completion_Status__c": "Complete",
                 "Consent_Status__c": "Yes",
-                "Completion_Status_Timestamp__c": NEW,
+                "Completion_Status_Timestamp__c": completion_timestamp,
                 "Consent_Status_Timestamp__c": NEW,
                 "California_Signature__c": None,
             }
@@ -60,7 +60,7 @@ def flow_inputs():
     before = ibis.memtable([baseline], schema=account_schema)
     # Independently declared observed result for a Basics event.
     after = ibis.memtable(
-        [{**baseline, "Basics_Date_Time__c": NEW, "survey_result_id": "s1"}],
+        [{**baseline, "Basics_Date_Time__c": completion_timestamp, "survey_result_id": "s1"}],
         schema={**account_schema, "survey_result_id": "string"},
     )
     contact = ibis.memtable(
@@ -122,6 +122,57 @@ class BuiltInExpectations(unittest.TestCase):
         frame.loc[0, "observed__Basics_Date_Time__c"] = OLD
         failed = self.failed_checks(self.validate(frame, checks.flow_account_suite()))
         self.assertEqual(failed, {"observed_Basics_Date_Time__c_equals_expected"})
+
+    def test_launch_boundary_preserves_rows_and_scopes_flow_checks(self):
+        for timestamp, eligible in [
+            (dt.datetime(2024, 12, 15, 23, 59, 59), False),
+            (dt.datetime(2024, 12, 16), True),
+            (dt.datetime(2024, 12, 16, 23, 59, 59), True),
+            (NEW, True),
+            (None, None),
+        ]:
+            with self.subTest(timestamp=timestamp):
+                expected, after = flow_inputs(completion_timestamp=timestamp)
+                frame = self.ibis_backend.execute(queries.flow_account_comparison(expected, after))
+                self.assertEqual(len(frame), 1)  # No input filtering, including NULL timestamps.
+                scope = frame.loc[0, "survey_completion_occurred_on_or_after_launch"]
+                if eligible is None:
+                    self.assertTrue(pd.isna(scope))
+                else:
+                    self.assertEqual(scope, eligible)
+                frame["observed__Basics_Date_Time__c"] = OLD
+                frame["observed_account_id"] = None
+                frame["cabor_lookup_is_deterministic"] = False
+                result = self.validate(
+                    frame, checks.flow_account_suite(expected_row_count=int(bool(eligible)))
+                )
+                if eligible:
+                    self.assertEqual(
+                        self.failed_checks(result),
+                        {
+                            "observed_Basics_Date_Time__c_equals_expected",
+                            "flow_observed_account_id_is_present",
+                            "permission_lookup_is_deterministic",
+                        },
+                    )
+                else:
+                    self.assertTrue(result.success)
+
+    def test_every_flow_row_expectation_has_launch_scope_after_serialization(self):
+        suite_json = checks.flow_account_suite(expected_row_count=1).to_json_dict()
+        restored = gx.ExpectationSuite(**json.loads(json.dumps(suite_json)))
+        serialized = restored.to_json_dict()["expectations"]
+        for expectation in serialized:
+            if expectation["type"] == "expect_table_columns_to_match_set":
+                continue
+            condition = expectation["kwargs"]["row_condition"]
+            self.assertIn("survey_completion_occurred_on_or_after_launch", json.dumps(condition))
+        cabor = next(
+            e
+            for e in serialized
+            if e["meta"]["check_id"] == "observed_CABOR_Completion_Date__c_equals_expected"
+        )
+        self.assertIn("cabor_lookup_is_deterministic", json.dumps(cabor["kwargs"]["row_condition"]))
 
     def test_both_null_allowed_and_one_sided_null_fails(self):
         for expected, observed, success in [
@@ -284,7 +335,14 @@ class BuiltInExpectations(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             url = "sqlite:///" + str(Path(tmp) / "flow.sqlite")
             engine = sa.create_engine(url)
-            self.flow_frame.to_sql("comparison", engine, index=False)
+            expected, after = flow_inputs(completion_timestamp=dt.datetime(2024, 12, 15))
+            prelaunch = self.ibis_backend.execute(queries.flow_account_comparison(expected, after))
+            prelaunch["observed_account_id"] = None
+            prelaunch["observed__Basics_Date_Time__c"] = OLD
+            prelaunch["cabor_lookup_is_deterministic"] = False
+            pd.concat([self.flow_frame, prelaunch], ignore_index=True).to_sql(
+                "comparison", engine, index=False
+            )
             engine.dispose()
             ds = self.context.data_sources.add_sql(
                 name="sql_flow", connection_string=url, create_temp_table=False

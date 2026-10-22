@@ -833,6 +833,7 @@ def expected_account_values(
         Record["Participant__r.Account.Id"].name("Account.Id"),
         Record.Participant__c,
         Record.Survey_Index_Number__c,
+        Record.Completion_Status_Timestamp__c,
         *[Record[column] for column in evidence if column in Record.columns],
         **expressions,
     )

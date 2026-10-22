@@ -11,6 +11,8 @@
           "expected_account_id",
           "observed_account_id",
           "cabor_lookup_is_deterministic",
+          "survey_completion_timestamp",
+          "survey_completion_occurred_on_or_after_launch",
           "expected__Age_at_Time_of_Consent__pc",
           "expected__CABOR_Completion_Date__c",
           "expected__Earliest_Primary_Consent_Date_for_Report__c",
@@ -61,7 +63,15 @@
     {
       "type": "expect_column_values_to_not_be_null",
       "kwargs": {
-        "column": "survey_result_id"
+        "column": "survey_result_id",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "flow_survey_result_id_is_present"
@@ -72,7 +82,15 @@
     {
       "type": "expect_column_values_to_not_be_null",
       "kwargs": {
-        "column": "participant_contact_id"
+        "column": "participant_contact_id",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "flow_participant_contact_id_is_present"
@@ -83,7 +101,15 @@
     {
       "type": "expect_column_values_to_not_be_null",
       "kwargs": {
-        "column": "expected_account_id"
+        "column": "expected_account_id",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "flow_expected_account_id_is_present"
@@ -94,7 +120,15 @@
     {
       "type": "expect_column_values_to_not_be_null",
       "kwargs": {
-        "column": "observed_account_id"
+        "column": "observed_account_id",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "flow_observed_account_id_is_present"
@@ -105,7 +139,15 @@
     {
       "type": "expect_column_values_to_be_unique",
       "kwargs": {
-        "column": "survey_result_id"
+        "column": "survey_result_id",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "one_comparison_row_per_survey_event"
@@ -116,7 +158,15 @@
     {
       "type": "expect_column_values_to_not_be_null",
       "kwargs": {
-        "column": "cabor_lookup_is_deterministic"
+        "column": "cabor_lookup_is_deterministic",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "permission_lookup_resolution_evidence_is_present"
@@ -127,6 +177,14 @@
       "type": "expect_column_values_to_be_in_set",
       "kwargs": {
         "column": "cabor_lookup_is_deterministic",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        },
         "value_set": [
           true
         ]
@@ -153,7 +211,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Age_at_Time_of_Consent__pc",
-        "column_B": "expected__Age_at_Time_of_Consent__pc"
+        "column_B": "expected__Age_at_Time_of_Consent__pc",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Age_at_Time_of_Consent__pc_equals_expected",
@@ -216,12 +282,25 @@
         "column_A": "observed__CABOR_Completion_Date__c",
         "column_B": "expected__CABOR_Completion_Date__c",
         "row_condition": {
-          "column": {
-            "name": "cabor_lookup_is_deterministic"
-          },
-          "operator": "==",
-          "parameter": true,
-          "type": "comparison"
+          "conditions": [
+            {
+              "column": {
+                "name": "survey_completion_occurred_on_or_after_launch"
+              },
+              "operator": "==",
+              "parameter": true,
+              "type": "comparison"
+            },
+            {
+              "column": {
+                "name": "cabor_lookup_is_deterministic"
+              },
+              "operator": "==",
+              "parameter": true,
+              "type": "comparison"
+            }
+          ],
+          "type": "and"
         }
       },
       "meta": {
@@ -296,7 +375,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Earliest_Primary_Consent_Date_for_Report__c",
-        "column_B": "expected__Earliest_Primary_Consent_Date_for_Report__c"
+        "column_B": "expected__Earliest_Primary_Consent_Date_for_Report__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Earliest_Primary_Consent_Date_for_Report__c_equals_expected",
@@ -345,7 +432,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Latest_Primary_Consent_Date_for_Report__c",
-        "column_B": "expected__Latest_Primary_Consent_Date_for_Report__c"
+        "column_B": "expected__Latest_Primary_Consent_Date_for_Report__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Latest_Primary_Consent_Date_for_Report__c_equals_expected",
@@ -402,7 +497,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__EHR_Consent_Date_Time__c",
-        "column_B": "expected__EHR_Consent_Date_Time__c"
+        "column_B": "expected__EHR_Consent_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_EHR_Consent_Date_Time__c_equals_expected",
@@ -447,7 +550,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__EHR_Reconsent_Date_Time__c",
-        "column_B": "expected__EHR_Reconsent_Date_Time__c"
+        "column_B": "expected__EHR_Reconsent_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_EHR_Reconsent_Date_Time__c_equals_expected",
@@ -492,7 +603,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Update_to_Primary_Consent_Completed__c",
-        "column_B": "expected__Update_to_Primary_Consent_Completed__c"
+        "column_B": "expected__Update_to_Primary_Consent_Completed__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Update_to_Primary_Consent_Completed__c_equals_expected",
@@ -537,7 +656,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Basics_Date_Time__c",
-        "column_B": "expected__Basics_Date_Time__c"
+        "column_B": "expected__Basics_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Basics_Date_Time__c_equals_expected",
@@ -582,7 +709,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Overall_Health_Date_Time__c",
-        "column_B": "expected__Overall_Health_Date_Time__c"
+        "column_B": "expected__Overall_Health_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Overall_Health_Date_Time__c_equals_expected",
@@ -627,7 +762,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Lifestyle_Date_Time__c",
-        "column_B": "expected__Lifestyle_Date_Time__c"
+        "column_B": "expected__Lifestyle_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Lifestyle_Date_Time__c_equals_expected",
@@ -672,7 +815,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Personal_and_Family_History_Complete__c",
-        "column_B": "expected__Personal_and_Family_History_Complete__c"
+        "column_B": "expected__Personal_and_Family_History_Complete__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Personal_and_Family_History_Complete__c_equals_expected",
@@ -717,7 +868,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__HC_Access_Date_Time__c",
-        "column_B": "expected__HC_Access_Date_Time__c"
+        "column_B": "expected__HC_Access_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_HC_Access_Date_Time__c_equals_expected",
@@ -762,7 +921,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Life_Functioning_Date_Time__c",
-        "column_B": "expected__Life_Functioning_Date_Time__c"
+        "column_B": "expected__Life_Functioning_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Life_Functioning_Date_Time__c_equals_expected",
@@ -807,7 +974,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__First_Physical_Measurement_Date_Time__c",
-        "column_B": "expected__First_Physical_Measurement_Date_Time__c"
+        "column_B": "expected__First_Physical_Measurement_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_First_Physical_Measurement_Date_Time__c_equals_expected",
@@ -856,7 +1031,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Last_Physical_Measurement_Date_Time__c",
-        "column_B": "expected__Last_Physical_Measurement_Date_Time__c"
+        "column_B": "expected__Last_Physical_Measurement_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Last_Physical_Measurement_Date_Time__c_equals_expected",
@@ -901,7 +1084,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__EH_Date_Time__c",
-        "column_B": "expected__EH_Date_Time__c"
+        "column_B": "expected__EH_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_EH_Date_Time__c_equals_expected",
@@ -946,7 +1137,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Behavioral_Health_Completion__c",
-        "column_B": "expected__Behavioral_Health_Completion__c"
+        "column_B": "expected__Behavioral_Health_Completion__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Behavioral_Health_Completion__c_equals_expected",
@@ -991,7 +1190,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Environmental_Exposures_Date_Time__c",
-        "column_B": "expected__Environmental_Exposures_Date_Time__c"
+        "column_B": "expected__Environmental_Exposures_Date_Time__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Environmental_Exposures_Date_Time__c_equals_expected",
@@ -1036,7 +1243,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Social_Determinants_of_Health_Completion__c",
-        "column_B": "expected__Social_Determinants_of_Health_Completion__c"
+        "column_B": "expected__Social_Determinants_of_Health_Completion__c",
+        "row_condition": {
+          "column": {
+            "name": "survey_completion_occurred_on_or_after_launch"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Social_Determinants_of_Health_Completion__c_equals_expected",
@@ -1082,6 +1297,20 @@
     "grain": "survey_event",
     "expected_state": "Account BEFORE plus one Flow event",
     "observed_state": "independent Account AFTER the same event",
+    "row_scope": {
+      "rule_id": "survey_completion_occurred_on_or_after_launch",
+      "entity_type": "BusinessCondition",
+      "comparison_role": "scope",
+      "description": "Survey completion calendar date is on or after launch (2024-12-16)",
+      "source_entities": [
+        "Survey_Result__c.Completion_Status_Timestamp__c"
+      ],
+      "source_requirement": "User-specified post-launch scope for Account completion updates",
+      "launch_date": "2024-12-16",
+      "boundary": "inclusive",
+      "timestamp_semantics": "Completion timestamp calendar date; normalize business timezone upstream",
+      "null_policy": "Unknown completion timestamps retain NULL scope and are not Flow-validated"
+    },
     "great_expectations_version": "1.24.0"
   },
   "notes": null

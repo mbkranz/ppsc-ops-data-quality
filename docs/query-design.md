@@ -201,8 +201,22 @@ identity, unique grain, lookup determinism and 19 expected/observed field pairs.
 
 Pairs use `mostly=1` and `ignore_row_if="both_values_are_missing"`: two NULLs are
 excluded together; a one-sided NULL fails. An ambiguous unsorted pediatric
-permission lookup fails the determinism expectation, while CABOR equality alone
-uses the native GX row condition to avoid comparing an unresolved expected value.
+permission lookup fails the determinism expectation, while CABOR equality also
+requires deterministic evidence to avoid comparing an unresolved expected value.
+
+The Flow comparison preserves `survey_completion_timestamp` and the named Ibis
+predicate `survey_completion_occurred_on_or_after_launch`. The predicate compares
+the completion timestamp calendar date to the inclusive DATE literal 2024-12-16;
+source timestamps must already use the agreed business timezone. GX's named
+`POST_LAUNCH_COMPLETION` predicate consumes this Boolean column. All Flow row
+expectations (including the optional independent post-launch count) use it;
+CABOR combines it with lookup determinism. Structural expectations remain
+unconditional. No pre-launch trigger or lookup records are removed by this scope.
+NULL completion timestamps yield unknown scope and are excluded from Flow checks,
+so a successful Flow suite alone does not establish timestamp/population coverage.
+The source mapping identifies the launch condition as a user-specified
+BusinessCondition, not a translated FlowDecision. Rollups remain independently
+scoped to their Account snapshot. Migration joins and coverage checks are deferred.
 Empty batches pass unless an independent count contract says otherwise.
 
 A Query Asset or normal Athena view does not guarantee that GX computes the joins

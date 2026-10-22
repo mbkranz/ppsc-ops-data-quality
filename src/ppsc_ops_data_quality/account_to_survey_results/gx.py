@@ -1,6 +1,6 @@
 """Built-in GX expectations over independently expected and observed Account values.
 
-    from ppsc_ops_data_quality.queries import flow_account_comparison
+    from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_comparison
     Expected = expected_account_values(Record)
     Comparison = flow_account_comparison(Expected, AccountAfter)
     # Supply Comparison as a GX Batch, then:
@@ -37,9 +37,11 @@ import great_expectations as gx
 import great_expectations.expectations as gxe
 from great_expectations.expectations.row_conditions import Column
 
-from ppsc_ops_data_quality.account_to_survey_results import ACCOUNT_FIELDS_ASSIGNED_BY_FLOW
-from ppsc_ops_data_quality.account_to_survey_results_lineage import PROJECTION_LINEAGE
-from ppsc_ops_data_quality.queries import ROLLUP_ACCOUNT_FIELDS
+from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
+    ACCOUNT_FIELDS_ASSIGNED_BY_FLOW,
+    ROLLUP_ACCOUNT_FIELDS,
+)
 
 FLOW_IDENTITY_COLUMNS = (
     "survey_result_id",

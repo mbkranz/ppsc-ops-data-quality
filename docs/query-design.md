@@ -10,13 +10,15 @@ intermediate tables are required.
 | File | Responsibility |
 |---|---|
 | `runtime/` | Athena/DuckDB adapters, native GX runner, and SQL-file metadata TODO |
-| `schemas/` | Explicit validation-input/history schemas and inferred derived schemas |
-| `snapshot.py` | Composable SCD2 snapshot expression |
-| `queries.py` | History bindings, comparison joins, Flow and rollup query composition |
+| `core/schemas/` | Reusable validation-input/history schemas |
+| `account_to_survey_results/schemas.py` | Domain schemas inferred from actual queries |
+| `core/queries/sql.py` | Generic Athena compilation with optional explicit lineage |
+| `runtime/data_access.py` | Backend catalog binding |
+| `core/queries/snapshot.py` | Composable SCD2 snapshot expression |
 | `gx_queries.py` | Compile Athena SELECT and register a native GX Query Asset |
-| `account_to_survey_results.py` | Existing named Ibis Flow decisions, formulas, derived fields and rollups |
-| `account_to_survey_results_lineage.py` | Original metadata IDs, workbook rows, branch lineage and output-alias mappings |
-| `account_to_survey_results_expectations.py` | Native GX suite builders, independent of dataset construction |
+| `account_to_survey_results/queries.py` | Existing named Ibis Flow decisions, formulas, derived fields and rollups |
+| `account_to_survey_results/lineage.py` | Original metadata IDs, workbook rows, branch lineage and output-alias mappings |
+| `account_to_survey_results/gx.py` | Native GX suite builders, independent of dataset construction |
 | `views.py` | Optional publishing of a final query as an Athena view |
 | `account_to_survey_results.sql` | Two illustrative expected-value SELECTs over history |
 | `account_to_survey_results_gx_comparison.sql` | Two illustrative comparison SELECTs accepted by GX |
@@ -26,21 +28,22 @@ intermediate tables are required.
 ## Validate one verified Flow event
 
 Supply Ibis history relations with real catalog schemas and your existing GX SQL
-Data Source. `schemas.history_tables()` binds the explicit input profiles without
+Data Source. `core.queries.history_tables()` binds the explicit input profiles without
 a backend. Supply catalog-verified schemas through its schema arguments when
 available. Credentials and connection configuration remain outside these modules.
-See `schemas/README.md` for field coverage, workbook provenance and physical-type
-assumptions. `queries.bind_history_tables()` remains available for catalog discovery
+See `core/schemas/README.md` for field coverage, workbook provenance and physical-type
+assumptions. `runtime.data_access.bind_history_tables()` remains available for catalog discovery
 through an existing backend. For Athena, configure the
 GX SQL Data Source with the PyAthena SQLAlchemy dialect and temporary-table
 creation disabled. The adapter itself never creates a Context or datasource.
 
 ```python
 from datetime import date, datetime
-from ppsc_ops_data_quality.queries import flow_account_query
-from ppsc_ops_data_quality.schemas import history_tables
+from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_query
+from ppsc_ops_data_quality.core.queries import history_tables
 from ppsc_ops_data_quality.gx_queries import query_batch_definition
-from ppsc_ops_data_quality.account_to_survey_results_expectations import flow_account_suite
+from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
+from ppsc_ops_data_quality.account_to_survey_results.gx import flow_account_suite
 
 history = history_tables(
     account_database="your_account_database",
@@ -66,6 +69,7 @@ definition = query_batch_definition(
     data_source,
     Comparison,
     name=f"account_survey_flow_{run_id}",
+    projection_lineage=PROJECTION_LINEAGE,
     metadata={
         "run_id": run_id,
         "account_before_at": before_at.isoformat(),
@@ -114,14 +118,15 @@ history = {
 ## Validate snapshot rollups
 
 ```python
-from ppsc_ops_data_quality.queries import rollup_account_query
-from ppsc_ops_data_quality.account_to_survey_results_expectations import rollup_account_suite
+from ppsc_ops_data_quality.account_to_survey_results.queries import rollup_account_query
+from ppsc_ops_data_quality.account_to_survey_results.gx import rollup_account_suite
 
 RollupComparison = rollup_account_query(history, as_of=execution_at)
 definition = query_batch_definition(
     data_source,
     RollupComparison,
     name=f"account_survey_rollups_{run_id}",
+    projection_lineage=PROJECTION_LINEAGE,
     metadata={"run_id": run_id, "as_of": execution_at.isoformat()},
 )
 result = definition.get_batch().validate(rollup_account_suite())
@@ -132,9 +137,9 @@ including Accounts with zero matching survey records. Supply `expected_row_count
 from an independent source count when you need a volume contract.
 
 For finer composition, import `flow_account_comparison()` and
-`rollup_account_comparison()` from `queries.py` and supply already bound Ibis
+`rollup_account_comparison()` from `account_to_survey_results/queries.py` and supply already bound Ibis
 relations. The derivation functions remain directly importable from
-`account_to_survey_results.py`.
+`account_to_survey_results/queries.py`.
 
 ## Snapshot and batch semantics
 
@@ -173,10 +178,15 @@ Neither is inferred or automatically implemented by this code.
 ```python
 from ppsc_ops_data_quality.gx_queries import query_asset_sql
 
-sql = query_asset_sql(Comparison)  # one SELECT; no terminal semicolon
+sql = query_asset_sql(
+    Comparison, projection_lineage=PROJECTION_LINEAGE
+)  # one SELECT; no terminal semicolon
 ```
 
-Complete composition before compilation. `to_sqlglot()` annotates final projections
+Omit `projection_lineage` to compile a generic query without domain annotations.
+Run/batch metadata is independent of this field-lineage mapping.
+
+Complete composition before compilation. `core.queries.sql.to_sqlglot(..., projection_lineage=PROJECTION_LINEAGE)` annotates final projections
 by explicit output alias using the independent lineage mapping. Comparison aliases
 such as `expected__Basics_Date_Time__c` retain the original Flow branch lineage;
 `observed__Basics_Date_Time__c` describes an independent observed Account field.
@@ -191,7 +201,7 @@ Native GX expectations also carry canonical field/branch lineage in `meta["ppsc"
 The example SQL files use `example_account.history`, `example_contact.history`,
 `example_survey_result.history`, an example event, and illustrative timestamp field
 types. They are reviewable examples, not verified production catalog bindings.
-Regenerate from the actual catalog schemas through `queries.py`.
+Regenerate from the actual catalog schemas through `account_to_survey_results/queries.py`.
 
 ## Expectations and performance
 
@@ -256,7 +266,7 @@ PublishedComparison = create_view(
 This is separate from the normal GX path. A normal view recomputes its query and
 does not freeze or materialize rows. This revision removes the `AthenaView` wrapper
 and intermediate view chain: `snapshot()` no longer takes `view_name` or `database`,
-and comparison builders now live in `queries.py`. No compatibility wrappers remain.
+and comparison builders now live in `account_to_survey_results/queries.py`. No compatibility wrappers remain.
 
 ## Verification and dependencies
 

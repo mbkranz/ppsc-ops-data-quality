@@ -5,7 +5,9 @@ from pathlib import Path
 import ibis
 import sqlglot
 
-from ppsc_ops_data_quality import account_to_survey_results as m
+from ppsc_ops_data_quality.account_to_survey_results import lineage
+from ppsc_ops_data_quality.account_to_survey_results import queries as m
+from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 
 OLD = dt.datetime(2001, 1, 1)
 NEW = dt.datetime(2024, 1, 1)
@@ -294,7 +296,9 @@ class ExpectedValues(unittest.TestCase):
             m.expected_account_values(R, fields=[basics, basics])
 
     def test_annotations_match_final_aliases_and_original_sources(self):
-        query = m.to_sqlglot(build("1001", prior="1002"))
+        query = to_sqlglot(
+            build("1001", prior="1002"), projection_lineage=lineage.PROJECTION_LINEAGE
+        )
         by_name = {p.alias_or_name: p for p in query.selects}
         self.assertEqual(query.meta["ppsc"]["unannotated_fields"], [])
         for name in m.ACCOUNT_FIELDS_ASSIGNED_BY_FLOW:
@@ -312,7 +316,9 @@ class ExpectedValues(unittest.TestCase):
 
         from sqlglot import exp
 
-        query = m.to_sqlglot(build("1008", prior="1007"))
+        query = to_sqlglot(
+            build("1008", prior="1007"), projection_lineage=lineage.PROJECTION_LINEAGE
+        )
         for restored in [query.copy(), exp.Expression.load(json.loads(json.dumps(query.dump())))]:
             self.assertEqual(restored.meta["ppsc"], query.meta["ppsc"])
             self.assertEqual(
@@ -327,14 +333,14 @@ class ExpectedValues(unittest.TestCase):
     def test_recompilation_reapplies_independent_metadata(self):
         from ibis.backends.sql.compilers.athena import compiler
 
-        from ppsc_ops_data_quality import account_to_survey_results_lineage as lineage
+        from ppsc_ops_data_quality.account_to_survey_results import lineage
 
         expression = build("1001")
-        first = m.to_sqlglot(expression)
+        first = to_sqlglot(expression, projection_lineage=lineage.PROJECTION_LINEAGE)
         plain = compiler.to_sqlglot(expression)
         self.assertTrue(all("ppsc" not in p.meta for p in plain.selects))
         first.selects[-1].meta["ppsc"]["description"] = "mutated copy"
-        second = m.to_sqlglot(expression)
+        second = to_sqlglot(expression, projection_lineage=lineage.PROJECTION_LINEAGE)
         self.assertNotEqual(second.selects[-1].meta["ppsc"]["description"], "mutated copy")
         self.assertNotEqual(
             lineage.PROJECTION_LINEAGE[second.selects[-1].alias_or_name]["description"],
@@ -344,9 +350,9 @@ class ExpectedValues(unittest.TestCase):
     def test_all_authored_update_sources_and_branch_ids_retained(self):
         import json
 
-        from ppsc_ops_data_quality import account_to_survey_results_lineage as lineage
+        from ppsc_ops_data_quality.account_to_survey_results import lineage
 
-        query = m.to_sqlglot(build("1008"))
+        query = to_sqlglot(build("1008"), projection_lineage=lineage.PROJECTION_LINEAGE)
         manifest = json.loads(
             (Path(__file__).parent / "fixtures/survey_completion_flow_updates.json").read_text()
         )
@@ -382,7 +388,7 @@ class ExpectedValues(unittest.TestCase):
             with self.subTest(index=index):
                 expression = build(index, **kwargs)
                 expected = self.con.execute(expression)
-                query = m.to_sqlglot(expression)
+                query = to_sqlglot(expression, projection_lineage=lineage.PROJECTION_LINEAGE)
                 parsed = sqlglot.parse_one(query.sql(dialect="athena"), read="athena")
                 rows = self.con.raw_sql(parsed.sql(dialect="duckdb")).fetchall()
                 actual = pd.DataFrame(rows, columns=expected.columns)
@@ -402,7 +408,7 @@ class ExpectedValues(unittest.TestCase):
         row = self.con.execute(m.expected_account_values(R)).iloc[0]
         self.assertEqual(row.Age_at_Time_of_Consent__pc, 22)
         custom = R.select(custom_output=R.Id)
-        query = m.to_sqlglot(custom)
+        query = to_sqlglot(custom, projection_lineage=lineage.PROJECTION_LINEAGE)
         self.assertEqual(query.meta["ppsc"]["unannotated_fields"], ["custom_output"])
         self.assertNotIn("ppsc", query.selects[0].meta)
 

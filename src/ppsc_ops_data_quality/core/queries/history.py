@@ -3,9 +3,9 @@
 import ibis
 import ibis.expr.types as ir
 
-from .account import ACCOUNT_HISTORY_VALIDATION_INPUT
-from .contact import CONTACT_HISTORY_VALIDATION_INPUT
-from .survey_results import SURVEY_RESULT_HISTORY_VALIDATION_INPUT
+from ppsc_ops_data_quality.core.schemas.account import ACCOUNT_HISTORY_VALIDATION_INPUT
+from ppsc_ops_data_quality.core.schemas.contact import CONTACT_HISTORY_VALIDATION_INPUT
+from ppsc_ops_data_quality.core.schemas.survey_results import SURVEY_RESULT_HISTORY_VALIDATION_INPUT
 
 
 def history_tables(
@@ -24,7 +24,7 @@ def history_tables(
     time zones and additional columns. Convert Arrow schemas with
     ibis.Schema.from_pyarrow() before passing them. No database calls, casts or
     renaming occur here. To discover types through an existing backend, use
-    queries.bind_history_tables() instead.
+    runtime.data_access.bind_history_tables() instead.
     """
     return {
         "Account": ibis.table(account_schema, name="history", database=account_database),

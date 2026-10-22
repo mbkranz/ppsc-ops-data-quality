@@ -1,0 +1,26 @@
+# Illustrative bindings only. Copy to the ignored .local.yaml counterpart.
+# Quote account IDs. Dates and datetimes below are typed YAML scalars.
+athena:
+  region: REPLACE_WITH_REGION
+  database: REPLACE_WITH_DEFAULT_DATABASE
+  s3_staging_dir: s3://REPLACE_WITH_RESULTS_BUCKET/PREFIX/
+  work_group: REPLACE_WITH_WORKGROUP
+  catalog_name: AwsDataCatalog
+reports:
+  s3_uri: s3://REPLACE_WITH_REPORTS_BUCKET/ppsc-data-quality/
+databases:
+  account_database: REPLACE_WITH_ACCOUNT_DATABASE
+  contact_database: REPLACE_WITH_CONTACT_DATABASE
+  survey_result_database: REPLACE_WITH_SURVEY_RESULT_DATABASE
+event:
+  survey_result_id: REPLACE_WITH_VERIFIED_EVENT_ID
+  account_before_at: 2026-10-21 11:59:59
+  execution_at: 2026-10-21 12:00:00
+  account_after_at: 2026-10-21 12:05:00
+  flow_run_date: 2026-10-21
+rollups:
+  as_of: 2026-10-21 12:05:00
+schema_overrides:
+  account: {}
+  contact: {}
+  survey_result: {}

@@ -15,21 +15,25 @@ from great_expectations.core import RunIdentifier
 from test_account_to_survey_results_expectations import flow_inputs
 from test_snapshot import example_queries
 
-from ppsc_ops_data_quality.account_to_survey_results import expected_survey_rollups
-from ppsc_ops_data_quality.account_to_survey_results_expectations import (
+from ppsc_ops_data_quality.account_to_survey_results.gx import (
     flow_account_suite,
     rollup_account_suite,
 )
-from ppsc_ops_data_quality.queries import (
+from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ROLLUP_ACCOUNT_FIELDS,
+    expected_survey_rollups,
     flow_account_comparison,
     rollup_account_comparison,
+)
+from ppsc_ops_data_quality.core.schemas import (
+    ACCOUNT_VALIDATION_INPUT,
+    SURVEY_RESULT_VALIDATION_INPUT,
 )
 from ppsc_ops_data_quality.runtime.artifacts import save_suite
 from ppsc_ops_data_quality.runtime.athena import prepare_validation as prepare_athena
 from ppsc_ops_data_quality.runtime.duckdb import prepare_validation as prepare_duckdb
 from ppsc_ops_data_quality.runtime.runner import run_validations
-from ppsc_ops_data_quality.schemas import ACCOUNT_VALIDATION_INPUT, SURVEY_RESULT_VALIDATION_INPUT
 
 
 def make_context():
@@ -148,6 +152,7 @@ class RuntimeTests(unittest.TestCase):
                 example_queries()["flow"],
                 suite,
                 name="flow_query",
+                projection_lineage=PROJECTION_LINEAGE,
                 metadata={"run_id": "compile_only"},
                 sql_path=Path(directory) / "query.sql",
             )

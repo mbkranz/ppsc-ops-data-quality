@@ -14,16 +14,17 @@ from sqlglot import exp
 from test_account_to_survey_results_expectations import flow_inputs
 from test_snapshot import example_queries
 
-from ppsc_ops_data_quality.account_to_survey_results import to_sqlglot
-from ppsc_ops_data_quality.account_to_survey_results_expectations import flow_account_suite
+from ppsc_ops_data_quality.account_to_survey_results.gx import flow_account_suite
+from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
+from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_comparison
+from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 from ppsc_ops_data_quality.gx_queries import query_asset_sql, query_batch_definition
-from ppsc_ops_data_quality.queries import flow_account_comparison
 
 
 class QueryAssetTests(unittest.TestCase):
     def test_compiled_ctes_and_lineage_are_accepted_by_gx(self):
         for name, comparison in example_queries().items():
-            sql = query_asset_sql(comparison)
+            sql = query_asset_sql(comparison, projection_lineage=PROJECTION_LINEAGE)
             asset = QueryAsset(name=name, query=sql)
             self.assertEqual(asset.query, sql)
             ast = sqlglot.parse_one(sql, read="athena")
@@ -32,7 +33,7 @@ class QueryAssetTests(unittest.TestCase):
             self.assertIn("expected__", sql)
             self.assertIn("observed__", sql)
             self.assertIn("Independently observed Account.", sql)
-            annotated = to_sqlglot(comparison)
+            annotated = to_sqlglot(comparison, projection_lineage=PROJECTION_LINEAGE)
             self.assertEqual(annotated.meta["ppsc"]["unannotated_fields"], [])
             expected = next(
                 p for p in annotated.selects if p.alias_or_name.startswith("expected__")

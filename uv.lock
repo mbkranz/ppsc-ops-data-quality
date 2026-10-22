@@ -748,6 +748,8 @@ dependencies = [
     { name = "ibis-framework", extra = ["duckdb"] },
     { name = "pyarrow" },
     { name = "pyathena", extra = ["sqlalchemy"] },
+    { name = "pydantic" },
+    { name = "pyyaml" },
     { name = "sqlalchemy" },
     { name = "sqlglot" },
 ]
@@ -767,6 +769,8 @@ requires-dist = [
     { name = "ibis-framework", extras = ["duckdb"], specifier = "==12.0.0" },
     { name = "pyarrow", specifier = ">=16,<27" },
     { name = "pyathena", extras = ["sqlalchemy"], specifier = ">=3,<4" },
+    { name = "pydantic", specifier = ">=2.12,<3" },
+    { name = "pyyaml", specifier = ">=6,<7" },
     { name = "sqlalchemy", specifier = ">=2,<3" },
     { name = "sqlglot", specifier = "==30.24.0" },
 ]

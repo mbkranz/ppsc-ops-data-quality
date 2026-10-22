@@ -8,7 +8,7 @@ dist/
 *.egg-info/
 .env
 .aws/
-params.local.toml
+params.local.yaml
 credentials*
 
-glue/environments.local.toml
+glue/environments.local.yaml

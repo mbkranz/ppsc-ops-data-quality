@@ -25,7 +25,7 @@ owners of their respective definitions.
 
 Use `run_validations_with_reports()` for a complete run with publication. It
 composes the existing runner with native Data Docs and explicit boto3 uploads.
-The Athena entrypoint requires `[reports].s3_uri`; the local demo uses the same
+The Athena entrypoint requires `[reports].s3_uri`; the development synthetic check uses the same
 builder without AWS unless `--s3-uri` is supplied. Provide a fresh Context, a new
 report directory and source metadata for each definition (physical table names,
 actual comparison SQL and dialect). The function returns native GX results.
@@ -36,7 +36,7 @@ definition and source/query identity. An independent validation-summary dataset
 records one row per planned definition, including missing results after an
 execution error. Gzip native JSON remains the complete audit representation.
 
-Schemas are ordinary Ibis schemas in `schemas/validation_reports.py`. See
+Schemas are ordinary Ibis schemas in `runtime/report_schemas.py`. See
 [`docs/validation-reports.md`](../../../docs/validation-reports.md) for the format
 decision, S3 layout, failure semantics and catalog setup. The two external-table
 templates in `sql/validation_reports_catalog.sql` register only Parquet analytics
@@ -51,8 +51,9 @@ names for different query bindings; existing assets are never silently replaced.
 
 ```python
 from ppsc_ops_data_quality.runtime.athena import prepare_validation
+from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
 from ppsc_ops_data_quality.runtime import run_validations
-from ppsc_ops_data_quality.account_to_survey_results_expectations import flow_account_suite
+from ppsc_ops_data_quality.account_to_survey_results.gx import flow_account_suite
 
 suite = context.suites.add(flow_account_suite(expected_row_count=1))
 definition, parameters = prepare_validation(
@@ -61,6 +62,7 @@ definition, parameters = prepare_validation(
     Comparison,
     suite,
     name=f"account_survey_flow_{run_name}",
+    projection_lineage=PROJECTION_LINEAGE,
     metadata={"run_id": run_name, "survey_result_id": verified_trigger_id},
     sql_path=f"artifacts/{run_name}/flow_athena.sql",
 )
@@ -213,3 +215,17 @@ References:
 - [GX DataFrame sources](https://docs.greatexpectations.io/docs/core/connect_to_data/dataframes/)
 - [Ibis DuckDB backend](https://ibis-project.org/backends/duckdb)
 - [Glue Python Shell runtime](https://docs.aws.amazon.com/glue/latest/dg/add-job-python.html)
+
+## Hosting and configuration
+
+`configuration.py` validates YAML inputs. `resources.py` retrieves a hash-pinned
+configuration using an injected S3 client. `glue.py` resolves Glue arguments and
+calls `validation.run_validation`; the local `ppsc-dq validate` command calls the
+same function. Both hosts emit a validated `ValidationOutcome` and map success to
+0, completed data failure to 1, and configuration/execution/publication errors to
+2. Glue uses its execution role without initializing Spark.
+
+Core contains no domain or runtime imports. Domain orchestration supplies
+`account_to_survey_results.lineage.PROJECTION_LINEAGE` explicitly through Athena
+preparation and Query Asset registration. Generic queries/views omit annotations
+unless the caller supplies `projection_lineage=`. Run metadata is a separate input.

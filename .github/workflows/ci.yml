@@ -17,8 +17,8 @@ jobs:
       - run: uv sync --locked --python ${{ matrix.python }}
       - run: sudo apt-get update && sudo apt-get install -y graphviz
       - run: uv run --locked poe check
-      - run: uv run --locked poe preview
-      - run: uv run --locked poe demo
+      - run: uv run --locked poe check-queries
+      - run: uv run --locked poe check-synthetic
       - run: uv build
       - run: uv run --locked poe build-release
         if: matrix.python == '3.11'

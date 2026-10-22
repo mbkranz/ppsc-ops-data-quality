@@ -1,6 +1,6 @@
 # PR #6 implementation plan
 
-Status: planned; implementation has not started.
+Status: implemented and verified locally; live AWS acceptance remains open.
 
 Prepared: 2026-10-22.
 
@@ -50,24 +50,24 @@ Reference designs reviewed:
 
 ### Tasks
 
-- [ ] Replace the flat domain files with
+- [x] Replace the flat domain files with
   `account_to_survey_results/{queries,gx,lineage,schemas}.py`.
-- [ ] Move derivations and comparison builders into `queries.py`, native suite
+- [x] Move derivations and comparison builders into `queries.py`, native suite
   builders into `gx.py`, and provenance mappings into `lineage.py`. Preserve
   existing function behavior and query parameters.
-- [ ] Extract compiler and annotation mechanics from `to_sqlglot()` into
+- [x] Extract compiler and annotation mechanics from `to_sqlglot()` into
   `core/queries/sql.py`. Preserve tuple normalization, copied metadata,
   projection comments, and query-level provenance.
-- [ ] Give the compiler an optional keyword-only `projection_lineage` mapping.
+- [x] Give the compiler an optional keyword-only `projection_lineage` mapping.
   Omitting it compiles without domain annotations.
-- [ ] Thread the mapping through `query_asset_sql()`,
+- [x] Thread the mapping through `query_asset_sql()`,
   `query_batch_definition()`, Athena `prepare_validation()`, and view
   rendering/publishing functions.
-- [ ] Have domain orchestration explicitly supply `PROJECTION_LINEAGE`. Keep
+- [x] Have domain orchestration explicitly supply `PROJECTION_LINEAGE`. Keep
   run/batch metadata separate from field lineage.
-- [ ] Update annotation tests to supply lineage explicitly. Retain generic query
+- [x] Update annotation tests to supply lineage explicitly. Retain generic query
   tests without lineage.
-- [ ] Update imports in runtime, tests, examples, diagrams, and documentation.
+- [x] Update imports in runtime, tests, examples, diagrams, and documentation.
   Remove replaced flat modules without retaining duplicate implementations.
 
 ### Acceptance
@@ -82,18 +82,18 @@ Reference designs reviewed:
 
 ### Tasks
 
-- [ ] Move reusable Account, Contact, Survey Result, and history schemas into
+- [x] Move reusable Account, Contact, Survey Result, and history schemas into
   `core/schemas`.
-- [ ] Move pure SCD2 snapshot selection and unbound history-relation construction
+- [x] Move pure SCD2 snapshot selection and unbound history-relation construction
   into `core/queries`.
-- [ ] Move `bind_history_tables()`, which accesses a backend catalog, into the
+- [x] Move `bind_history_tables()`, which accesses a backend catalog, into the
   runtime data-access module.
-- [ ] Move inferred comparison schemas into the domain package's `schemas.py`.
-- [ ] Move validation-report schemas alongside reporting.
-- [ ] Update schema exports and consumers. Domain schema inference may depend on
+- [x] Move inferred comparison schemas into the domain package's `schemas.py`.
+- [x] Move validation-report schemas alongside reporting.
+- [x] Update schema exports and consumers. Domain schema inference may depend on
   query construction; query builders must not import their inferred schemas.
-- [ ] Keep `core` initializers free of domain and runtime imports.
-- [ ] Preserve the distinction between validation-input profiles and independently
+- [x] Keep `core` initializers free of domain and runtime imports.
+- [x] Preserve the distinction between validation-input profiles and independently
   verified deployed catalog schemas.
 
 ### Acceptance
@@ -118,32 +118,32 @@ Reference designs reviewed:
 
 ### Tasks
 
-- [ ] Create a development-only script with reusable synthetic fixtures and
+- [x] Create a development-only script with reusable synthetic fixtures and
   compilation/validation checks. Keep observed fixture values independently
   authored.
-- [ ] Preserve assertions that baseline suites contain 27 Flow and 24 rollup
+- [x] Preserve assertions that baseline suites contain 27 Flow and 24 rollup
   expectations. Synthetic validation with count checks evaluates 28 and 25.
-- [ ] Preserve synthetic evidence checks: 53 expectation rows, two validation
+- [x] Preserve synthetic evidence checks: 53 expectation rows, two validation
   summaries, unique expectation identities, native results, registered suites,
   comparison SQL, Data Docs, and the run manifest.
-- [ ] Remove the diagram generator's dependency on `demo.comparisons()`.
+- [x] Remove the diagram generator's dependency on `demo.comparisons()`.
   Ordinary diagrams use inferred comparison schemas. Optional expression graphs
   use the existing builders with explicit illustrative bindings and remain
   unmodified native Ibis graphs.
-- [ ] Run installed-package checks with the smoke environment's interpreter,
+- [x] Run installed-package checks with the smoke environment's interpreter,
   isolated from checkout imports. Exercise the installed CLI separately,
   including help and invalid-configuration handling.
-- [ ] Update `smoke-release`, both GitHub workflows, existing tests, and relevant
+- [x] Update `smoke-release`, both GitHub workflows, existing tests, and relevant
   documentation before removing production preview/demo commands and `demo.py`.
-- [ ] Remove package `__main__.py`. Retain `ppsc-dq validate` as the packaged
+- [x] Remove package `__main__.py`. Retain `ppsc-dq validate` as the packaged
   callable.
-- [ ] Make profile-aware Glue submission/status tasks the documented development
+- [x] Make profile-aware Glue submission/status tasks the documented development
   workflow. Keep account/environment checks and allow explicit profile overrides.
-- [ ] Keep named local profiles out of Glue runtime configuration; Glue uses its
+- [x] Keep named local profiles out of Glue runtime configuration; Glue uses its
   execution role.
-- [ ] Retain DuckDB support for synthetic verification. Dependency slimming is
+- [x] Retain DuckDB support for synthetic verification. Dependency slimming is
   outside this refactor.
-- [ ] Update AGENTS verification commands together with their replacements so
+- [x] Update AGENTS verification commands together with their replacements so
   repository instructions continue to name working credential-free checks.
 
 ### Acceptance
@@ -159,22 +159,22 @@ Reference designs reviewed:
 
 ### Tasks
 
-- [ ] Use the reviewed `ppsc-survey` v2 organization for Glue argument handling,
+- [x] Use the reviewed `ppsc-survey` v2 organization for Glue argument handling,
   resource loading, and validation orchestration.
-- [ ] Put Glue arguments/bootstrap in `runtime/glue.py`; keep the deployed driver
+- [x] Put Glue arguments/bootstrap in `runtime/glue.py`; keep the deployed driver
   thin.
-- [ ] Put runtime configuration retrieval and checksum verification in
+- [x] Put runtime configuration retrieval and checksum verification in
   `runtime/resources.py`, preserving injectable clients.
-- [ ] Move shared local/Glue orchestration into `runtime/validation.py`.
-- [ ] Keep Athena and DuckDB preparation separate and retain the engine-independent
+- [x] Move shared local/Glue orchestration into `runtime/validation.py`.
+- [x] Keep Athena and DuckDB preparation separate and retain the engine-independent
   native GX runner.
-- [ ] Supply domain query builders, suite builders, and lineage explicitly at
+- [x] Supply domain query builders, suite builders, and lineage explicitly at
   orchestration.
-- [ ] Preserve registered-suite serialization, exact Query Asset SQL evidence,
+- [x] Preserve registered-suite serialization, exact Query Asset SQL evidence,
   partial-result retention, connection cleanup, and exit behavior: 0 for success,
   1 for completed validation with failed expectations, and 2 for execution or
   configuration errors at the hosting entry point.
-- [ ] Keep Python suite builders authoritative when adapting resource loading;
+- [x] Keep Python suite builders authoritative when adapting resource loading;
   introduce no Spark initialization for Athena execution.
 
 ### Acceptance
@@ -188,20 +188,20 @@ Reference designs reviewed:
 
 ### YAML and operational tasks
 
-- [ ] Add YAML support as an explicit dependency rather than relying on a
+- [x] Add YAML support as an explicit dependency rather than relying on a
   transitive installation.
-- [ ] Migrate runtime and environment configuration together using one loading
+- [x] Migrate runtime and environment configuration together using one loading
   implementation while preserving their separate responsibilities.
-- [ ] Move configurable Glue settings into a YAML job template. Keep verified live
+- [x] Move configurable Glue settings into a YAML job template. Keep verified live
   settings in ignored local files.
-- [ ] Preserve typed dates, datetimes, timezone awareness, quoted account IDs, and
+- [x] Preserve typed dates, datetimes, timezone awareness, quoted account IDs, and
   duplicate-key rejection.
-- [ ] Update deployment planning, report-catalog rendering, Glue temporary
+- [x] Update deployment planning, report-catalog rendering, Glue temporary
   configuration filenames, ignore patterns, tests, and examples together.
-- [ ] Keep Poe responsible for operational commands and profile selection.
+- [x] Keep Poe responsible for operational commands and profile selection.
   Preserve account/environment checks, explicit create/update operations,
   configuration hashes, and bundle verification.
-- [ ] Do not make the YAML migration depend on a DVC decision.
+- [x] Do not make the YAML migration depend on a DVC decision.
 
 ### DVC evaluation
 
@@ -214,19 +214,19 @@ Evaluate these candidate stages:
 | Project wheel | Source, build metadata, lockfile, build tooling | Project wheel |
 | Release assembly | Both wheel sets, driver, requirements, lockfile, explicit revision | Bundle and manifest |
 
-- [ ] Verify repeat-build hashes and invalidation after source, lockfile, driver,
+- [x] Verify repeat-build hashes and invalidation after source, lockfile, driver,
   or target changes.
-- [ ] Make Git revision an explicit input; cached outputs must not silently retain
+- [x] Make Git revision an explicit input; cached outputs must not silently retain
   another revision.
-- [ ] Give stages distinct output ownership and account for existing
+- [x] Give stages distinct output ownership and account for existing
   fresh-directory requirements.
-- [ ] Document toolchain assumptions affecting wheel/archive reproducibility.
-- [ ] Assess whether stage reuse provides practical value beyond the current
+- [x] Document toolchain assumptions affecting wheel/archive reproducibility.
+- [x] Assess whether stage reuse provides practical value beyond the current
   locked build sequence.
-- [ ] Keep smoke execution as a verification gate. Keep STS lookup, deployment,
+- [x] Keep smoke execution as a verification gate. Keep STS lookup, deployment,
   Glue submission, catalog registration, live configuration, and live results
   outside cached build stages.
-- [ ] Record evidence and an adopt/defer recommendation before adding DVC.
+- [x] Record evidence and an adopt/defer recommendation before adding DVC.
 
 ### Acceptance
 
@@ -241,12 +241,12 @@ Evaluate these candidate stages:
 
 ### Tasks
 
-- [ ] Inventory expectation classes, check IDs, row conditions, and lineage fields.
-- [ ] Document independent dimensions for check purpose and provenance kind.
-- [ ] Include structural, referential, and expected-versus-observed examples.
-- [ ] Identify classifications derivable from existing lineage and actual metadata
+- [x] Inventory expectation classes, check IDs, row conditions, and lineage fields.
+- [x] Document independent dimensions for check purpose and provenance kind.
+- [x] Include structural, referential, and expected-versus-observed examples.
+- [x] Identify classifications derivable from existing lineage and actual metadata
   gaps.
-- [ ] Defer taxonomy implementation and report-schema changes to a separate work
+- [x] Defer taxonomy implementation and report-schema changes to a separate work
   item.
 
 ### Acceptance
@@ -285,3 +285,38 @@ Athena/Glue acceptance.
   attempts stopped during dependency resolution because the locked DuckDB wheel
   was unavailable in the local cache and network access was restricted.
 - No live AWS acceptance result is claimed by this plan.
+
+## Implementation outcome (2026-10-22)
+
+Implemented the domain/core package move and explicit lineage flow, development-only
+compilation/synthetic checks, isolated installed-wheel smoke checks, YAML runtime
+and deployment configuration, templated Glue hosting, and the shared modular runtime.
+Applied the **PPSC agent design reference** and its `design-python-contracts` skill:
+structured runtime requests, verified resources and completed validation outcomes
+use Pydantic; computations and GX/SDK execution remain explicit functions with native
+expressions/frames. Reference examples were reused without adding another engine.
+
+Reviewed the pinned `ppsc-survey` v2 `runtime/{glue,resources,validation}.py` modules.
+The Athena implementation follows those responsibilities, with authoritative Python
+suite builders and no Spark initialization. [Release graph evaluation](../release-build-evaluation.md)
+records actual repeat/invalidation evidence and the decision to defer DVC.
+[Expectation classification TODO](expectation-classification-todo.md) inventories
+all 53 optional-count checks, their scope and lineage without changing the taxonomy.
+
+Verification: 97 tests pass on Python 3.11 and 3.12. Added regression coverage
+exercises real Poe tasks with a fake AWS CLI and configurable YAML job settings. Checks
+cover exact scopes, temporal/NULL/duplicate behavior, SQL annotations, resource
+hashes/cleanup, native report retention and account/environment integrity.
+The complete CPython 3.11 wheel bundle built and installed without index access.
+Its isolated development checks validated 53 expectations, 53 expectation rows,
+two summaries and the native JSON/suite/SQL/Data Docs/manifest artifacts.
+
+The operational rehearsal caught a Poe environment-expansion issue; profile flags
+are now supplied explicitly to each AWS CLI invocation. Default and overridden
+profiles, create/update, hash-pinned submission, retained run ID/status, terminal
+failure and pre-write account mismatch were verified against the fake CLI.
+
+No live AWS deployment, Athena query, Glue execution or S3 publication was performed.
+This workspace has no AWS CLI or verified ignored dev/prod settings. Complete the
+separate live gate with `data-migration-dev` after the cloud/data owners supply
+bindings and access. Local synthetic success does not close that gate.

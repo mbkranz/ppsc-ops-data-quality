@@ -11,77 +11,89 @@ survey rollups. It preserves the relationship
 `Survey_Result__c.Participant__c -> Contact.Id -> Contact.AccountId -> Account.Id`,
 missing parents, duplicate matches, assigned NULLs and unchanged prior values.
 
-## Quick start
+## Development workflow
 
-Requires Python 3.11–3.13 and [uv](https://docs.astral.sh/uv/). CI and the local
-acceptance run use Python 3.12. No AWS credentials are needed for these commands:
+Use AWS Glue with the `data-migration-dev` local profile for normal development.
+Populate the ignored YAML runtime and environment files with verified bindings,
+build a release, render its deployment plan, deploy, and submit a settled event:
 
 ```bash
-uv sync --locked --python 3.12
+uv sync --locked --python 3.11
+uv run poe plan-deployment --environment dev --output build/deployment-dev
+uv run poe deploy --plan build/deployment-dev --operation create
+# Upload/hash params.local.yaml, then:
+uv run poe run-glue --plan build/deployment-dev \
+  --config-uri s3://YOUR_CONFIG_BUCKET/run.yaml --config-sha256 YOUR_SHA256
+uv run poe glue-status --plan build/deployment-dev --run-id RETURNED_JOB_RUN_ID
+```
+
+These tasks default to `data-migration-dev`; `--profile PROFILE` explicitly overrides
+it. Follow [build and deployment](docs/build-deployment.md) to build the required
+bundle, review the plan and inspect terminal status and report evidence. A submitted
+run ID alone does not establish successful validation. Glue uses its execution
+role; local profile names do not belong in its runtime configuration.
+
+Credential-free checks remain available for CI and bounded synthetic verification:
+
+```bash
 uv run poe check
-uv run poe preview
-uv run poe demo
+uv run poe check-queries
+uv run poe check-synthetic
+uv run poe suite-diagrams
 ```
 
-`preview` compiles two illustrative Athena comparison queries and exports their
-native suite JSON. `demo` creates synthetic Account, Contact and Survey Result
-history in DuckDB and validates one Basics completion event plus settled rollups.
-The independently declared observed values are not generated from expected values.
-
-Both commands print their output location. Fresh default paths are created under
-`build/previews/` and `build/runs/`. To choose a destination:
-
-```bash
-uv run ppsc-dq preview --output build/my-preview
-uv run ppsc-dq demo --run-dir build/my-demo
-```
-
-Existing destinations are rejected so prior evidence is not replaced. The demo
-saves DuckDB SQL, exact registered suite snapshots, native validation results and
-`run.json` with parameters, dependency versions and outcome. Exit codes are 0 for
-success, 1 for failed expectations and 2 for execution/configuration errors.
-The complete report bundle is under `reports/`: native Data Docs (including static
-assets), gzip JSON results, suite snapshots, queries, two Parquet datasets and a
-manifest. The default demo is offline. To also publish a synthetic demo run:
-
-```bash
-uv run ppsc-dq demo --s3-uri s3://YOUR_REPORTS_BUCKET/ppsc-data-quality/
-```
+`check-queries` compiles illustrative Athena comparisons and serializes the native
+27/24-expectation baseline suites. `check-synthetic` validates independently authored
+DuckDB history, checks all 53 expectations (28 Flow + 25 rollup), and verifies
+53 uniquely identified expectation rows, two validation summaries, native results,
+registered suites, exact SQL, Data Docs and the manifest. Outputs use fresh paths
+under `build/checks/`; existing destinations are rejected. To choose a destination,
+run `python -m scripts.check_validation compile|synthetic --output PATH`.
+These are development scripts and are excluded from the installed package.
 
 ## Organization
 
 ```text
 src/ppsc_ops_data_quality/
-    account_to_survey_results.py              # Ibis decisions, formulas and expected fields
-    account_to_survey_results_lineage.py      # Original source IDs, workbook rows and branches
-    account_to_survey_results_expectations.py # Native GX suite builders
-    queries.py                               # History bindings and comparison composition
-    snapshot.py                              # SCD2 state selection
-    gx_queries.py                            # Ibis-to-Athena Query Asset adapter
-    schemas/                                 # Explicit inputs and inferred derived schemas
-    runtime/                                 # Athena/DuckDB preparation, runner and suite export
-    views.py                                 # Optional final-query view publishing
-    cli.py                                   # Installed preview/demo/validate commands
-    demo.py                                  # Synthetic source data and selected event
-examples/validate_athena.py                   # Explicit live-runtime setup example
-params.example.toml                          # Illustrative bindings and temporal parameters
-sql/                                         # Generated Athena SELECTs for review
-suites/                                      # Generated baseline suites for review
+    account_to_survey_results/
+        queries.py              # Ibis derivations and history comparisons
+        gx.py                   # Authoritative native GX suite builders
+        lineage.py              # Field, branch and original-source provenance
+        schemas.py              # Schemas inferred from actual queries
+    core/
+        schemas/                # Account, Contact, Survey Result and history inputs
+        queries/                # Pure snapshots, unbound history, optional SQL lineage
+        configuration.py        # Shared YAML loader; rejects duplicate keys
+    runtime/
+        glue.py                 # Argument handling and role-based bootstrap
+        resources.py            # Injected S3 retrieval and checksum verification
+        configuration.py        # Pydantic runtime input contracts
+        validation.py           # Shared Athena orchestration and result contract
+        data_access.py          # Backend catalog discovery
+        athena.py, duckdb.py     # Separate native GX preparation adapters
+        runner.py, reports.py   # Engine-independent execution and publication
+        report_schemas.py       # Athena-discoverable report projections
+    gx_queries.py, views.py      # Generic SQL registration and optional view publishing
+    cli.py                      # Installed ppsc-dq validate command
+scripts/check_validation.py      # Development-only synthetic fixtures/checks
+scripts/generate_suite_diagrams.py
+params.example.yaml             # Illustrative runtime bindings
+glue/job.yaml                  # Configurable Glue hosting settings
+glue/environments.example.yaml  # Illustrative deployment targets
 ```
 
-The runtime accepts Ibis tables. Athena compiles the final comparison into a GX
-Query Asset. DuckDB evaluates the expression once and supplies the resulting
-pandas DataFrame to GX, collecting the complete comparison into local memory.
-The shared runner executes native GX Validation Definitions with separate batch
-parameters per definition. `runtime.run_validations_with_reports` adds native
-Data Docs, raw result archives and discovery datasets, then publishes to an
-explicit S3 destination. It does not introduce a second rule or engine framework.
+The runtime accepts native Ibis tables. Athena compiles a final comparison into a
+GX Query Asset; DuckDB evaluates a bounded comparison for synthetic checks. The
+shared runner serializes the registered suite immediately before validation.
+Reporting adds Data Docs, gzip native JSON, Parquet discovery datasets and explicit
+S3 publication. Pydantic models validate structured configuration and completed-run
+receipts; expressions, dataframes and GX objects retain their native interfaces.
 
 ## Use the library
 
 ```python
-from ppsc_ops_data_quality.queries import flow_account_query
-from ppsc_ops_data_quality.schemas import history_tables
+from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_query
+from ppsc_ops_data_quality.core.queries import history_tables
 
 history = history_tables(
     account_database="account_database",
@@ -101,7 +113,7 @@ Comparison = flow_account_query(
 `history_tables()` returns unbound Ibis relations for tables named `history` in
 three explicitly configured databases. Supply catalog-verified schema overrides
 when types differ. An existing backend can instead discover tables through
-`queries.bind_history_tables()`. For combined history, construct explicitly scoped
+`runtime.data_access.bind_history_tables()`. For combined history, construct explicitly scoped
 Ibis relations upstream. Neither binding path infers object discriminators or
 silently fixes column casing.
 
@@ -112,11 +124,11 @@ must satisfy BEFORE < execution < AFTER. Current Account state cannot validate a
 historical events. Rollups use one common effective point at a person Account grain,
 including zero-child Accounts.
 
-## Run against Athena
+## Run directly against Athena
 
 `ppsc-dq validate` provides the packaged GX/SQLAlchemy runtime; the example script delegates to it:
 
-1. Copy `params.example.toml` to ignored `params.local.toml`.
+1. Copy `params.example.yaml` to ignored `params.local.yaml`.
 2. Bind the actual databases and verify the physical columns/types, validity
    intervals, deletion semantics and completed delivery/event timing.
 3. Set standard AWS credentials/profile outside the configuration file.
@@ -124,7 +136,7 @@ including zero-child Accounts.
 
 ```bash
 uv run ppsc-dq validate \
-  --config params.local.toml --run-dir build/athena-run-001
+  --config params.local.yaml --run-dir build/athena-run-001
 ```
 
 The example uses an existing Athena workgroup/results location and a required
@@ -157,7 +169,7 @@ the Glue driver does not initialize Spark.
 The Flow suite has 27 built-in expectations and the rollup suite has 24, each with
 an optional independent row-count check. They cover required columns, identity,
 unique grain, permission-lookup resolution and 19 expected/observed field pairs.
-The demo supplies counts of one, yielding 28 and 25 expectations respectively.
+The synthetic check supplies counts of one, yielding 28 and 25 expectations respectively.
 
 Flow row checks use the named Ibis predicate
 `survey_completion_occurred_on_or_after_launch`, consumed by the GX
@@ -190,7 +202,8 @@ provenance follow the supplied Salesforce workbook where available.
 
 Original FlowDecision, FlowRecordLookup, formula and field IDs remain in the
 independent lineage mapping. SQLGlot metadata is attached after Ibis composition
-by stable projected alias. SQL comments explain generated queries; arbitrary
+by stable projected alias when `projection_lineage=PROJECTION_LINEAGE` is explicitly
+supplied by domain orchestration; generic compilation omits domain annotations. SQL comments explain generated queries; arbitrary
 structured metadata is not preserved by ordinary SQL or Ibis schema round trips.
 
 The runner requires a run-scoped `suite_directory` and serializes the actual
@@ -229,7 +242,7 @@ verifies the generator. Keep generated diagnostic graphs under `build/`.
 - [Rollup suite diagram](docs/suites/account_to_survey_results_rollups.md)
 
 - [Query composition and original sources](docs/query-design.md)
-- [Schema contracts and conversions](src/ppsc_ops_data_quality/schemas/README.md)
+- [Schema contracts and conversions](src/ppsc_ops_data_quality/core/schemas/README.md)
 - [Runtime setup and native definitions](src/ppsc_ops_data_quality/runtime/README.md)
 - [Authored SQL-file execution and metadata/comment standards TODO](src/ppsc_ops_data_quality/runtime/TODO.md)
 - [Build, deployment and Glue acceptance](docs/build-deployment.md)

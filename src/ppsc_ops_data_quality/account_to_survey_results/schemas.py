@@ -11,17 +11,17 @@ are useful to bind subsequent reads, but are not independent drift assertions.
 
 import ibis
 
-from ppsc_ops_data_quality.account_to_survey_results import (
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
     add_flow_context,
     expected_account_values,
     expected_survey_rollups,
+    flow_account_comparison,
     join_account,
+    rollup_account_comparison,
 )
-from ppsc_ops_data_quality.queries import flow_account_comparison, rollup_account_comparison
-
-from .account import ACCOUNT_HISTORY_VALIDATION_INPUT
-from .contact import CONTACT_HISTORY_VALIDATION_INPUT
-from .survey_results import SURVEY_RESULT_HISTORY_VALIDATION_INPUT
+from ppsc_ops_data_quality.core.schemas.account import ACCOUNT_HISTORY_VALIDATION_INPUT
+from ppsc_ops_data_quality.core.schemas.contact import CONTACT_HISTORY_VALIDATION_INPUT
+from ppsc_ops_data_quality.core.schemas.survey_results import SURVEY_RESULT_HISTORY_VALIDATION_INPUT
 
 _Account = ibis.table(ACCOUNT_HISTORY_VALIDATION_INPUT, name="AccountSnapshot")
 _Contact = ibis.table(CONTACT_HISTORY_VALIDATION_INPUT, name="ContactSnapshot")

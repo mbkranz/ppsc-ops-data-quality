@@ -1,0 +1,12 @@
+# Runtime code, artifacts and provenance are filled in by deployment planning.
+GlueVersion: '5.0'
+WorkerType: G.1X
+NumberOfWorkers: 2
+ExecutionProperty:
+  MaxConcurrentRuns: 1
+MaxRetries: 0
+Timeout: 60
+DefaultArguments:
+  --python-modules-installer-option: --no-index
+  --job-bookmark-option: job-bookmark-disable
+  --enable-metrics: 'true'

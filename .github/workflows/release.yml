@@ -32,8 +32,8 @@ jobs:
       - run: uv sync --locked --python 3.11
       - run: sudo apt-get update && sudo apt-get install -y graphviz
       - run: uv run --locked poe check
-      - run: uv run --locked poe preview
-      - run: uv run --locked poe demo
+      - run: uv run --locked poe check-queries
+      - run: uv run --locked poe check-synthetic
       - run: uv run --locked poe build-release
       - run: uv run --locked poe smoke-release
       - uses: actions/upload-artifact@v4

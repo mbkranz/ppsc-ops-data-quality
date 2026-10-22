@@ -10,4 +10,8 @@
 - Use Poe for operational entry points. Add DVC only for a real deterministic build DAG.
 - Keep credentials, live configuration and record-level outputs out of version control.
 - Use synthetic fixtures in CI. Local checks do not establish live Athena/Glue acceptance.
-- Run `uv run poe check`, `uv run poe preview` and `uv run poe demo` before proposing changes.
+- Run `uv run poe check`, `uv run poe check-queries` and `uv run poe check-synthetic` before proposing changes.
+
+- Follow the PPSC agent design reference: validated structured public inputs/results, explicit functions and visible workflows; keep native expressions and frames.
+- Keep core domain-independent. Supply projection lineage explicitly at orchestration.
+- Use YAML for runtime/environment settings; use data-migration-dev for local AWS operations (explicit overrides allowed).

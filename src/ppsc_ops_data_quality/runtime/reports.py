@@ -23,7 +23,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from great_expectations.core import RunIdentifier
 
-from ppsc_ops_data_quality.schemas.validation_reports import (
+from ppsc_ops_data_quality.runtime.report_schemas import (
     EXPECTATION_RUN_RESULTS,
     VALIDATION_RUN_RESULTS,
 )

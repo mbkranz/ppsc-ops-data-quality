@@ -6,15 +6,22 @@ Publishing never participates in snapshot or comparison expression construction.
 """
 
 import re
+from collections.abc import Mapping
 
 import ibis
 import ibis.expr.types as ir
 from sqlglot import exp
 
-from ppsc_ops_data_quality.account_to_survey_results import to_sqlglot
+from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 
 
-def create_view_sql(query: ir.Table, *, name: str, database: str | None = None) -> str:
+def create_view_sql(
+    query: ir.Table,
+    *,
+    name: str,
+    database: str | None = None,
+    projection_lineage: Mapping[str, Mapping[str, object]] | None = None,
+) -> str:
     """Emit Athena CREATE OR REPLACE VIEW for a complete, annotated query.
 
     Provenance: Athena CREATE VIEW syntax. A view is logical and recomputes its
@@ -32,21 +39,33 @@ def create_view_sql(query: ir.Table, *, name: str, database: str | None = None) 
         db=exp.to_identifier(database, quoted=True) if database else None,
     )
     return (
-        exp.Create(this=target, kind="VIEW", replace=True, expression=to_sqlglot(query)).sql(
-            dialect="athena", pretty=True
-        )
+        exp.Create(
+            this=target,
+            kind="VIEW",
+            replace=True,
+            expression=to_sqlglot(query, projection_lineage=projection_lineage),
+        ).sql(dialect="athena", pretty=True)
         + ";"
     )
 
 
-def create_view(connection, query: ir.Table, *, name: str, database: str | None = None) -> ir.Table:
+def create_view(
+    connection,
+    query: ir.Table,
+    *,
+    name: str,
+    database: str | None = None,
+    projection_lineage: Mapping[str, Mapping[str, object]] | None = None,
+) -> ir.Table:
     """Publish through an existing Athena DB-API connection; return its Ibis name.
 
     Calling this function explicitly executes DDL. Exceptions propagate and the
     cursor closes on failure. The returned relation references the created view
     with the query's schema. No credentials or connection configuration are made.
     """
-    sql = create_view_sql(query, name=name, database=database)
+    sql = create_view_sql(
+        query, name=name, database=database, projection_lineage=projection_lineage
+    )
     cursor = connection.cursor()
     try:
         cursor.execute(sql)

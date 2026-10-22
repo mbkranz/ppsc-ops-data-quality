@@ -9,6 +9,8 @@ description = "Composable Ibis comparisons and native GX validation for Salesfor
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
+  "pydantic>=2.12,<3",
+  "PyYAML>=6,<7",
   "boto3>=1.35,<2",
   "great-expectations==1.24.0",
   "ibis-framework[duckdb]==12.0.0",

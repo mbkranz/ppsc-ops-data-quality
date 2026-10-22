@@ -14,10 +14,12 @@ from collections.abc import Mapping
 import ibis.expr.types as ir
 from sqlglot import exp
 
-from ppsc_ops_data_quality.account_to_survey_results import to_sqlglot
+from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 
 
-def query_asset_sql(comparison: ir.Table) -> str:
+def query_asset_sql(
+    comparison: ir.Table, *, projection_lineage: Mapping[str, Mapping[str, object]] | None = None
+) -> str:
     """Return one Athena SELECT, with lineage comments and no terminal semicolon.
 
     Compose Ibis first. to_sqlglot() annotates the compiled comparison; wrapping
@@ -25,7 +27,7 @@ def query_asset_sql(comparison: ir.Table) -> str:
     The SQL text carries comments; structured meta remains in the annotated AST
     and canonical lineage mapping rather than being serialized into SQL.
     """
-    annotated = to_sqlglot(comparison)
+    annotated = to_sqlglot(comparison, projection_lineage=projection_lineage)
     query = exp.select("*").from_(annotated.subquery(alias="comparison"))
     return query.sql(dialect="athena", pretty=True)
 
@@ -36,6 +38,7 @@ def query_batch_definition(
     *,
     name: str,
     metadata: Mapping[str, object] | None = None,
+    projection_lineage: Mapping[str, Mapping[str, object]] | None = None,
 ):
     """Register a native Query Asset and return its whole-query Batch Definition.
 
@@ -50,7 +53,7 @@ def query_batch_definition(
     """
     asset = data_source.add_query_asset(
         name=name,
-        query=query_asset_sql(comparison),
+        query=query_asset_sql(comparison, projection_lineage=projection_lineage),
         batch_metadata=dict(metadata or {}),
     )
     return asset.add_batch_definition_whole_table(name="whole_comparison")

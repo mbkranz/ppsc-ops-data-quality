@@ -41,8 +41,8 @@ historical snapshot reads have the same column definitions.
 ## Bind the inputs
 
 ```python
-from ppsc_ops_data_quality.schemas import history_tables
-from ppsc_ops_data_quality.queries import flow_account_query
+from ppsc_ops_data_quality.core.queries import history_tables
+from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_query
 
 history = history_tables(
     account_database="your_account_database",
@@ -65,14 +65,14 @@ It is unbound Ibis input for Athena compilation, not a live backend connection.
 Supply real catalog schemas through `account_schema=`, `contact_schema=` and
 `survey_result_schema=`. Extra columns are preserved; no automatic casting or
 renaming occurs. If the catalog uses lowercase names, normalize/project aliases
-upstream before calling the query builders. `queries.bind_history_tables()` remains
+upstream before calling the query builders. `runtime.data_access.bind_history_tables()` remains
 available when an existing backend can inspect the catalog.
 
 For example, an explicitly date-grain input can be declared with native composition:
 
 ```python
 import ibis
-from ppsc_ops_data_quality.schemas import ACCOUNT_HISTORY_VALIDATION_INPUT
+from ppsc_ops_data_quality.core.schemas import ACCOUNT_HISTORY_VALIDATION_INPUT
 
 AccountDailyHistory = ibis.schema(
     {
@@ -88,7 +88,7 @@ reconstruct BEFORE/execution/AFTER states within a single day.
 
 ## Derived table and view schemas
 
-`derived.py` exposes these schemas, inferred from the existing expression builders:
+`account_to_survey_results/schemas.py` exposes these schemas, inferred from the existing expression builders:
 
 | Constant | Columns |
 |---|---:|
@@ -118,7 +118,7 @@ separately reviewed contract only for outputs whose consumers require one.
 ## Interchange and provenance
 
 ```python
-from ppsc_ops_data_quality.schemas import ACCOUNT_HISTORY_VALIDATION_INPUT
+from ppsc_ops_data_quality.core.schemas import ACCOUNT_HISTORY_VALIDATION_INPUT
 
 arrow_schema = ACCOUNT_HISTORY_VALIDATION_INPUT.to_pyarrow()
 column_defs = ACCOUNT_HISTORY_VALIDATION_INPUT.to_sqlglot_column_defs(dialect="athena")
@@ -139,7 +139,7 @@ metadata-bearing schema AST is possible, but still requires reattaching that
 metadata to compiled query outputs. SQLGlot dump/load retains custom metadata
 in the tested AST representation.
 
-The schemas package depends on Ibis. Importing `schemas.derived` also requires the
+The schemas package depends on Ibis. Importing `account_to_survey_results.schemas` also requires the
 existing derivation, lineage and query modules alongside it; the complete bundle
 contains those files. Source schema imports do not load GX or evaluate data.
 

@@ -6,13 +6,14 @@ performed from this workspace.
 
 ## Reference review and decisions
 
-Reviewed the actual repositories, rather than treating the older survey v2 branch
-as `ppsc-survey-v2`:
-
-| Reference | Reviewed revision | Reuse | Do not carry forward |
-| --- | --- | --- | --- |
-| [ppsc-survey-v2](https://github.com/mbkranz/ppsc-survey-v2/tree/f54ea3f70701360915ded4183207452c5b289469) | `f54ea3f` | Glue 5.0 hosting, standard IAM credentials, explicit job configuration | Exported get-job response fields, ten-worker default, legacy package ZIPs and independently pinned job dependencies |
-| [ppsc-nioccs](https://github.com/mbkranz/ppsc-nioccs/tree/7cd088f708f83afe7e2b7b6cd226bc8b06fd9570) | `7cd088f` | STS account selection, environment assertion, staged artifacts, explicit deployment plan, separate build and deploy | Placeholder processing body; incomplete environment mapping; `scripts/deploy.py` references `config/glue.yaml`, absent from the reviewed tree, while committed job config lives under `glue/config/` |
+Reviewed `ppsc-survey` **v2**, pinned at
+[`9fd741c`](https://github.com/mbkranz/ppsc-survey/tree/9fd741c049163c8e31368edce7ed9b832344a139):
+`runtime/glue.py` separates arguments and job lifecycle, `runtime/resources.py`
+verifies selected resources with injectable clients, and `runtime/validation.py`
+composes validation and publication. Those responsibilities are used here. The
+survey Spark session, resource inventory and serialized suite loader are not
+needed: Athena executes queries and Python suite builders remain authoritative.
+The separately named `ppsc-survey-v2` repository is not the runtime reference.
 
 Use Glue 5.0's CPython 3.11/Linux driver. Athena executes the SQL; the driver does
 not create a Spark session or load the lake into a DataFrame. Python Shell 3.9 is
@@ -20,23 +21,22 @@ incompatible with this project's Python/GX requirements. Two G.1X workers are an
 initial hosting choice, subject to measurement. This is not a Spark migration.
 
 The installed `ppsc-dq validate` command and Glue script call the same packaged
-`runtime.job.validate_athena`. Python suite builders remain authoritative. The
+`runtime.validation.run_validation`. Python suite builders remain authoritative. The
 example script delegates to that command. Configuration, credentials, rendered
 plans and validation evidence remain outside Git.
 
 Poe owns uv, Git, AWS and release operations. Python assembles/verifies artifact
-hashes and renders payloads; it does not wrap CLI invocations. DVC is not added:
-this release is one small sequence with no shared intermediate build DAG. If a
-real dependency graph emerges, DVC can track the same artifacts without changing
-this runtime or deployment contract.
+hashes and renders payloads; it does not wrap CLI invocations. DVC adoption is evaluated separately from YAML/task cleanup; see
+[release graph evaluation](release-build-evaluation.md). The graph has two branches
+that converge at assembly. Deployment and live results remain outside cached builds.
 
 ## Implemented and remaining work
 
 | Area | Repository addition | Status / completion criterion |
 | --- | --- | --- |
-| Athena entry point | `ppsc-dq validate`, shared `runtime/job.py` | Implemented; placeholder bindings rejected before connection |
+| Athena entry point | `ppsc-dq validate`, shared `runtime/validation.py` | Implemented; placeholder bindings rejected before connection |
 | Dependency packaging | `build-release`, `package_release.py`, manifest with source/lock/artifact/wheel hashes | Implemented; full wheel download/install is a Python 3.11 CI gate |
-| Installed runtime | `smoke-release`, Python 3.11 CI | Install only bundled wheels with no index; dependency check plus installed preview/demo |
+| Installed runtime | `smoke-release`, Python 3.11 CI | Install only bundled wheels with no index; dependency check plus isolated installed compilation/synthetic checks |
 | Release publication | Manual exact-tag `release.yml` | Verify existing tag, check/build/smoke, upload bundle, publish GitHub release |
 | Deployment | `plan-deployment`, `deploy` | STS account selection; explicit create/update; checksums reverified before upload |
 | Glue execution | `validate_history.py`, `run-glue`, `glue-status` | Hash-check runtime configuration; verify deployed job matches plan; retain run ID |
@@ -53,8 +53,8 @@ Requires uv, Git and Python 3.11. AWS operations additionally require AWS CLI v2
 ```bash
 uv sync --locked --python 3.11
 uv run --locked poe check
-uv run --locked poe preview
-uv run --locked poe demo
+uv run --locked poe check-queries
+uv run --locked poe check-synthetic
 # Commit source changes first. Start with no existing build/release directory.
 uv run --locked poe build-release
 uv run --locked poe smoke-release
@@ -71,8 +71,7 @@ one project wheel. It creates `build/release/bundle/` containing:
 
 Every wheel must be available for the target. Missing/incompatible binaries fail
 the build instead of falling back to compilation. The smoke environment has no
-package-index access during installation. It verifies the packaged CLI, source
-imports, native GX execution and report generation using synthetic data. It does
+package-index access during installation. It verifies the packaged CLI, imports from the smoke environment (never checkout source),, native GX execution and report generation using synthetic data. It does
 not reproduce Glue's preinstalled libraries, bootstrap or network environment.
 
 The dependency ZIP uses AWS's documented `.gluewheels.zip` format with
@@ -87,8 +86,15 @@ build bytes get a different directory even for the same source revision.
 
 ## Plan and deploy
 
-Populate `glue/environments.local.toml` from the example. Each account must map
-uniquely to dev or prod. The role must belong to that account. Use existing
+Operational tasks default to `--profile data-migration-dev`; use `--profile PROFILE`
+for an explicit override. Every plan/deploy/run/status/catalog task checks STS.
+The local profile is never added to Glue configuration.
+
+Populate `glue/environments.local.yaml` from the example. Each account must map
+uniquely to dev or prod. Quote each account ID to preserve all 12 digits.
+`glue/job.yaml` configures workers, timeout, concurrency and optional network/security
+settings. The planner fills the role, script/dependency URIs and release provenance,
+then validates the payload against the installed Glue SDK model. The role must belong to that account. Use existing
 artifact buckets and execution roles; this project does not provision them.
 
 ```bash
@@ -109,11 +115,11 @@ catch-all create-on-update-error fallback is used. Release upload completion is
 not equivalent to a successfully updated job: retain the command result and run
 acceptance. Retry uses the same hash-addressed artifact paths. Updating a job
 replaces the managed job settings; include any required VPC connections or
-organization-specific security configuration in the renderer before acceptance.
+organization-specific security configuration in `glue/job.yaml` before acceptance.
 
 ## Configure, run and inspect
 
-Populate `params.local.toml` from `params.example.toml` and independently verify:
+Populate `params.local.yaml` from `params.example.yaml` and independently verify:
 source databases/physical types; SCD2 interval and deletion semantics; the
 triggering Survey Result; BEFORE < execution < settled AFTER; rollup effective
 point; and business timezone/Flow run date. An effective timestamp does not pin
@@ -121,19 +127,20 @@ an Iceberg physical version. Preserve explicit physical source pins upstream or
 materialized run inputs when immutable data replay is required.
 
 Upload the run configuration to a unique S3 object. Calculate its SHA256 locally
-(`sha256sum params.local.toml`), then submit that exact hash:
+(`sha256sum params.local.yaml`), then submit that exact hash:
 
 ```bash
-aws s3 cp params.local.toml s3://YOUR_CONFIG_BUCKET/quality-runs/RUN_ID.toml
+aws --profile data-migration-dev s3 cp params.local.yaml s3://YOUR_CONFIG_BUCKET/quality-runs/RUN_ID.yaml
 uv run poe run-glue --plan build/deployment-dev \
-  --config-uri s3://YOUR_CONFIG_BUCKET/quality-runs/RUN_ID.toml \
+  --config-uri s3://YOUR_CONFIG_BUCKET/quality-runs/RUN_ID.yaml \
   --config-sha256 YOUR_64_CHARACTER_SHA256
 uv run poe glue-status --plan build/deployment-dev --run-id RETURNED_JOB_RUN_ID
 ```
 
 `run-glue` compares the deployed script and dependency arguments with the planned
 release before submission. Submission is asynchronous. Repeat status inspection
-until terminal and inspect the reported CloudWatch log group on failure. Do not
+until terminal. Submissions are retained in `plan/runs/JOB_RUN_ID.json`, with status
+evidence alongside them; terminal failures return nonzero. Inspect the reported CloudWatch log group on failure. Do not
 interpret a returned job-run ID as success. Automatic job retries and bookmarks
 are disabled. Each invocation creates a new report UUID; retries are distinct
 runs rather than overwriting earlier evidence.
@@ -153,11 +160,11 @@ objects as a completed run without checking the manifest.
 Use an existing report database. Render from the same runtime report prefix:
 
 ```bash
-uv run poe render-report-catalog --config params.local.toml \
+uv run poe render-report-catalog --config params.local.yaml \
   --database quality_reports --first-run-date 2026-10-21 --output build/catalog-dev
 uv run poe register-report-catalog --plan build/deployment-dev --catalog build/catalog-dev
 # For each returned query ID, require SUCCEEDED:
-aws athena get-query-execution --query-execution-id RETURNED_QUERY_ID \
+aws --profile data-migration-dev athena get-query-execution --query-execution-id RETURNED_QUERY_ID \
   --query 'QueryExecution.Status'
 ```
 

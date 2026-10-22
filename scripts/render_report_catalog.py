@@ -3,17 +3,18 @@
 import argparse
 import json
 import re
-import tomllib
 from datetime import date
 from pathlib import Path
 from urllib.parse import urlsplit
+
+from ppsc_ops_data_quality.core.configuration import load_yaml
 
 
 def render_report_catalog(*, config: Path, database: str, first_run_date: str, output: Path):
     if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", database):
         raise ValueError("Use an unquoted Glue database identifier")
     date.fromisoformat(first_run_date)
-    settings = tomllib.loads(config.read_text())
+    settings = load_yaml(config)
     athena = settings["athena"]
     reports = settings["reports"]["s3_uri"].rstrip("/")
     uri = urlsplit(reports)

@@ -10,9 +10,9 @@ import ibis
 import pandas as pd
 import sqlalchemy as sa
 
-from ppsc_ops_data_quality import account_to_survey_results as derivations
-from ppsc_ops_data_quality import account_to_survey_results_expectations as checks
-from ppsc_ops_data_quality import queries
+from ppsc_ops_data_quality.account_to_survey_results import gx as checks
+from ppsc_ops_data_quality.account_to_survey_results import queries
+from ppsc_ops_data_quality.account_to_survey_results import queries as derivations
 
 OLD = dt.datetime(2001, 1, 1)
 NEW = dt.datetime(2025, 1, 1)

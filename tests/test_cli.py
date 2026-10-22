@@ -5,15 +5,15 @@ import json
 
 import great_expectations as gx
 import pyarrow.parquet as pq
+import pytest
 import sqlglot
 
-from ppsc_ops_data_quality.cli import main
+from scripts.check_validation import compile_comparisons, validate_synthetic
 
 
-def test_preview_exports_native_suites_and_athena_selects(tmp_path, capsys):
+def test_compilation_exports_native_suites_and_athena_selects(tmp_path, capsys):
     output = tmp_path / "preview"
-    assert main(["preview", "--output", str(output)]) == 0
-    summary = json.loads(capsys.readouterr().out)
+    summary = compile_comparisons(output)
     assert summary["live_queries"] is False
     for name, count in [("flow", 27), ("rollups", 24)]:
         suite = gx.ExpectationSuite(**json.loads((output / f"{name}.suite.json").read_text()))
@@ -21,14 +21,13 @@ def test_preview_exports_native_suites_and_athena_selects(tmp_path, capsys):
         sql = (output / f"{name}.sql").read_text()
         sqlglot.parse_one(sql, read="athena")
         assert '"history"' in sql
-    assert main(["preview", "--output", str(output)]) == 2
-    assert "FileExistsError" in capsys.readouterr().err
+    with pytest.raises(FileExistsError):
+        compile_comparisons(output)
 
 
-def test_demo_validates_both_suites_and_retains_run_evidence(tmp_path, capsys):
+def test_synthetic_validates_both_suites_and_retains_run_evidence(tmp_path, capsys):
     output = tmp_path / "run"
-    assert main(["demo", "--run-dir", str(output)]) == 0
-    summary = json.loads(capsys.readouterr().out)
+    summary = validate_synthetic(output)
     assert summary["success"] is True
     assert summary["source"] == "synthetic_history"
     assert json.loads((output / "run.json").read_text()) == summary
@@ -56,6 +55,6 @@ def test_demo_validates_both_suites_and_retains_run_evidence(tmp_path, capsys):
         assert result["statistics"]["evaluated_expectations"] == count
         assert (reports / "queries" / f"{stem}.sql").exists()
     original = (output / "run.json").read_bytes()
-    assert main(["demo", "--run-dir", str(output)]) == 2
-    assert "FileExistsError" in capsys.readouterr().err
+    with pytest.raises(FileExistsError):
+        validate_synthetic(output)
     assert (output / "run.json").read_bytes() == original

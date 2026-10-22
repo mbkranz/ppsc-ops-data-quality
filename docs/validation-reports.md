@@ -16,7 +16,7 @@ does not create hosting, buckets, permissions, crawlers or catalog tables.
 Parquet is the recommended catalog format. It provides typed nullable columns,
 column selection and predicate pushdown, and avoids repeatedly inferring GX's
 heterogeneous nested JSON. The existing PyArrow dependency writes it from the
-ordinary Ibis schemas in `schemas/validation_reports.py`. Variable-shaped fields
+ordinary Ibis schemas in `runtime/report_schemas.py`. Variable-shaped fields
 (`observed_value`, unexpected samples, row-condition structures, kwargs, result
 details and metadata) stay in JSON strings. Common scalar metrics have columns.
 These projections are derived evidence, not replacements for raw native GX JSON.
@@ -61,11 +61,11 @@ SQL parsing is not used to guess source identities.
 
 ## Runtime use
 
-The Athena example requires `[reports].s3_uri` in `params.local.toml`. It uses
+The Athena example requires `[reports].s3_uri` in `params.local.yaml`. It uses
 `runtime.run_validations_with_reports()` and supplies catalog-qualified source
 tables, the Query Asset's actual SQL, and temporal metadata. AWS authentication
 uses the standard boto3 provider chain; callers can inject an existing S3 client.
-The demo uses the same report builder locally and accepts optional `--s3-uri`.
+The development synthetic check uses the same report builder locally without AWS.
 The lower-level `run_validations()` remains usable without publication; supply
 `result_directory` there to archive each native result immediately.
 

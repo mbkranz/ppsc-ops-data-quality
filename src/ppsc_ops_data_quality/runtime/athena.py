@@ -17,6 +17,7 @@ def prepare_validation(
     *,
     name: str,
     metadata: Mapping[str, object] | None = None,
+    projection_lineage: Mapping[str, Mapping[str, object]] | None = None,
     sql_path: str | Path | None = None,
 ) -> tuple[gx.ValidationDefinition, dict]:
     """Return (ValidationDefinition, batch parameters) for one Athena comparison.
@@ -35,7 +36,9 @@ def prepare_validation(
     fetched here, no views are created and Context configuration is not invented.
     The caller owns the Context, connection and result-store lifecycle.
     """
-    batch_definition = query_batch_definition(data_source, comparison, name=name, metadata=metadata)
+    batch_definition = query_batch_definition(
+        data_source, comparison, name=name, metadata=metadata, projection_lineage=projection_lineage
+    )
     if sql_path is not None:
         path = Path(sql_path)
         path.parent.mkdir(parents=True, exist_ok=True)

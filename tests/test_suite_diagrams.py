@@ -11,9 +11,9 @@ import ibis
 import pytest
 from great_expectations.expectations.row_conditions import Column
 
-from ppsc_ops_data_quality.account_to_survey_results_expectations import flow_account_suite
-from ppsc_ops_data_quality.demo import comparisons
-from ppsc_ops_data_quality.schemas import history_tables
+from ppsc_ops_data_quality.account_to_survey_results.gx import flow_account_suite
+from ppsc_ops_data_quality.core.queries import history_tables
+from scripts.check_validation import comparisons
 
 spec = importlib.util.spec_from_file_location(
     "generate_suite_diagrams", Path("scripts/generate_suite_diagrams.py")
@@ -90,7 +90,7 @@ def test_expression_diagnostic_uses_native_ibis_export_without_gx_overlay(tmp_pa
     suite = gx.ExpectationSuite(
         name="diagnostic", expectations=[gxe.ExpectColumnValuesToNotBeNull(column="a")]
     )
-    diagrams.write_suite_document(query, suite, tmp_path, include_expression_graph=True)
+    diagrams.write_suite_document(query.schema(), suite, tmp_path, expression=query)
     native = (tmp_path / "diagnostic_ibis.dot").read_text()
     assert native == diagrams.to_graph(query).source
     assert "expectation_0" not in native

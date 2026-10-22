@@ -10,23 +10,26 @@ import pyarrow as pa
 import sqlglot
 from sqlglot import exp
 
-from ppsc_ops_data_quality.account_to_survey_results_expectations import (
+from ppsc_ops_data_quality.account_to_survey_results import schemas as derived
+from ppsc_ops_data_quality.account_to_survey_results.gx import (
     flow_account_suite,
     rollup_account_suite,
 )
-from ppsc_ops_data_quality.gx_queries import query_asset_sql
-from ppsc_ops_data_quality.queries import flow_account_query, rollup_account_query
-from ppsc_ops_data_quality.schemas import (
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
+    flow_account_query,
+    rollup_account_query,
+)
+from ppsc_ops_data_quality.core.queries import history_tables
+from ppsc_ops_data_quality.core.queries.snapshot import snapshot
+from ppsc_ops_data_quality.core.schemas import (
     ACCOUNT_HISTORY_VALIDATION_INPUT,
     ACCOUNT_VALIDATION_INPUT,
     CONTACT_HISTORY_VALIDATION_INPUT,
     CONTACT_VALIDATION_INPUT,
     SURVEY_RESULT_HISTORY_VALIDATION_INPUT,
     SURVEY_RESULT_VALIDATION_INPUT,
-    derived,
-    history_tables,
 )
-from ppsc_ops_data_quality.snapshot import snapshot
+from ppsc_ops_data_quality.gx_queries import query_asset_sql
 from ppsc_ops_data_quality.views import create_view_sql
 
 SOURCE_SCHEMAS = (

@@ -3,16 +3,21 @@
 import argparse
 import json
 import re
-import tomllib
 from pathlib import Path
 from urllib.parse import urlsplit
 
+import boto3
+from botocore.validate import validate_parameters
+
+from ppsc_ops_data_quality.core.configuration import load_yaml
 from scripts.package_release import sha256, verify_bundle
 
 
 def deployment_target(config: Path, account: str, environment: str):
-    targets = tomllib.loads(config.read_text())["environments"]
+    targets = load_yaml(config)["environments"]
     accounts = [target["account_id"] for target in targets.values()]
+    if any(not isinstance(account_id, str) for account_id in accounts):
+        raise ValueError("Quote account IDs in YAML configuration")
     if len(accounts) != len(set(accounts)):
         raise ValueError("Deployment accounts must be unique")
     matches = [
@@ -47,28 +52,32 @@ def plan_deployment(*, config, account, environment, bundle, output):
     manifest_path = bundle / "manifest.json"
     manifest = verify_bundle(bundle)
     prefix = f"{target['artifact_s3_uri'].rstrip('/')}/releases/{sha256(manifest_path)}"
-    job = {
-        "Role": target["glue_role"],
-        "Command": {
+    job = load_yaml(Path("glue/job.yaml"))
+    if {"Role", "Command"}.intersection(job):
+        raise ValueError("Job template must not override the release command or execution role")
+    job.update(
+        Role=target["glue_role"],
+        Command={
             "Name": "glueetl",
             "PythonVersion": "3",
             "ScriptLocation": f"{prefix}/validate_history.py",
         },
-        "GlueVersion": "5.0",
-        "WorkerType": "G.1X",
-        "NumberOfWorkers": 2,
-        "ExecutionProperty": {"MaxConcurrentRuns": 1},
-        "MaxRetries": 0,
-        "Timeout": 60,
-        "DefaultArguments": {
+    )
+    job.setdefault("DefaultArguments", {}).update(
+        {
             "--additional-python-modules": f"{prefix}/dependencies.gluewheels.zip",
-            "--python-modules-installer-option": "--no-index",
-            "--job-bookmark-option": "job-bookmark-disable",
-            "--enable-metrics": "true",
             "--release_revision": manifest["revision"],
             "--release_manifest_uri": f"{prefix}/manifest.json",
-        },
-    }
+        }
+    )
+    if job["GlueVersion"] != manifest["runtime"]["glue_version"]:
+        raise ValueError("Job template Glue version conflicts with release runtime")
+    if job["DefaultArguments"].get("--python-modules-installer-option") != "--no-index":
+        raise ValueError("Released wheel installation must remain offline (--no-index)")
+    model = boto3.Session()._session.get_service_model("glue")
+    validate_parameters(
+        {"Name": target["job_name"], **job}, model.operation_model("CreateJob").input_shape
+    )
     output.mkdir(parents=True, exist_ok=False)
     for name, payload in {
         "create-job": {"Name": target["job_name"], **job},

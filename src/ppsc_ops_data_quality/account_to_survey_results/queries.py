@@ -3,7 +3,7 @@
     Record = join_account(Survey_Result__c, Contact, Account)
     Record = add_flow_context(Record, Survey_Result__c, flow_run_date=run_date)
     ExpectedAccount = expected_account_values(Record)
-    query = to_sqlglot(ExpectedAccount)
+    query = to_sqlglot(ExpectedAccount, projection_lineage=PROJECTION_LINEAGE)
     sql = query.sql(dialect="athena", pretty=True)
 
 Definitions are ordinary named Ibis conditions and CASE expressions, bound to the
@@ -11,17 +11,9 @@ supplied Record relation. Builders collect expressions; there are no per-rule
 factories, custom rule classes, applicability fields or GX adapters. To select a
 subset, pass ordinary named Ibis values to expected_account_values(fields=...).
 
-Complete Ibis composition before calling to_sqlglot(). That helper isolates the
-Athena compiler integration and attaches metadata to final projected fields by
-exact output alias, using account_to_survey_results_lineage.py. It does not depend
-on compiler-generated table aliases or WHEN positions. Branch IDs and their
-original sources remain nested in the field's meta["ppsc"] record.
-
-Comments explain generated SQL. Structured meta is retained by SQLGlot copy() and
-Expression.dump()/load(); SQL text alone does not serialize it. Recompiling Ibis
-creates a new AST and must run the annotation step again. Attach annotations after
-any SQLGlot rewrite that replaces projected nodes. The independent mapping is
-authoritative; arbitrary metadata is never attached to Ibis objects themselves.
+Complete Ibis composition before compiling with core.queries.sql.to_sqlglot().
+Supply this domain's PROJECTION_LINEAGE mapping explicitly for annotations. The
+query builders themselves do not compile, execute, or attach metadata to Ibis.
 
 CASE order and assigned NULLs matter. Unselected Account assignments retain BEFORE
 values; unreachable FlowDecisions return typed NULL targets. Source behavior is
@@ -34,19 +26,19 @@ transition, automation exemption disabled, async path settled). Current snapshot
 alone produce hypothetical per-event projections. LEFT JOINs retain missing
 parents. Snapshot rollups use a separate person Account grain.
 
-Runtime dependencies: ibis-framework and its compatible sqlglot version. This
-module builds queries and executes no data. Keep the compiler integration tested
-when upgrading Ibis; it is the only compiler-namespace call in the module.
+This module builds native Ibis expressions and executes no data. Athena compiler
+integration is isolated in core/queries/sql.py.
 """
 
-from collections.abc import Sequence
-from copy import deepcopy
+from collections.abc import Mapping, Sequence
+from datetime import date, datetime
 
 import ibis
 import ibis.expr.types as ir
-from sqlglot import exp
 
-from ppsc_ops_data_quality.account_to_survey_results_lineage import PROJECTION_LINEAGE
+from ppsc_ops_data_quality.core.queries.snapshot import snapshot
+
+from .lineage import ROLLUP_FIELD_LINEAGE
 
 ACCOUNT_FIELDS_ASSIGNED_BY_FLOW = (
     "Age_at_Time_of_Consent__pc",
@@ -878,50 +870,146 @@ def expected_survey_rollups(Account: ir.Table, Survey_Result__c: ir.Table) -> ir
     )
 
 
-def to_sqlglot(expression: ir.Table) -> exp.Query:
-    """Compile the completed Ibis query to Athena's AST, then annotate projections.
+ROLLUP_ACCOUNT_FIELDS = tuple(field.removeprefix("Account.") for field in ROLLUP_FIELD_LINEAGE)
+SURVEY_COMPLETION_FLOW_LAUNCH_DATE = date(2024, 12, 16)
 
-    All Ibis composition happens first. Stable output aliases connect the final
-    SELECT list to authoritative lineage. Branch provenance is nested metadata;
-    compiler-generated WHEN positions and table aliases are never used as keys.
 
-    Unknown/custom projected fields are left unannotated. The query-level record
-    lists annotated and unannotated outputs. This helper returns the AST: render
-    it with query.sql(dialect="athena"), rather than recompiling the Ibis table.
-    Native AST copy()/dump()/load() retain the annotations. SQL text does not.
+def flow_account_comparison(
+    ExpectedAccount: ir.Table,
+    AccountAfter: ir.Table,
+    *,
+    event_id_column: str = "survey_result_id",
+) -> ir.Table:
+    """LEFT JOIN expected per-event values to an independent Account AFTER state.
+
+    Input ExpectedAccount is expected_account_values() output. AccountAfter has
+    Id, the 19 Account fields, and event_id_column identifying the survey event
+    whose observed AFTER state that row represents. Join on both event and Account
+    identity: separate events for one Account must not share an arbitrary latest
+    state. AccountAfter may be an upstream query binding a verified snapshot to a
+    selected event; it is not necessarily a historical Salesforce object table.
+
+    Retain missing observed Accounts and duplicate observed IDs: integrity checks
+    must detect these conditions. Account IDs are deliberately not unique at this
+    grain; several survey events may refer to one Account.
+
+    Project the completion timestamp and the inclusive launch predicate without
+    filtering rows. The predicate uses the timestamp's calendar date; normalize
+    source timestamps to the agreed business timezone upstream. NULL timestamps
+    retain an unknown predicate. This is a business scope, not a FlowDecision.
+    Pre-launch events remain available for profiling and migration reconciliation.
     """
-    from ibis.backends.sql.compilers.athena import compiler
+    survey_completion_occurred_on_or_after_launch = (
+        ExpectedAccount.Completion_Status_Timestamp__c.date()
+        >= ibis.literal(SURVEY_COMPLETION_FLOW_LAUNCH_DATE, type="date")
+    ).name("survey_completion_occurred_on_or_after_launch")
+    AccountAfter = AccountAfter.view()
+    Joined = ExpectedAccount.left_join(
+        AccountAfter,
+        [
+            ExpectedAccount["Account.Id"] == AccountAfter.Id,
+            ExpectedAccount["Record.Id"] == AccountAfter[event_id_column],
+        ],
+    )
+    return Joined.select(
+        ExpectedAccount["Record.Id"].name("survey_result_id"),
+        ExpectedAccount.Participant__c.name("participant_contact_id"),
+        ExpectedAccount["Account.Id"].name("expected_account_id"),
+        AccountAfter.Id.name("observed_account_id"),
+        ExpectedAccount.Survey_Index_Number__c.name("survey_index_number"),
+        ExpectedAccount.Completion_Status_Timestamp__c.name("survey_completion_timestamp"),
+        survey_completion_occurred_on_or_after_launch,
+        ExpectedAccount.CABOR_Completion_Date__c_is_deterministic.name(
+            "cabor_lookup_is_deterministic"
+        ),
+        **{
+            f"expected__{field}": ExpectedAccount[field]
+            for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW
+        },
+        **{f"observed__{field}": AccountAfter[field] for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW},
+    )
 
-    query = compiler.to_sqlglot(expression)
-    # Ibis can emit tuple-valued window arguments. SQLGlot's serializer expects
-    # list containers for AST children; normalize them without rewriting the SQL.
-    for node in query.walk():
-        for key, value in list(node.args.items()):
-            if isinstance(value, tuple):
-                node.set(key, list(value))
-    annotated = []
-    unannotated = []
-    sources = []
-    for projection in query.selects:
-        name = projection.alias_or_name
-        lineage = PROJECTION_LINEAGE.get(name)
-        if lineage is None:
-            unannotated.append(name)
-            continue
-        metadata = deepcopy(lineage)
-        projection.meta["ppsc"] = metadata
-        original_sources = metadata.get("source_entities", [])
-        sources.extend(original_sources)
-        comment = metadata["description"]
-        if original_sources:
-            comment += "; source: " + ", ".join(original_sources)
-        projection.add_comments([comment])
-        annotated.append(name)
-    query.meta["ppsc"] = {
-        "entity_type": "ExpectedValuesQuery",
-        "dialect": "athena",
-        "annotated_fields": annotated,
-        "unannotated_fields": unannotated,
-        "source_entities": list(dict.fromkeys(sources)),
-    }
-    return query
+
+def rollup_account_comparison(ExpectedRollups: ir.Table, AccountSnapshot: ir.Table) -> ir.Table:
+    """LEFT JOIN expected rollup counts to Account fields from the same snapshot.
+
+    Input ExpectedRollups is expected_survey_rollups() output. Preserve the one
+    row per person Account grain; a duplicate observed Account produces duplicate
+    expected_account_id values and fails the uniqueness expectation.
+    """
+    AccountSnapshot = AccountSnapshot.view()
+    Joined = ExpectedRollups.left_join(
+        AccountSnapshot, ExpectedRollups["Account.Id"] == AccountSnapshot.Id
+    )
+    return Joined.select(
+        ExpectedRollups["Account.Id"].name("expected_account_id"),
+        ExpectedRollups.PersonContactId.name("person_contact_id"),
+        AccountSnapshot.Id.name("observed_account_id"),
+        **{f"expected__{field}": ExpectedRollups[field] for field in ROLLUP_ACCOUNT_FIELDS},
+        **{f"observed__{field}": AccountSnapshot[field] for field in ROLLUP_ACCOUNT_FIELDS},
+    )
+
+
+def flow_account_query(
+    history: Mapping[str, ir.Table],
+    *,
+    survey_result_id: str,
+    account_before_at: date | datetime,
+    execution_at: date | datetime,
+    account_after_at: date | datetime,
+    flow_run_date: date,
+) -> ir.Table:
+    """Return one event's expected/observed comparison directly over history.
+
+    Lineage: snapshot(Account BEFORE) + snapshot(Contact at execution) +
+    snapshot(Survey_Result__c at execution) -> join_account -> add_flow_context ->
+    expected_account_values -> flow_account_comparison -> snapshot(Account AFTER).
+    Named local variables mirror the Salesforce objects and existing expressions.
+
+    Only the selected trigger is projected; FlowRecordLookups retain all survey
+    records at execution. AFTER observations are explicitly bound to that event.
+    Caller verifies eligibility (Complete transition, no exemption, async work
+    settled) and org-local execution date. SCD2 date-grain history cannot represent
+    BEFORE/AFTER instants within one day. No latest-state fallback is allowed.
+    """
+    if not isinstance(survey_result_id, str) or not survey_result_id.strip():
+        raise ValueError("survey_result_id must identify one verified triggering event")
+    if not isinstance(flow_run_date, date) or isinstance(flow_run_date, datetime):
+        raise TypeError("flow_run_date must be the org-local execution date")
+    times = (account_before_at, execution_at, account_after_at)
+    if any(not isinstance(value, date) for value in times):
+        raise TypeError("BEFORE, execution and AFTER must be explicit dates or datetimes")
+    try:
+        ordered = account_before_at < execution_at < account_after_at
+    except TypeError as error:
+        raise ValueError(
+            "Temporal bindings must use comparable date/time types and time zones"
+        ) from error
+    if not ordered:
+        raise ValueError("Require account_before_at < execution_at < account_after_at")
+
+    AccountBefore = snapshot(history["Account"], as_of=account_before_at)
+    ContactAtExecution = snapshot(history["Contact"], as_of=execution_at)
+    Survey_Result__c = snapshot(history["Survey_Result__c"], as_of=execution_at)
+    AccountAfter = snapshot(history["Account"], as_of=account_after_at)
+    Trigger = Survey_Result__c.filter(Survey_Result__c.Id == survey_result_id)
+    Record = join_account(Trigger, ContactAtExecution, AccountBefore)
+    Record = add_flow_context(Record, Survey_Result__c, flow_run_date=ibis.literal(flow_run_date))
+    ExpectedAccount = expected_account_values(Record)
+    AccountAfterBySurveyEvent = AccountAfter.mutate(survey_result_id=ibis.literal(survey_result_id))
+    return flow_account_comparison(ExpectedAccount, AccountAfterBySurveyEvent)
+
+
+def rollup_account_query(
+    history: Mapping[str, ir.Table], *, as_of: date | datetime | None = None
+) -> ir.Table:
+    """Compare rollups and independent observed fields at one effective snapshot.
+
+    Lineage: Account.PersonContactId -> Survey_Result__c.Participant__c -> the
+    existing 19 field formulas -> expected/observed comparison. as_of=None uses
+    current flags on both relations. Preserve zero-child Accounts and duplicates.
+    """
+    AccountSnapshot = snapshot(history["Account"], as_of=as_of)
+    SurveyResultSnapshot = snapshot(history["Survey_Result__c"], as_of=as_of)
+    ExpectedRollups = expected_survey_rollups(AccountSnapshot, SurveyResultSnapshot)
+    return rollup_account_comparison(ExpectedRollups, AccountSnapshot)

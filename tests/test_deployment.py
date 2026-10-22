@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import re
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -35,14 +36,17 @@ def release(tmp_path, monkeypatch):
 
 @pytest.fixture
 def environment(tmp_path):
-    config = tmp_path / "environments.toml"
-    config.write_text("""[environments.dev]
-account_id = "123456789012"
-region = "us-east-1"
-artifact_s3_uri = "s3://example-artifacts/quality/"
-glue_role = "arn:aws:iam::123456789012:role/glue-quality"
-job_name = "quality-dev"
-""")
+    config = tmp_path / "environments.yaml"
+    config.write_text(
+        """environments:
+  dev:
+    account_id: '123456789012'
+    region: us-east-1
+    artifact_s3_uri: s3://example-artifacts/quality/
+    glue_role: arn:aws:iam::123456789012:role/glue-quality
+    job_name: quality-dev
+"""
+    )
     return config
 
 
@@ -140,25 +144,34 @@ def glue_driver():
 
 
 def test_glue_calls_shared_runner_with_verified_config_and_provenance(monkeypatch):
-    module = glue_driver()
-    content = b"[athena]\nregion='us-east-1'\n"
+    from ppsc_ops_data_quality.runtime import glue as module
+    from ppsc_ops_data_quality.runtime.validation import ValidationOutcome
+
+    content = re.sub(
+        r"REPLACE_WITH_[A-Z_]+", "fixture", (ROOT / "params.example.yaml").read_text()
+    ).encode()
     captured = {}
 
-    def validate(config, directory, *, run_metadata):
+    def validate(config, *, run_directory, run_metadata):
         captured.update(run_metadata)
-        assert config.read_bytes() == content
-        assert directory.name == "run"
-        return 1  # Completed validation with data failures still fails the Glue run.
+        assert config.athena.region == "fixture"
+        assert run_directory.name == "run"
+        return ValidationOutcome(
+            report_run_id="test",
+            report_manifest_uri="s3://reports/test",
+            success=False,
+            validations={},
+        )
 
     class S3:
         def get_object(self, **kwargs):
-            assert kwargs == {"Bucket": "example-config", "Key": "runs/one.toml"}
+            assert kwargs == {"Bucket": "example-config", "Key": "runs/one.yaml"}
             return {"Body": io.BytesIO(content)}
 
-    monkeypatch.setattr(module, "validate_athena", validate)
+    monkeypatch.setattr(module, "run_validation", validate)
     arguments = [
         "--config_uri",
-        "s3://example-config/runs/one.toml",
+        "s3://example-config/runs/one.yaml",
         "--config_sha256",
         hashlib.sha256(content).hexdigest(),
         "--release_revision",
@@ -177,12 +190,12 @@ def test_glue_calls_shared_runner_with_verified_config_and_provenance(monkeypatc
     assert captured["release_revision"] == "a" * 40
     arguments[3] = "0" * 64
     with pytest.raises(ValueError, match="SHA256"):
-        module.main(arguments, s3_client=S3())
+        module.execute_glue(module.resolve_arguments(arguments), s3_client=S3())
 
 
 def test_validate_cli_rejects_placeholders_before_aws(tmp_path, capsys):
-    config = tmp_path / "params.toml"
-    config.write_text((ROOT / "params.example.toml").read_text())
+    config = tmp_path / "params.yaml"
+    config.write_text((ROOT / "params.example.yaml").read_text())
     assert cli_main(["validate", "--config", str(config), "--run-dir", str(tmp_path / "run")]) == 2
     assert "Replace the example" in capsys.readouterr().err
     assert not (tmp_path / "run").exists()
@@ -192,14 +205,16 @@ def test_catalog_binds_only_parquet_prefixes_and_keeps_projection(tmp_path, monk
     from scripts.render_report_catalog import render_report_catalog
 
     monkeypatch.chdir(ROOT)
-    config = tmp_path / "runtime.toml"
-    config.write_text("""[athena]
-region="us-east-1"
-work_group="quality"
-s3_staging_dir="s3://query-results/quality/"
-[reports]
-s3_uri="s3://reports/quality/"
-""")
+    config = tmp_path / "runtime.yaml"
+    config.write_text(
+        """athena:
+  region: us-east-1
+  work_group: quality
+  s3_staging_dir: s3://query-results/quality/
+reports:
+  s3_uri: s3://reports/quality/
+"""
+    )
     output = tmp_path / "catalog"
     render_report_catalog(
         config=config, database="quality_reports", first_run_date="2026-10-21", output=output
@@ -220,11 +235,12 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
     import re
     from types import SimpleNamespace
 
-    from ppsc_ops_data_quality.runtime import job
+    from ppsc_ops_data_quality.runtime import validation as job
+    from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
 
-    config = tmp_path / "params.toml"
+    config = tmp_path / "params.yaml"
     config.write_text(
-        re.sub(r"REPLACE_WITH_[A-Z_]+", "fixture", (ROOT / "params.example.toml").read_text())
+        re.sub(r"REPLACE_WITH_[A-Z_]+", "fixture", (ROOT / "params.example.yaml").read_text())
     )
     closed = []
     engine = SimpleNamespace(close=lambda: closed.append(True))
@@ -236,7 +252,8 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
     monkeypatch.setattr(job.gx, "get_context", lambda **kwargs: context)
     prepared = []
 
-    def prepare(context, source, query, suite, *, name, metadata, sql_path):
+    def prepare(context, source, query, suite, *, name, metadata, sql_path, projection_lineage):
+        assert projection_lineage
         prepared.append((name, suite))
         return SimpleNamespace(
             name=name, data=SimpleNamespace(data_asset=SimpleNamespace(query="SELECT 1"))
@@ -262,15 +279,140 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
     monkeypatch.setattr(job, "run_validations_with_reports", execute)
     if outcome == "error":
         with pytest.raises(RuntimeError, match="publication failed"):
-            job.validate_athena(
-                config, tmp_path / "run", run_metadata={"release_revision": "a" * 40}
+            job.run_validation(
+                load_validation_configuration(config),
+                run_directory=tmp_path / "run",
+                run_metadata={"release_revision": "a" * 40},
             )
     else:
         assert (
-            job.validate_athena(
-                config, tmp_path / "run", run_metadata={"release_revision": "a" * 40}
-            )
+            job.run_validation(
+                load_validation_configuration(config),
+                run_directory=tmp_path / "run",
+                run_metadata={"release_revision": "a" * 40},
+            ).exit_code
             == code
         )
     assert len(prepared) == 2
     assert closed == [True]
+
+
+def test_poe_tasks_apply_profiles_and_preserve_run_status(
+    release, environment, tmp_path, monkeypatch
+):
+    """Run real Poe tasks against a fake AWS CLI; never use real credentials."""
+    import os
+    import subprocess
+    import sys
+
+    plan = tmp_path / "plan"
+    binaries = tmp_path / "bin"
+    binaries.mkdir()
+    log = tmp_path / "aws.jsonl"
+    executable = binaries / "aws"
+    executable.write_text("""#!/usr/bin/env python3
+import json, os, sys
+from pathlib import Path
+args = sys.argv[1:]
+assert args[:1] == ['--profile'], args
+profile, args = args[1], args[2:]
+assert profile == os.environ['EXPECTED_PROFILE'], (profile, args)
+with open(os.environ['AWS_TEST_LOG'], 'a') as stream:
+    stream.write(json.dumps({'profile': profile, 'args': args}) + '\\n')
+if args[:2] == ['sts', 'get-caller-identity']:
+    print(os.environ.get('AWS_TEST_ACCOUNT', '123456789012'))
+elif args[:2] == ['glue', 'get-job']:
+    print(json.dumps(json.loads(Path(os.environ['AWS_TEST_PLAN'], 'update-job.json').read_text())['JobUpdate']))
+elif args[:2] == ['glue', 'start-job-run']:
+    print('{"JobRunId": "jr_synthetic"}')
+elif args[:2] == ['glue', 'get-job-run']:
+    print(json.dumps({'State': os.environ.get('AWS_TEST_STATE', 'SUCCEEDED')}))
+elif args[:2] in (['s3', 'cp'], ['glue', 'create-job'], ['glue', 'update-job']):
+    print('{}')
+else:
+    raise AssertionError(args)
+""")
+    executable.chmod(0o755)
+    monkeypatch.setenv("PATH", str(binaries) + os.pathsep + os.environ["PATH"])
+    monkeypatch.setenv("AWS_TEST_PLAN", str(plan))
+    monkeypatch.setenv("AWS_TEST_LOG", str(log))
+    monkeypatch.setenv("EXPECTED_PROFILE", "data-migration-dev")
+
+    def poe(*arguments, expected=0):
+        result = subprocess.run(
+            [sys.executable, "-m", "poethepoet", *map(str, arguments)],
+            text=True,
+            capture_output=True,
+        )
+        assert result.returncode == expected, result.stdout + result.stderr
+
+    poe(
+        "plan-deployment",
+        "--config",
+        environment,
+        "--environment",
+        "dev",
+        "--bundle",
+        release / "bundle",
+        "--output",
+        plan,
+    )
+    poe("deploy", "--plan", plan, "--operation", "create")
+    monkeypatch.setenv("EXPECTED_PROFILE", "alternate")
+    poe("deploy", "--plan", plan, "--operation", "update", "--profile", "alternate")
+    poe(
+        "run-glue",
+        "--plan",
+        plan,
+        "--config-uri",
+        "s3://config/run.yaml",
+        "--config-sha256",
+        "a" * 64,
+        "--profile",
+        "alternate",
+    )
+    assert json.loads((plan / "runs/jr_synthetic.json").read_text())["JobRunId"] == "jr_synthetic"
+    monkeypatch.setenv("EXPECTED_PROFILE", "data-migration-dev")
+    poe("glue-status", "--plan", plan, "--run-id", "jr_synthetic")
+    assert json.loads((plan / "runs/jr_synthetic.status.json").read_text())["State"] == "SUCCEEDED"
+    monkeypatch.setenv("AWS_TEST_STATE", "FAILED")
+    poe("glue-status", "--plan", plan, "--run-id", "jr_synthetic", expected=1)
+    before = log.read_text().splitlines()
+    monkeypatch.setenv("AWS_TEST_ACCOUNT", "999999999999")
+    poe("deploy", "--plan", plan, "--operation", "update", expected=1)
+    after = log.read_text().splitlines()
+    assert len(after) == len(before) + 1
+    assert json.loads(after[-1])["args"][:2] == ["sts", "get-caller-identity"]
+
+
+def test_yaml_job_template_configures_hosting_and_rejects_unquoted_accounts(
+    release, environment, tmp_path, monkeypatch
+):
+    import yaml
+
+    target = yaml.safe_load(environment.read_text())
+    target["environments"]["dev"]["account_id"] = 123456789012
+    environment.write_text(yaml.safe_dump(target))
+    with pytest.raises(ValueError, match="Quote account IDs"):
+        deployment_target(environment, "123456789012", "dev")
+    target["environments"]["dev"]["account_id"] = "123456789012"
+    environment.write_text(yaml.safe_dump(target))
+    template = yaml.safe_load((ROOT / "glue/job.yaml").read_text())
+    template.update(
+        Timeout=15, SecurityConfiguration="verified-security", Connections={"Connections": ["vpc"]}
+    )
+    (tmp_path / "glue").mkdir()
+    (tmp_path / "glue/job.yaml").write_text(yaml.safe_dump(template))
+    monkeypatch.chdir(tmp_path)
+    output = tmp_path / "custom-plan"
+    plan_deployment(
+        config=environment,
+        account="123456789012",
+        environment="dev",
+        bundle=release / "bundle",
+        output=output,
+    )
+    payload = json.loads((output / "create-job.json").read_text())
+    assert payload["Timeout"] == 15
+    assert payload["SecurityConfiguration"] == "verified-security"
+    assert payload["Connections"] == {"Connections": ["vpc"]}

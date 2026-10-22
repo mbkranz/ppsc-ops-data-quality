@@ -17,7 +17,7 @@ from ppsc_ops_data_quality.account_to_survey_results_expectations import (
     rollup_account_suite,
 )
 from ppsc_ops_data_quality.gx_queries import query_asset_sql
-from ppsc_ops_data_quality.runtime import run_validations
+from ppsc_ops_data_quality.runtime import run_validations_with_reports
 from ppsc_ops_data_quality.runtime.artifacts import save_suite
 from ppsc_ops_data_quality.runtime.duckdb import prepare_validation
 from ppsc_ops_data_quality.schemas import history_tables
@@ -38,7 +38,7 @@ def preview(output: Path):
     return {"mode": "preview", "output": str(output), "live_queries": False}
 
 
-def validate_demo(run_directory: Path):
+def validate_demo(run_directory: Path, *, s3_uri: str | None = None):
     """Run two native definitions locally and save SQL, suites, results and run facts."""
     run_directory.mkdir(parents=True, exist_ok=False)
     backend = ibis.duckdb.connect()
@@ -65,26 +65,47 @@ def validate_demo(run_directory: Path):
                     suite,
                     name=name,
                     metadata={"source": "synthetic_history", "run_name": identifier.run_name},
-                    sql_path=run_directory / "sql" / f"{name}.sql",
                 )
             )
-        results = run_validations(
+        results = run_validations_with_reports(
+            context,
             [definition for definition, _ in prepared],
-            suite_directory=run_directory / "suites",
+            run_directory=run_directory / "reports",
+            s3_uri=s3_uri,
+            sources={
+                name: {
+                    "source_tables": [
+                        "Account_history",
+                        "Survey_Result__c_history",
+                        *(["Contact_history"] if name == "flow" else []),
+                    ],
+                    "source_query": backend.compile(query, limit=None),
+                    "source_query_dialect": "duckdb",
+                }
+                for name, query in queries.items()
+            },
+            run_metadata={
+                "source": "synthetic_history",
+                "survey_result_id": demo.EVENT_ID,
+                "account_before_at": demo.BEFORE_AT.isoformat(),
+                "execution_at": demo.EXECUTION_AT.isoformat(),
+                "account_after_at": demo.AFTER_AT.isoformat(),
+                "flow_run_date": demo.FLOW_RUN_DATE.isoformat(),
+            },
             batch_parameters={definition.name: parameters for definition, parameters in prepared},
             run_id=identifier,
         )
-        destination = run_directory / "results"
-        destination.mkdir(parents=True, exist_ok=True)
-        for name, result in results.items():
-            (destination / f"{name}.json").write_text(
-                json.dumps(result.to_json_dict(), indent=2) + "\n", encoding="utf-8"
-            )
+        report_manifest = json.loads((run_directory / "reports" / "manifest.json").read_text())
         summary = {
             "mode": "synthetic_duckdb",
             "run_name": identifier.run_name,
             "run_time": identifier.run_time.isoformat(),
             "source": "synthetic_history",
+            "report_run_id": report_manifest["run_id"],
+            "report_manifest": str(run_directory / "reports" / "manifest.json"),
+            "report_s3_uri": (
+                f"{s3_uri.rstrip('/')}/runs/{report_manifest['run_id']}/" if s3_uri else None
+            ),
             "survey_result_id": demo.EVENT_ID,
             "account_before_at": demo.BEFORE_AT.isoformat(),
             "execution_at": demo.EXECUTION_AT.isoformat(),
@@ -117,6 +138,7 @@ def main(argv=None):
     preview_parser.add_argument("--output", type=Path)
     demo_parser = commands.add_parser("demo", help="Validate synthetic DuckDB history")
     demo_parser.add_argument("--run-dir", type=Path)
+    demo_parser.add_argument("--s3-uri", help="Publish this synthetic run to an existing S3 prefix")
     args = parser.parse_args(argv)
     try:
         if args.command == "preview":
@@ -128,7 +150,7 @@ def main(argv=None):
             run_directory = args.run_dir or Path("build/runs") / datetime.now(UTC).strftime(
                 "%Y%m%dT%H%M%S%fZ"
             )
-            summary = validate_demo(run_directory)
+            summary = validate_demo(run_directory, s3_uri=args.s3_uri)
     except Exception as error:
         print(f"{type(error).__name__}: {error}", file=sys.stderr)
         return 2

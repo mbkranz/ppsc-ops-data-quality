@@ -734,6 +734,7 @@ name = "ppsc-ops-data-quality"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "boto3" },
     { name = "great-expectations" },
     { name = "ibis-framework", extra = ["duckdb"] },
     { name = "pyarrow" },
@@ -751,6 +752,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "boto3", specifier = ">=1.35,<2" },
     { name = "great-expectations", specifier = "==1.24.0" },
     { name = "ibis-framework", extras = ["duckdb"], specifier = "==12.0.0" },
     { name = "pyarrow", specifier = ">=16,<27" },

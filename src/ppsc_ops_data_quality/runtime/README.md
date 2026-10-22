@@ -12,13 +12,35 @@ and their per-definition parameters, with no query-building logic or engine API.
 | `athena.py` | Prepare a Query Asset and native Validation Definition |
 | `duckdb.py` | Evaluate Ibis with DuckDB and prepare a pandas-backed definition |
 | `runner.py` | Save each actual suite, then run definitions with separate parameters and one run ID |
-| `artifacts.py` | Serialize native GX suite JSON without replacing existing audit snapshots |
+| `artifacts.py` | Serialize actual suites and gzip native result JSON without overwriting evidence |
+| `reports.py` | Build native Data Docs, write typed Parquet discovery rows, and upload the run to S3 |
 | `TODO.md` | Future authored-SQL execution and comment/metadata standards |
 
 There are no custom Engine or ValidationDefinition classes, backend registries,
 automatic connections, schema discovery, AWS job submission or framework-specific
 rule wrappers. The existing query, schema, suite and lineage modules remain the
 owners of their respective definitions.
+
+## Per-run reports and S3 publication
+
+Use `run_validations_with_reports()` for a complete run with publication. It
+composes the existing runner with native Data Docs and explicit boto3 uploads.
+The Athena entrypoint requires `[reports].s3_uri`; the local demo uses the same
+builder without AWS unless `--s3-uri` is supplied. Provide a fresh Context, a new
+report directory and source metadata for each definition (physical table names,
+actual comparison SQL and dialect). The function returns native GX results.
+
+The main discovery dataset has **one row per expectation result per Validation
+Definition per run**, including successful results. Each row repeats its run,
+definition and source/query identity. An independent validation-summary dataset
+records one row per planned definition, including missing results after an
+execution error. Gzip native JSON remains the complete audit representation.
+
+Schemas are ordinary Ibis schemas in `schemas/validation_reports.py`. See
+[`docs/validation-reports.md`](../../../docs/validation-reports.md) for the format
+decision, S3 layout, failure semantics and catalog setup. The two external-table
+templates in `sql/validation_reports_catalog.sql` register only Parquet analytics
+prefixes. No crawler or table creation is performed during validation.
 
 ## Athena
 

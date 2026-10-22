@@ -16,7 +16,7 @@ from ppsc_ops_data_quality.account_to_survey_results_expectations import (
     rollup_account_suite,
 )
 from ppsc_ops_data_quality.queries import flow_account_query, rollup_account_query
-from ppsc_ops_data_quality.runtime import run_validations
+from ppsc_ops_data_quality.runtime import run_validations_with_reports
 from ppsc_ops_data_quality.runtime.athena import prepare_validation
 from ppsc_ops_data_quality.schemas import (
     ACCOUNT_HISTORY_VALIDATION_INPUT,
@@ -36,6 +36,7 @@ def main(argv=None):
         raise ValueError("Replace the example configuration bindings before connecting")
     config = tomllib.loads(text)
     athena = config["athena"]
+    reporting = config["reports"]
     event = config["event"]
     overrides = config.get("schema_overrides", {})
     history = history_tables(
@@ -91,9 +92,30 @@ def main(argv=None):
                     sql_path=args.run_dir / "sql" / f"{name}.sql",
                 )
             )
-        results = run_validations(
+        results = run_validations_with_reports(
+            context,
             [definition for definition, _ in prepared],
-            suite_directory=args.run_dir / "suites",
+            run_directory=args.run_dir / "reports",
+            s3_uri=reporting["s3_uri"],
+            sources={
+                definition.name: {
+                    "source_tables": [
+                        f"{athena['catalog_name']}.{database}.history"
+                        for key, database in config["databases"].items()
+                        if definition.name == "flow" or key != "contact_database"
+                    ],
+                    "source_query": definition.data.data_asset.query,
+                    "source_query_dialect": "athena",
+                }
+                for definition, _ in prepared
+            },
+            run_metadata={
+                "event": {
+                    key: value.isoformat() if hasattr(value, "isoformat") else value
+                    for key, value in event.items()
+                },
+                "rollups_as_of": config["rollups"]["as_of"].isoformat(),
+            },
             batch_parameters={definition.name: parameters for definition, parameters in prepared},
             run_id=RunIdentifier(run_name=args.run_dir.name),
         )

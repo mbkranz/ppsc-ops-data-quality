@@ -40,6 +40,13 @@ Existing destinations are rejected so prior evidence is not replaced. The demo
 saves DuckDB SQL, exact registered suite snapshots, native validation results and
 `run.json` with parameters, dependency versions and outcome. Exit codes are 0 for
 success, 1 for failed expectations and 2 for execution/configuration errors.
+The complete report bundle is under `reports/`: native Data Docs (including static
+assets), gzip JSON results, suite snapshots, queries, two Parquet datasets and a
+manifest. The default demo is offline. To also publish a synthetic demo run:
+
+```bash
+uv run ppsc-dq demo --s3-uri s3://YOUR_REPORTS_BUCKET/ppsc-data-quality/
+```
 
 ## Organization
 
@@ -66,7 +73,9 @@ The runtime accepts Ibis tables. Athena compiles the final comparison into a GX
 Query Asset. DuckDB evaluates the expression once and supplies the resulting
 pandas DataFrame to GX, collecting the complete comparison into local memory.
 The shared runner executes native GX Validation Definitions with separate batch
-parameters per definition. It does not introduce a second rule or engine framework.
+parameters per definition. `runtime.run_validations_with_reports` adds native
+Data Docs, raw result archives and discovery datasets, then publishes to an
+explicit S3 destination. It does not introduce a second rule or engine framework.
 
 ## Use the library
 
@@ -118,9 +127,12 @@ uv run python examples/validate_athena.py \
   --config params.local.toml --run-dir build/athena-run-001
 ```
 
-The example uses an existing Athena workgroup/results location and creates no
-views or tables. Native GX result/configuration stores are written under the run
-directory. Schema overrides supplement the explicit input profiles; no automatic
+The example uses an existing Athena workgroup/results location and a required
+`[reports].s3_uri` destination; it creates no views or tables. Native GX
+result/configuration stores are written under the run directory. Reports are
+built locally and uploaded after every invocation, including ordinary failed
+expectations. Completed earlier results are also reported on an execution error.
+Schema overrides supplement the explicit input profiles; no automatic
 casting or case normalization is performed. The example rejects placeholder
 bindings before connecting. Runtime adapters are also callable directly from your
 own job entrypoint; see their README for resource ownership.
@@ -191,6 +203,8 @@ expectation parameters separately with your run metadata.
 - [Schema contracts and conversions](src/ppsc_ops_data_quality/schemas/README.md)
 - [Runtime setup and native definitions](src/ppsc_ops_data_quality/runtime/README.md)
 - [Authored SQL-file execution and metadata/comment standards TODO](src/ppsc_ops_data_quality/runtime/TODO.md)
+- [S3 reports, format decision and catalog registration](docs/validation-reports.md)
+- [Athena catalog DDL templates](sql/validation_reports_catalog.sql)
 
 Authored SQL-file execution remains deferred. Before implementing it, agree a
 versioned comment/manifest convention, stable column lineage IDs, typed parameter

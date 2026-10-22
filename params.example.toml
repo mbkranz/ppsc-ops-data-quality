@@ -9,6 +9,11 @@ work_group = "REPLACE_WITH_WORKGROUP"
 catalog_name = "AwsDataCatalog"
 # AWS credentials use the standard provider chain; do not put keys in this file.
 
+[reports]
+# Existing private bucket/prefix. Every invocation gets a fresh run UUID.
+# HTML/JSON/suites/queries live under runs/; only analytics/ contains Parquet.
+s3_uri = "s3://REPLACE_WITH_REPORTS_BUCKET/ppsc-data-quality/"
+
 [databases]
 account_database = "REPLACE_WITH_ACCOUNT_DATABASE"
 contact_database = "REPLACE_WITH_CONTACT_DATABASE"

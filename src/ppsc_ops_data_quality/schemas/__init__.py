@@ -1,4 +1,4 @@
-"""Ibis schemas for the Account / Survey Result query inputs.
+"""Ibis schemas for query inputs and validation-report projections.
 
 Source constants are complete for their named validation-input projections;
 physical Athena schemas have not been inspected. Derived query/view schemas
@@ -23,6 +23,7 @@ from .survey_results import (
     SURVEY_RESULT_VALIDATION_INPUT,
 )
 from .tables import history_tables
+from .validation_reports import EXPECTATION_RUN_RESULTS, VALIDATION_RUN_RESULTS
 
 __all__ = [
     "ACCOUNT_VALIDATION_INPUT",
@@ -36,4 +37,6 @@ __all__ = [
     "SURVEY_RESULT_SNAPSHOT_VALIDATION_INPUT",
     "HISTORY_METADATA",
     "history_tables",
+    "EXPECTATION_RUN_RESULTS",
+    "VALIDATION_RUN_RESULTS",
 ]

@@ -199,6 +199,25 @@ expectation parameters separately with your run metadata.
 
 ## Documentation and follow-up work
 
+Generate the suite diagrams with Graphviz's `dot` executable installed (for example,
+`sudo apt-get install graphviz` on Ubuntu):
+
+```bash
+uv run poe suite-diagrams
+# Or choose one suite and an output directory:
+uv run python scripts/generate_suite_diagrams.py --suite flow --output build/suite-diagrams
+```
+
+Each suite gets a Markdown document, a compact column/expectation SVG and DOT,
+and a full native Ibis graph with those same expectation and row-condition
+bindings. Pair expectations connect to both expected and observed columns;
+condition nodes connect to their input columns and every expectation they scope.
+The generated graphs use illustrative unbound history queries and execute no data.
+Regeneration replaces generated documentation, and CI verifies the generator.
+
+- [Flow suite diagram](docs/suites/account_to_survey_results_flow.md)
+- [Rollup suite diagram](docs/suites/account_to_survey_results_rollups.md)
+
 - [Query composition and original sources](docs/query-design.md)
 - [Schema contracts and conversions](src/ppsc_ops_data_quality/schemas/README.md)
 - [Runtime setup and native definitions](src/ppsc_ops_data_quality/runtime/README.md)

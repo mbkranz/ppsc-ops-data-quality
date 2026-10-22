@@ -1,0 +1,246 @@
+digraph {
+	node [fillcolor=white fontname="Deja Vu Sans Mono" fontsize=10 shape=box style=filled]
+	edge [arrowsize=0.6 color="#a0aec0" fontname="Deja Vu Sans Mono"]
+	rankdir=BT
+	-670228602500038188 [label=<<I>account_to_survey_results_rollups</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>expected_account_id</I>: string<BR ALIGN="LEFT" /><I>person_contact_id</I>: string<BR ALIGN="LEFT" /><I>observed_account_id</I>: string<BR ALIGN="LEFT" /><I>expected__EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>expected__EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>observed__EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" />> fillcolor="#edf2f7" label="UnboundTable
+account_to_survey_results_rollups"]
+	fontsize=16 label="account_to_survey_results_rollups
+Comparison columns + GX expectations" labelloc=t rankdir=LR
+	output_0 [label="expected_account_id
+:: string" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_0 [label=projects color="#2c7a7b" fontsize=8]
+	output_1 [label="person_contact_id
+:: string" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_1 [label=projects color="#2c7a7b" fontsize=8]
+	output_2 [label="observed_account_id
+:: string" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_2 [label=projects color="#2c7a7b" fontsize=8]
+	output_3 [label="expected__EHR_Authorized__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_3 [label=projects color="#2c7a7b" fontsize=8]
+	output_4 [label="expected__Count_of_Completed_EHR_Auth__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_4 [label=projects color="#2c7a7b" fontsize=8]
+	output_5 [label="expected__Count_of_Completed_Primary_Consent__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_5 [label=projects color="#2c7a7b" fontsize=8]
+	output_6 [label="expected__Count_of_Completed_Reconsent__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_6 [label=projects color="#2c7a7b" fontsize=8]
+	output_7 [label="expected__PPI_2_Completion_Count__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_7 [label=projects color="#2c7a7b" fontsize=8]
+	output_8 [label="expected__PPI_3_Completion_Count__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_8 [label=projects color="#2c7a7b" fontsize=8]
+	output_9 [label="expected__EHR_Consent_Active__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_9 [label=projects color="#2c7a7b" fontsize=8]
+	output_10 [label="expected__EHR_Consent_Declined__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_10 [label=projects color="#2c7a7b" fontsize=8]
+	output_11 [label="expected__PP1_Basics_Survey_Complete__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_11 [label=projects color="#2c7a7b" fontsize=8]
+	output_12 [label="expected__Re_Consent_Declined__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_12 [label=projects color="#2c7a7b" fontsize=8]
+	output_13 [label="expected__Re_consent_Active__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_13 [label=projects color="#2c7a7b" fontsize=8]
+	output_14 [label="expected__Primary_Consent_Declined__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_14 [label=projects color="#2c7a7b" fontsize=8]
+	output_15 [label="expected__EHR_Consent_Ever__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_15 [label=projects color="#2c7a7b" fontsize=8]
+	output_16 [label="expected__Assent_Completion_Count__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_16 [label=projects color="#2c7a7b" fontsize=8]
+	output_17 [label="expected__Pediatric_Permission_Completion_Count_
+_pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_17 [label=projects color="#2c7a7b" fontsize=8]
+	output_18 [label="expected__X0_6_Peds_Permission_Count__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_18 [label=projects color="#2c7a7b" fontsize=8]
+	output_19 [label="expected__X0_6_Peds_Permission_Declined_Count__p
+c
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_19 [label=projects color="#2c7a7b" fontsize=8]
+	output_20 [label="expected__X0_6_Peds_Permission_Revoked_Count__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_20 [label=projects color="#2c7a7b" fontsize=8]
+	output_21 [label="expected__EHR_Pediatric_Complete__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_21 [label=projects color="#2c7a7b" fontsize=8]
+	output_22 [label="observed__EHR_Authorized__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_22 [label=projects color="#2c7a7b" fontsize=8]
+	output_23 [label="observed__Count_of_Completed_EHR_Auth__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_23 [label=projects color="#2c7a7b" fontsize=8]
+	output_24 [label="observed__Count_of_Completed_Primary_Consent__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_24 [label=projects color="#2c7a7b" fontsize=8]
+	output_25 [label="observed__Count_of_Completed_Reconsent__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_25 [label=projects color="#2c7a7b" fontsize=8]
+	output_26 [label="observed__PPI_2_Completion_Count__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_26 [label=projects color="#2c7a7b" fontsize=8]
+	output_27 [label="observed__PPI_3_Completion_Count__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_27 [label=projects color="#2c7a7b" fontsize=8]
+	output_28 [label="observed__EHR_Consent_Active__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_28 [label=projects color="#2c7a7b" fontsize=8]
+	output_29 [label="observed__EHR_Consent_Declined__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_29 [label=projects color="#2c7a7b" fontsize=8]
+	output_30 [label="observed__PP1_Basics_Survey_Complete__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_30 [label=projects color="#2c7a7b" fontsize=8]
+	output_31 [label="observed__Re_Consent_Declined__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_31 [label=projects color="#2c7a7b" fontsize=8]
+	output_32 [label="observed__Re_consent_Active__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_32 [label=projects color="#2c7a7b" fontsize=8]
+	output_33 [label="observed__Primary_Consent_Declined__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_33 [label=projects color="#2c7a7b" fontsize=8]
+	output_34 [label="observed__EHR_Consent_Ever__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_34 [label=projects color="#2c7a7b" fontsize=8]
+	output_35 [label="observed__Assent_Completion_Count__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_35 [label=projects color="#2c7a7b" fontsize=8]
+	output_36 [label="observed__Pediatric_Permission_Completion_Count_
+_pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_36 [label=projects color="#2c7a7b" fontsize=8]
+	output_37 [label="observed__X0_6_Peds_Permission_Count__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_37 [label=projects color="#2c7a7b" fontsize=8]
+	output_38 [label="observed__X0_6_Peds_Permission_Declined_Count__p
+c
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_38 [label=projects color="#2c7a7b" fontsize=8]
+	output_39 [label="observed__X0_6_Peds_Permission_Revoked_Count__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_39 [label=projects color="#2c7a7b" fontsize=8]
+	output_40 [label="observed__EHR_Pediatric_Complete__pc
+:: int64" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
+	-670228602500038188 -> output_40 [label=projects color="#2c7a7b" fontsize=8]
+	expectation_0 [label="rollup_comparison_required_columns
+ExpectTableColumnsToMatchSet" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	-670228602500038188 -> expectation_0 [label=table color="#2b6cb0" fontsize=8]
+	expectation_1 [label="rollup_expected_account_id_is_present
+ExpectColumnValuesToNotBeNull" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_0 -> expectation_1 [label=column color="#2b6cb0" fontsize=8]
+	expectation_2 [label="rollup_person_contact_id_is_present
+ExpectColumnValuesToNotBeNull" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_1 -> expectation_2 [label=column color="#2b6cb0" fontsize=8]
+	expectation_3 [label="rollup_observed_account_id_is_present
+ExpectColumnValuesToNotBeNull" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_2 -> expectation_3 [label=column color="#2b6cb0" fontsize=8]
+	expectation_4 [label="one_rollup_comparison_row_per_person_account
+ExpectColumnValuesToBeUnique" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_0 -> expectation_4 [label=column color="#2b6cb0" fontsize=8]
+	expectation_5 [label="observed_EHR_Authorized__pc_equals_expected_roll
+up
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_22 -> expectation_5 [label=column_A color="#2b6cb0" fontsize=8]
+	output_3 -> expectation_5 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_6 [label="observed_Count_of_Completed_EHR_Auth__pc_equals_
+expected_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_23 -> expectation_6 [label=column_A color="#2b6cb0" fontsize=8]
+	output_4 -> expectation_6 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_7 [label="observed_Count_of_Completed_Primary_Consent__pc_
+equals_expected_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_24 -> expectation_7 [label=column_A color="#2b6cb0" fontsize=8]
+	output_5 -> expectation_7 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_8 [label="observed_Count_of_Completed_Reconsent__pc_equals
+_expected_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_25 -> expectation_8 [label=column_A color="#2b6cb0" fontsize=8]
+	output_6 -> expectation_8 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_9 [label="observed_PPI_2_Completion_Count__pc_equals_expec
+ted_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_26 -> expectation_9 [label=column_A color="#2b6cb0" fontsize=8]
+	output_7 -> expectation_9 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_10 [label="observed_PPI_3_Completion_Count__pc_equals_expec
+ted_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_27 -> expectation_10 [label=column_A color="#2b6cb0" fontsize=8]
+	output_8 -> expectation_10 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_11 [label="observed_EHR_Consent_Active__pc_equals_expected_
+rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_28 -> expectation_11 [label=column_A color="#2b6cb0" fontsize=8]
+	output_9 -> expectation_11 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_12 [label="observed_EHR_Consent_Declined__pc_equals_expecte
+d_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_29 -> expectation_12 [label=column_A color="#2b6cb0" fontsize=8]
+	output_10 -> expectation_12 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_13 [label="observed_PP1_Basics_Survey_Complete__pc_equals_e
+xpected_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_30 -> expectation_13 [label=column_A color="#2b6cb0" fontsize=8]
+	output_11 -> expectation_13 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_14 [label="observed_Re_Consent_Declined__pc_equals_expected
+_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_31 -> expectation_14 [label=column_A color="#2b6cb0" fontsize=8]
+	output_12 -> expectation_14 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_15 [label="observed_Re_consent_Active__pc_equals_expected_r
+ollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_32 -> expectation_15 [label=column_A color="#2b6cb0" fontsize=8]
+	output_13 -> expectation_15 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_16 [label="observed_Primary_Consent_Declined__pc_equals_exp
+ected_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_33 -> expectation_16 [label=column_A color="#2b6cb0" fontsize=8]
+	output_14 -> expectation_16 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_17 [label="observed_EHR_Consent_Ever__pc_equals_expected_ro
+llup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_34 -> expectation_17 [label=column_A color="#2b6cb0" fontsize=8]
+	output_15 -> expectation_17 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_18 [label="observed_Assent_Completion_Count__pc_equals_expe
+cted_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_35 -> expectation_18 [label=column_A color="#2b6cb0" fontsize=8]
+	output_16 -> expectation_18 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_19 [label="observed_Pediatric_Permission_Completion_Count__
+pc_equals_expected_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_36 -> expectation_19 [label=column_A color="#2b6cb0" fontsize=8]
+	output_17 -> expectation_19 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_20 [label="observed_X0_6_Peds_Permission_Count__pc_equals_e
+xpected_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_37 -> expectation_20 [label=column_A color="#2b6cb0" fontsize=8]
+	output_18 -> expectation_20 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_21 [label="observed_X0_6_Peds_Permission_Declined_Count__pc
+_equals_expected_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_38 -> expectation_21 [label=column_A color="#2b6cb0" fontsize=8]
+	output_19 -> expectation_21 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_22 [label="observed_X0_6_Peds_Permission_Revoked_Count__pc_
+equals_expected_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_39 -> expectation_22 [label=column_A color="#2b6cb0" fontsize=8]
+	output_20 -> expectation_22 [label=column_B color="#2b6cb0" fontsize=8]
+	expectation_23 [label="observed_EHR_Pediatric_Complete__pc_equals_expec
+ted_rollup
+ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
+	output_40 -> expectation_23 [label=column_A color="#2b6cb0" fontsize=8]
+	output_21 -> expectation_23 [label=column_B color="#2b6cb0" fontsize=8]
+}

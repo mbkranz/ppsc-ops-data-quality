@@ -22,7 +22,7 @@ dependencies = [
 ppsc-dq = "ppsc_ops_data_quality.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8,<10", "ruff>=0.11,<1", "poethepoet>=0.32,<1"]
+dev = ["pytest>=8,<10", "ruff>=0.11,<1", "poethepoet>=0.32,<1", "graphviz>=0.20,<1"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ppsc_ops_data_quality"]

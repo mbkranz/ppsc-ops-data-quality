@@ -1,0 +1,15 @@
+digraph {
+	graph [fontname=Helvetica label="Field: EHR_Consent_Date_Time__c" labelloc=t nodesep=0.3 rankdir=LR ranksep=0.6]
+	node [fontname=Helvetica fontsize=11 shape=box style="rounded,filled"]
+	edge [fontname=Helvetica fontsize=9]
+	subgraph cluster_scope {
+		color=gray70 label="Row condition: survey_completion_occurred_on_or_after_launch == True"
+		expectation_12 [label="13. ExpectColumnPairValuesToBeEqual" fillcolor=aliceblue tooltip=observed_EHR_Consent_Date_Time__c_equals_expected]
+		column_0 [label="observed__EHR_Consent_Date_Time__c
+timestamp" fillcolor=honeydew]
+		column_0 -> expectation_12 [label=column_A]
+		column_1 [label="expected__EHR_Consent_Date_Time__c
+timestamp" fillcolor=honeydew]
+		column_1 -> expectation_12 [label=column_B]
+	}
+}

@@ -1,308 +1,82 @@
 digraph {
-	node [fillcolor=white fontname="Deja Vu Sans Mono" fontsize=10 shape=box style=filled]
-	edge [arrowsize=0.6 color="#a0aec0" fontname="Deja Vu Sans Mono"]
-	rankdir=BT
-	4446280471417340603 [label=<<I>account_to_survey_results_flow</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>survey_result_id</I>: string<BR ALIGN="LEFT" /><I>participant_contact_id</I>: string<BR ALIGN="LEFT" /><I>expected_account_id</I>: string<BR ALIGN="LEFT" /><I>observed_account_id</I>: string<BR ALIGN="LEFT" /><I>survey_index_number</I>: string<BR ALIGN="LEFT" /><I>survey_completion_timestamp</I>: timestamp<BR ALIGN="LEFT" /><I>survey_completion_occurred_on_or_after_launch</I>: boolean<BR ALIGN="LEFT" /><I>cabor_lookup_is_deterministic</I>: boolean<BR ALIGN="LEFT" /><I>expected__Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>expected__CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>expected__Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>observed__CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>observed__Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#edf2f7" label="UnboundTable
-account_to_survey_results_flow"]
-	fontsize=16 label="account_to_survey_results_flow
-Comparison columns + GX expectations" labelloc=t rankdir=LR
-	output_0 [label="survey_result_id
-:: string" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_0 [label=projects color="#2c7a7b" fontsize=8]
-	output_1 [label="participant_contact_id
-:: string" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_1 [label=projects color="#2c7a7b" fontsize=8]
-	output_2 [label="expected_account_id
-:: string" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_2 [label=projects color="#2c7a7b" fontsize=8]
-	output_3 [label="observed_account_id
-:: string" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_3 [label=projects color="#2c7a7b" fontsize=8]
-	output_4 [label="survey_index_number
-:: string" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_4 [label=projects color="#2c7a7b" fontsize=8]
-	output_5 [label="survey_completion_timestamp
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_5 [label=projects color="#2c7a7b" fontsize=8]
-	output_6 [label="survey_completion_occurred_on_or_after_launch
-:: boolean" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_6 [label=projects color="#2c7a7b" fontsize=8]
-	output_7 [label="cabor_lookup_is_deterministic
-:: boolean" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_7 [label=projects color="#2c7a7b" fontsize=8]
-	output_8 [label="expected__Age_at_Time_of_Consent__pc
-:: decimal(3, 0)" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_8 [label=projects color="#2c7a7b" fontsize=8]
-	output_9 [label="expected__CABOR_Completion_Date__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_9 [label=projects color="#2c7a7b" fontsize=8]
-	output_10 [label="expected__Earliest_Primary_Consent_Date_for_Repo
-rt__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_10 [label=projects color="#2c7a7b" fontsize=8]
-	output_11 [label="expected__Latest_Primary_Consent_Date_for_Report
-__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_11 [label=projects color="#2c7a7b" fontsize=8]
-	output_12 [label="expected__EHR_Consent_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_12 [label=projects color="#2c7a7b" fontsize=8]
-	output_13 [label="expected__EHR_Reconsent_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_13 [label=projects color="#2c7a7b" fontsize=8]
-	output_14 [label="expected__Update_to_Primary_Consent_Completed__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_14 [label=projects color="#2c7a7b" fontsize=8]
-	output_15 [label="expected__Basics_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_15 [label=projects color="#2c7a7b" fontsize=8]
-	output_16 [label="expected__Overall_Health_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_16 [label=projects color="#2c7a7b" fontsize=8]
-	output_17 [label="expected__Lifestyle_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_17 [label=projects color="#2c7a7b" fontsize=8]
-	output_18 [label="expected__Personal_and_Family_History_Complete__
-c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_18 [label=projects color="#2c7a7b" fontsize=8]
-	output_19 [label="expected__HC_Access_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_19 [label=projects color="#2c7a7b" fontsize=8]
-	output_20 [label="expected__Life_Functioning_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_20 [label=projects color="#2c7a7b" fontsize=8]
-	output_21 [label="expected__First_Physical_Measurement_Date_Time__
-c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_21 [label=projects color="#2c7a7b" fontsize=8]
-	output_22 [label="expected__Last_Physical_Measurement_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_22 [label=projects color="#2c7a7b" fontsize=8]
-	output_23 [label="expected__EH_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_23 [label=projects color="#2c7a7b" fontsize=8]
-	output_24 [label="expected__Behavioral_Health_Completion__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_24 [label=projects color="#2c7a7b" fontsize=8]
-	output_25 [label="expected__Environmental_Exposures_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_25 [label=projects color="#2c7a7b" fontsize=8]
-	output_26 [label="expected__Social_Determinants_of_Health_Completi
-on__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_26 [label=projects color="#2c7a7b" fontsize=8]
-	output_27 [label="observed__Age_at_Time_of_Consent__pc
-:: decimal(3, 0)" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_27 [label=projects color="#2c7a7b" fontsize=8]
-	output_28 [label="observed__CABOR_Completion_Date__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_28 [label=projects color="#2c7a7b" fontsize=8]
-	output_29 [label="observed__Earliest_Primary_Consent_Date_for_Repo
-rt__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_29 [label=projects color="#2c7a7b" fontsize=8]
-	output_30 [label="observed__Latest_Primary_Consent_Date_for_Report
-__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_30 [label=projects color="#2c7a7b" fontsize=8]
-	output_31 [label="observed__EHR_Consent_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_31 [label=projects color="#2c7a7b" fontsize=8]
-	output_32 [label="observed__EHR_Reconsent_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_32 [label=projects color="#2c7a7b" fontsize=8]
-	output_33 [label="observed__Update_to_Primary_Consent_Completed__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_33 [label=projects color="#2c7a7b" fontsize=8]
-	output_34 [label="observed__Basics_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_34 [label=projects color="#2c7a7b" fontsize=8]
-	output_35 [label="observed__Overall_Health_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_35 [label=projects color="#2c7a7b" fontsize=8]
-	output_36 [label="observed__Lifestyle_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_36 [label=projects color="#2c7a7b" fontsize=8]
-	output_37 [label="observed__Personal_and_Family_History_Complete__
-c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_37 [label=projects color="#2c7a7b" fontsize=8]
-	output_38 [label="observed__HC_Access_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_38 [label=projects color="#2c7a7b" fontsize=8]
-	output_39 [label="observed__Life_Functioning_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_39 [label=projects color="#2c7a7b" fontsize=8]
-	output_40 [label="observed__First_Physical_Measurement_Date_Time__
-c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_40 [label=projects color="#2c7a7b" fontsize=8]
-	output_41 [label="observed__Last_Physical_Measurement_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_41 [label=projects color="#2c7a7b" fontsize=8]
-	output_42 [label="observed__EH_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_42 [label=projects color="#2c7a7b" fontsize=8]
-	output_43 [label="observed__Behavioral_Health_Completion__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_43 [label=projects color="#2c7a7b" fontsize=8]
-	output_44 [label="observed__Environmental_Exposures_Date_Time__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_44 [label=projects color="#2c7a7b" fontsize=8]
-	output_45 [label="observed__Social_Determinants_of_Health_Completi
-on__c
-:: timestamp" color="#2c7a7b" fillcolor="#e6fffa" shape=ellipse]
-	4446280471417340603 -> output_45 [label=projects color="#2c7a7b" fontsize=8]
-	expectation_0 [label="flow_comparison_required_columns
-ExpectTableColumnsToMatchSet" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	4446280471417340603 -> expectation_0 [label=table color="#2b6cb0" fontsize=8]
-	expectation_1 [label="flow_survey_result_id_is_present
-ExpectColumnValuesToNotBeNull" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_0 -> expectation_1 [label=column color="#2b6cb0" fontsize=8]
-	condition_0 [label="GX row_condition
-survey_completion_occurred_on_or_after_launch ==
-True" color="#c05621" fillcolor="#fffaf0" shape=diamond]
-	output_6 -> condition_0 [color="#c05621" style=dashed]
-	condition_0 -> expectation_1 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_2 [label="flow_participant_contact_id_is_present
-ExpectColumnValuesToNotBeNull" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_1 -> expectation_2 [label=column color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_2 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_3 [label="flow_expected_account_id_is_present
-ExpectColumnValuesToNotBeNull" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_2 -> expectation_3 [label=column color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_3 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_4 [label="flow_observed_account_id_is_present
-ExpectColumnValuesToNotBeNull" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_3 -> expectation_4 [label=column color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_4 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_5 [label="one_comparison_row_per_survey_event
-ExpectColumnValuesToBeUnique" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_0 -> expectation_5 [label=column color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_5 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_6 [label="permission_lookup_resolution_evidence_is_present
-ExpectColumnValuesToNotBeNull" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_7 -> expectation_6 [label=column color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_6 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_7 [label="permission_lookup_is_deterministic
-ExpectColumnValuesToBeInSet" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_7 -> expectation_7 [label=column color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_7 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_8 [label="observed_Age_at_Time_of_Consent__pc_equals_expec
-ted
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_27 -> expectation_8 [label=column_A color="#2b6cb0" fontsize=8]
-	output_8 -> expectation_8 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_8 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_9 [label="observed_CABOR_Completion_Date__c_equals_expecte
-d
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_28 -> expectation_9 [label=column_A color="#2b6cb0" fontsize=8]
-	output_9 -> expectation_9 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_1 [label="GX row_condition
-(survey_completion_occurred_on_or_after_launch
-== True AND cabor_lookup_is_deterministic ==
-True)" color="#c05621" fillcolor="#fffaf0" shape=diamond]
-	output_6 -> condition_1 [color="#c05621" style=dashed]
-	output_7 -> condition_1 [color="#c05621" style=dashed]
-	condition_1 -> expectation_9 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_10 [label="observed_Earliest_Primary_Consent_Date_for_Repor
-t__c_equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_29 -> expectation_10 [label=column_A color="#2b6cb0" fontsize=8]
-	output_10 -> expectation_10 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_10 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_11 [label="observed_Latest_Primary_Consent_Date_for_Report_
-_c_equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_30 -> expectation_11 [label=column_A color="#2b6cb0" fontsize=8]
-	output_11 -> expectation_11 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_11 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_12 [label="observed_EHR_Consent_Date_Time__c_equals_expecte
-d
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_31 -> expectation_12 [label=column_A color="#2b6cb0" fontsize=8]
-	output_12 -> expectation_12 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_12 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_13 [label="observed_EHR_Reconsent_Date_Time__c_equals_expec
-ted
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_32 -> expectation_13 [label=column_A color="#2b6cb0" fontsize=8]
-	output_13 -> expectation_13 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_13 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_14 [label="observed_Update_to_Primary_Consent_Completed__c_
-equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_33 -> expectation_14 [label=column_A color="#2b6cb0" fontsize=8]
-	output_14 -> expectation_14 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_14 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_15 [label="observed_Basics_Date_Time__c_equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_34 -> expectation_15 [label=column_A color="#2b6cb0" fontsize=8]
-	output_15 -> expectation_15 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_15 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_16 [label="observed_Overall_Health_Date_Time__c_equals_expe
-cted
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_35 -> expectation_16 [label=column_A color="#2b6cb0" fontsize=8]
-	output_16 -> expectation_16 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_16 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_17 [label="observed_Lifestyle_Date_Time__c_equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_36 -> expectation_17 [label=column_A color="#2b6cb0" fontsize=8]
-	output_17 -> expectation_17 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_17 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_18 [label="observed_Personal_and_Family_History_Complete__c
-_equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_37 -> expectation_18 [label=column_A color="#2b6cb0" fontsize=8]
-	output_18 -> expectation_18 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_18 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_19 [label="observed_HC_Access_Date_Time__c_equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_38 -> expectation_19 [label=column_A color="#2b6cb0" fontsize=8]
-	output_19 -> expectation_19 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_19 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_20 [label="observed_Life_Functioning_Date_Time__c_equals_ex
-pected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_39 -> expectation_20 [label=column_A color="#2b6cb0" fontsize=8]
-	output_20 -> expectation_20 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_20 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_21 [label="observed_First_Physical_Measurement_Date_Time__c
-_equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_40 -> expectation_21 [label=column_A color="#2b6cb0" fontsize=8]
-	output_21 -> expectation_21 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_21 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_22 [label="observed_Last_Physical_Measurement_Date_Time__c_
-equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_41 -> expectation_22 [label=column_A color="#2b6cb0" fontsize=8]
-	output_22 -> expectation_22 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_22 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_23 [label="observed_EH_Date_Time__c_equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_42 -> expectation_23 [label=column_A color="#2b6cb0" fontsize=8]
-	output_23 -> expectation_23 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_23 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_24 [label="observed_Behavioral_Health_Completion__c_equals_
-expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_43 -> expectation_24 [label=column_A color="#2b6cb0" fontsize=8]
-	output_24 -> expectation_24 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_24 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_25 [label="observed_Environmental_Exposures_Date_Time__c_eq
-uals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_44 -> expectation_25 [label=column_A color="#2b6cb0" fontsize=8]
-	output_25 -> expectation_25 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_25 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
-	expectation_26 [label="observed_Social_Determinants_of_Health_Completio
-n__c_equals_expected
-ExpectColumnPairValuesToBeEqual" color="#2b6cb0" fillcolor="#ebf8ff" shape=box style="rounded,filled"]
-	output_45 -> expectation_26 [label=column_A color="#2b6cb0" fontsize=8]
-	output_26 -> expectation_26 [label=column_B color="#2b6cb0" fontsize=8]
-	condition_0 -> expectation_26 [label="applies when True" color="#c05621" fontsize=8 style=dashed]
+	graph [fontname=Helvetica label=account_to_survey_results_flow labelloc=t nodesep=0.3 rankdir=LR ranksep=0.6]
+	node [fontname=Helvetica fontsize=11 shape=box style="rounded,filled"]
+	edge [fontname=Helvetica fontsize=9]
+	suite [label=account_to_survey_results_flow fillcolor=whitesmoke]
+	suite -> group_0
+	subgraph cluster_scope_0 {
+		color=gray70 label="Scope 1: All rows"
+		group_0 [label="Schema and table checks
+Expectations: 1" fillcolor=aliceblue]
+	}
+	suite -> group_1
+	suite -> group_2
+	suite -> group_3
+	suite -> group_5
+	suite -> group_6
+	suite -> group_7
+	suite -> group_8
+	suite -> group_9
+	suite -> group_10
+	suite -> group_11
+	suite -> group_12
+	suite -> group_13
+	suite -> group_14
+	suite -> group_15
+	suite -> group_16
+	suite -> group_17
+	suite -> group_18
+	suite -> group_19
+	suite -> group_20
+	suite -> group_21
+	subgraph cluster_scope_1 {
+		color=gray70 label="Scope 2: survey_completion_occurred_on_or_after_launch == True"
+		group_1 [label="Identity checks
+Expectations: 5" fillcolor=aliceblue]
+		group_2 [label="Column: cabor_lookup_is_deterministic
+Expectations: 2" fillcolor=aliceblue]
+		group_3 [label="Field: Age_at_Time_of_Consent__pc
+Expectations: 1" fillcolor=aliceblue]
+		group_5 [label="Field: Earliest_Primary_Consent_Date_for_Report__c
+Expectations: 1" fillcolor=aliceblue]
+		group_6 [label="Field: Latest_Primary_Consent_Date_for_Report__c
+Expectations: 1" fillcolor=aliceblue]
+		group_7 [label="Field: EHR_Consent_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_8 [label="Field: EHR_Reconsent_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_9 [label="Field: Update_to_Primary_Consent_Completed__c
+Expectations: 1" fillcolor=aliceblue]
+		group_10 [label="Field: Basics_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_11 [label="Field: Overall_Health_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_12 [label="Field: Lifestyle_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_13 [label="Field: Personal_and_Family_History_Complete__c
+Expectations: 1" fillcolor=aliceblue]
+		group_14 [label="Field: HC_Access_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_15 [label="Field: Life_Functioning_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_16 [label="Field: First_Physical_Measurement_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_17 [label="Field: Last_Physical_Measurement_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_18 [label="Field: EH_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_19 [label="Field: Behavioral_Health_Completion__c
+Expectations: 1" fillcolor=aliceblue]
+		group_20 [label="Field: Environmental_Exposures_Date_Time__c
+Expectations: 1" fillcolor=aliceblue]
+		group_21 [label="Field: Social_Determinants_of_Health_Completion__c
+Expectations: 1" fillcolor=aliceblue]
+	}
+	suite -> group_4
+	subgraph cluster_scope_2 {
+		color=gray70 label="Scope 3: (survey_completion_occurred_on_or_after_launch == True
+AND cabor_lookup_is_deterministic == True)"
+		group_4 [label="Field: CABOR_Completion_Date__c
+Expectations: 1" fillcolor=aliceblue]
+	}
 }

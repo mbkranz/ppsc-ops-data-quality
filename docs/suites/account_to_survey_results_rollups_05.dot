@@ -1,0 +1,15 @@
+digraph {
+	graph [fontname=Helvetica label="Field: Count_of_Completed_Reconsent__pc" labelloc=t nodesep=0.3 rankdir=LR ranksep=0.6]
+	node [fontname=Helvetica fontsize=11 shape=box style="rounded,filled"]
+	edge [fontname=Helvetica fontsize=9]
+	subgraph cluster_scope {
+		color=gray70 label="Row condition: All rows"
+		expectation_8 [label="9. ExpectColumnPairValuesToBeEqual" fillcolor=aliceblue tooltip=observed_Count_of_Completed_Reconsent__pc_equals_expected_rollup]
+		column_0 [label="observed__Count_of_Completed_Reconsent__pc
+int64" fillcolor=honeydew]
+		column_0 -> expectation_8 [label=column_A]
+		column_1 [label="expected__Count_of_Completed_Reconsent__pc
+int64" fillcolor=honeydew]
+		column_1 -> expectation_8 [label=column_B]
+	}
+}

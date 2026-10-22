@@ -1,0 +1,15 @@
+digraph {
+	graph [fontname=Helvetica label="Field: Social_Determinants_of_Health_Completion__c" labelloc=t nodesep=0.3 rankdir=LR ranksep=0.6]
+	node [fontname=Helvetica fontsize=11 shape=box style="rounded,filled"]
+	edge [fontname=Helvetica fontsize=9]
+	subgraph cluster_scope {
+		color=gray70 label="Row condition: survey_completion_occurred_on_or_after_launch == True"
+		expectation_26 [label="27. ExpectColumnPairValuesToBeEqual" fillcolor=aliceblue tooltip=observed_Social_Determinants_of_Health_Completion__c_equals_expected]
+		column_0 [label="observed__Social_Determinants_of_Health_Completion__c
+timestamp" fillcolor=honeydew]
+		column_0 -> expectation_26 [label=column_A]
+		column_1 [label="expected__Social_Determinants_of_Health_Completion__c
+timestamp" fillcolor=honeydew]
+		column_1 -> expectation_26 [label=column_B]
+	}
+}

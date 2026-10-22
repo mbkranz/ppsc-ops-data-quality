@@ -16,4 +16,4 @@ tasks:
     help: Run Flow and rollup validations on synthetic DuckDB history.
   suite-diagrams:
     cmd: python scripts/generate_suite_diagrams.py
-    help: Generate native Ibis graphs annotated with GX expectations and row conditions.
+    help: Generate suite overviews and expandable field diagrams grouped by GX row condition.

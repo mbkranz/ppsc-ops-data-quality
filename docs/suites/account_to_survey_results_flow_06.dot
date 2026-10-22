@@ -1,0 +1,15 @@
+digraph {
+	graph [fontname=Helvetica label="Field: Latest_Primary_Consent_Date_for_Report__c" labelloc=t nodesep=0.3 rankdir=LR ranksep=0.6]
+	node [fontname=Helvetica fontsize=11 shape=box style="rounded,filled"]
+	edge [fontname=Helvetica fontsize=9]
+	subgraph cluster_scope {
+		color=gray70 label="Row condition: survey_completion_occurred_on_or_after_launch == True"
+		expectation_11 [label="12. ExpectColumnPairValuesToBeEqual" fillcolor=aliceblue tooltip=observed_Latest_Primary_Consent_Date_for_Report__c_equals_expected]
+		column_0 [label="observed__Latest_Primary_Consent_Date_for_Report__c
+timestamp" fillcolor=honeydew]
+		column_0 -> expectation_11 [label=column_A]
+		column_1 [label="expected__Latest_Primary_Consent_Date_for_Report__c
+timestamp" fillcolor=honeydew]
+		column_1 -> expectation_11 [label=column_B]
+	}
+}

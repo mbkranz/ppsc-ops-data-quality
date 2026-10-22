@@ -206,14 +206,22 @@ Generate the suite diagrams with Graphviz's `dot` executable installed (for exam
 uv run poe suite-diagrams
 # Or choose one suite and an output directory:
 uv run python scripts/generate_suite_diagrams.py --suite flow --output build/suite-diagrams
+# Optional native expression diagnostic, using Ibis's unchanged formatting:
+uv run python scripts/generate_suite_diagrams.py --include-expression-graph --output build/suite-diagrams
 ```
 
-Each suite gets a Markdown document, a compact column/expectation SVG and DOT,
-and a full native Ibis graph with those same expectation and row-condition
-bindings. Pair expectations connect to both expected and observed columns;
-condition nodes connect to their input columns and every expectation they scope.
-The generated graphs use illustrative unbound history queries and execute no data.
-Regeneration replaces generated documentation, and CI verifies the generator.
+Each suite gets an overview grouped by exact GX row condition and expandable
+Markdown sections for fields, identities, lookup evidence and table/schema checks.
+Each section has a small SVG/DOT diagram connecting the actual target columns to
+their expectations. Paired expected and observed columns stay together; the
+shared row condition appears once as the enclosing scope label. Each expectation
+also retains its exact condition in the accompanying table.
+
+The default diagrams use ordinary Graphviz clusters and styles, with no dependency
+on Ibis operation IDs or a JavaScript application. The optional diagnostic is the
+unmodified native Ibis expression graph. Both use illustrative unbound queries
+and execute no data. Regeneration replaces generated documentation, and CI
+verifies the generator. Keep generated diagnostic graphs under `build/`.
 
 - [Flow suite diagram](docs/suites/account_to_survey_results_flow.md)
 - [Rollup suite diagram](docs/suites/account_to_survey_results_rollups.md)

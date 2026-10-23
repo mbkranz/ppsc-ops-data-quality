@@ -5,6 +5,8 @@ import importlib.util
 import io
 import json
 import re
+import shutil
+import subprocess
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -13,79 +15,123 @@ import pytest
 from botocore.validate import validate_parameters
 
 from ppsc_ops_data_quality.cli import main as cli_main
-from scripts.package_release import package_release, sha256, verify_bundle
+from scripts.package_release import package_release
 from scripts.plan_deployment import deployment_target, plan_deployment
+from scripts.release_artifact import verify_release
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def git(root, *arguments):
+    return subprocess.check_output(["git", "-C", str(root), *arguments], text=True).strip()
+
+
 @pytest.fixture
 def release(tmp_path, monkeypatch):
-    monkeypatch.chdir(ROOT)
-    release = tmp_path / "release"
-    (release / "wheels").mkdir(parents=True)
-    (release / "project").mkdir()
-    (release / "wheels" / "dependency-1-py3-none-any.whl").write_bytes(b"dependency wheel fixture")
-    (release / "project" / "ppsc_ops_data_quality-0.1.0-py3-none-any.whl").write_bytes(
-        b"project wheel fixture"
+    root = tmp_path / "checkout"
+    root.mkdir()
+    monkeypatch.chdir(root)
+    (root / ".gitignore").write_text("build/\n")
+    (root / "pyproject.toml").write_text(
+        '[project]\nname="ppsc-ops-data-quality"\nversion="0.1.0"\nrequires-python=">=3.11,<3.14"\n'
     )
-    (release / "requirements.txt").write_text("dependency==1\n")
-    package_release(release, "a" * 40)
-    return release
+    (root / "glue/scripts").mkdir(parents=True)
+    shutil.copyfile(
+        ROOT / "glue/scripts/validate_history.py", root / "glue/scripts/validate_history.py"
+    )
+    shutil.copyfile(ROOT / "glue/job.yaml", root / "glue/job.yaml")
+    directory = root / "build/release"
+    (directory / "dependencies").mkdir(parents=True)
+    (directory / "project").mkdir()
+    with ZipFile(directory / "project/ppsc_ops_data_quality-0.1.0-py3-none-any.whl", "w") as wheel:
+        wheel.writestr(
+            "ppsc_ops_data_quality-0.1.0.dist-info/METADATA",
+            "Metadata-Version: 2.1\nName: ppsc-ops-data-quality\nVersion: 0.1.0\nRequires-Python: >=3.11,<3.14\n",
+        )
+    archive = package_release(directory)
+    import yaml
+
+    (root / "dvc.yaml").write_text(
+        yaml.safe_dump(
+            {"stages": {"bundle": {"cmd": "synthetic", "outs": [str(archive.relative_to(root))]}}}
+        )
+    )
+    (root / "dvc.lock").write_text(
+        yaml.safe_dump(
+            {
+                "schema": "2.0",
+                "stages": {
+                    "bundle": {
+                        "outs": [
+                            {
+                                "path": str(archive.relative_to(root)),
+                                "hash": "md5",
+                                "md5": hashlib.md5(archive.read_bytes()).hexdigest(),
+                            }
+                        ]
+                    }
+                },
+            }
+        )
+    )
+    git(root, "init", "-q")
+    git(root, "config", "user.name", "Test")
+    git(root, "config", "user.email", "test@example.invalid")
+    git(root, "add", ".")
+    git(root, "commit", "-qm", "Synthetic release")
+    return root
 
 
 @pytest.fixture
 def environment(tmp_path):
     config = tmp_path / "environments.yaml"
-    config.write_text(
-        """environments:
+    config.write_text("""environments:
   dev:
     account_id: '123456789012'
     region: us-east-1
     artifact_s3_uri: s3://example-artifacts/quality/
     glue_role: arn:aws:iam::123456789012:role/glue-quality
     job_name: quality-dev
-"""
-    )
+""")
     return config
 
 
-def test_bundle_is_stable_and_contains_all_declared_wheels(release):
-    bundle = release / "bundle"
-    manifest = verify_bundle(bundle)
-    assert manifest["revision"] == "a" * 40
-    with ZipFile(bundle / "dependencies.gluewheels.zip") as archive:
-        assert sorted(archive.namelist()) == sorted(manifest["wheels"])
-        for name in archive.namelist():
-            assert hashlib.sha256(archive.read(name)).hexdigest() == manifest["wheels"][name]
-            assert archive.getinfo(name).date_time == (1980, 1, 1, 0, 0, 0)
-    with pytest.raises(FileExistsError):
-        package_release(release, "a" * 40)
+def test_bundle_reassembly_and_final_only_verification(release):
+    archive = release / "build/release/bundle/dependencies.gluewheels.zip"
+    original = archive.read_bytes()
+    archive.unlink()
+    assert package_release(release / "build/release").read_bytes() == original
+    with ZipFile(archive) as bundle:
+        assert len(bundle.namelist()) == 1
+        assert bundle.getinfo(bundle.namelist()[0]).date_time == (1980, 1, 1, 0, 0, 0)
+    shutil.rmtree(release / "build/release/project")
+    shutil.rmtree(release / "build/release/dependencies")
+    assert verify_release(git(release, "rev-parse", "HEAD")) == archive
 
 
-@pytest.mark.parametrize("filename", ["validate_history.py", "dependencies.gluewheels.zip"])
-def test_modified_release_artifacts_are_rejected(release, filename):
-    (release / "bundle" / filename).write_bytes(b"changed")
-    with pytest.raises(ValueError, match="checksum mismatch"):
-        verify_bundle(release / "bundle")
+def test_corrupt_or_wrong_revision_bundle_fails(release):
+    revision = git(release, "rev-parse", "HEAD")
+    with pytest.raises(ValueError, match="requested release"):
+        verify_release("a" * 40)
+    (release / "build/release/bundle/dependencies.gluewheels.zip").write_bytes(b"corrupt")
+    with pytest.raises(ValueError, match="DVC lock"):
+        verify_release(revision)
 
 
-def test_changed_manifest_is_rejected_after_planning(release):
-    bundle = release / "bundle"
-    expected = sha256(bundle / "manifest.json")
-    with (bundle / "manifest.json").open("a") as stream:
-        stream.write(" ")
-    with pytest.raises(ValueError, match="changed after"):
-        verify_bundle(bundle, expected_manifest_sha256=expected)
+def test_dirty_source_fails_even_when_bundle_matches(release):
+    (release / "glue/scripts/validate_history.py").write_text("changed driver")
+    with pytest.raises(ValueError, match="checkout contains"):
+        verify_release(git(release, "rev-parse", "HEAD"))
 
 
-def test_plan_payloads_match_the_glue_sdk_and_manifest(release, environment, tmp_path):
+def test_plan_payloads_match_sdk_and_selected_release(release, environment, tmp_path):
     output = tmp_path / "plan"
+    revision = git(release, "rev-parse", "HEAD")
     plan_deployment(
         config=environment,
         account="123456789012",
         environment="dev",
-        bundle=release / "bundle",
+        revision=revision,
         output=output,
     )
     model = boto3.Session()._session.get_service_model("glue")
@@ -95,30 +141,92 @@ def test_plan_payloads_match_the_glue_sdk_and_manifest(release, environment, tmp
             model.operation_model(operation).input_shape,
         )
     target = json.loads((output / "target.json").read_text())
-    assert target["release_uri"].endswith(sha256(release / "bundle" / "manifest.json"))
+    assert target["release_uri"].endswith(revision)
+    assert len(target["artifacts"]) == 2
     payload = json.loads((output / "create-job.json").read_text())
-    assert payload["GlueVersion"] == "5.0"
+    assert payload["DefaultArguments"]["--release_revision"] == revision
     assert payload["DefaultArguments"]["--python-modules-installer-option"] == "--no-index"
-    assert payload["DefaultArguments"]["--additional-python-modules"].endswith(".gluewheels.zip")
-    uploads = (output / "uploads.tsv").read_text().splitlines()
-    assert len(uploads) == 4
-    assert uploads[-1].endswith("/manifest.json")
-    assert all(Path(line.split("\t")[0]).is_file() for line in uploads)
-    with pytest.raises(FileExistsError):
-        plan_deployment(
-            config=environment,
-            account="123456789012",
-            environment="dev",
-            bundle=release / "bundle",
-            output=output,
-        )
+    assert "--release_manifest_uri" not in payload["DefaultArguments"]
+    assert not (output / "manifest.json").exists()
+
+
+@pytest.mark.parametrize("failure", [None, "account", "conflict", "mutation", "put"])
+def test_immutable_staging_precedes_job_activation(release, environment, tmp_path, failure):
+    from types import SimpleNamespace
+
+    from botocore.exceptions import ClientError
+    from botocore.response import StreamingBody
+
+    from scripts.apply_deployment import apply_deployment
+
+    plan = tmp_path / "plan"
+    plan_deployment(
+        config=environment,
+        account="123456789012",
+        environment="dev",
+        revision=git(release, "rev-parse", "HEAD"),
+        output=plan,
+    )
+    target = json.loads((plan / "target.json").read_text())
+    events, objects = [], {}
+
+    def head_object(**params):
+        if params["Key"] not in objects:
+            raise ClientError(
+                {"Error": {"Code": "404"}, "ResponseMetadata": {"HTTPStatusCode": 404}},
+                "HeadObject",
+            )
+        return {"ContentLength": len(objects[params["Key"]])}
+
+    def get_object(**params):
+        content = objects[params["Key"]]
+        return {"Body": StreamingBody(io.BytesIO(content), len(content))}
+
+    def put_object(**params):
+        assert params["IfNoneMatch"] == "*"
+        assert params["ExpectedBucketOwner"] == "123456789012"
+        if failure == "put":
+            raise RuntimeError("injected upload failure")
+        events.append("put")
+        objects[params["Key"]] = params["Body"].read()
+
+    desired = json.loads((plan / "update-job.json").read_text())["JobUpdate"]
+    glue = SimpleNamespace(
+        create_job=lambda **kw: events.append("create"),
+        get_job=lambda **kw: {"Job": desired},
+        update_job=lambda **kw: events.append("update"),
+    )
+    s3 = SimpleNamespace(head_object=head_object, get_object=get_object, put_object=put_object)
+    sts = SimpleNamespace(
+        get_caller_identity=lambda: {
+            "Account": "999999999999" if failure == "account" else "123456789012"
+        }
+    )
+    session = SimpleNamespace(
+        client=lambda service, **kw: {"sts": sts, "s3": s3, "glue": glue}[service]
+    )
+    if failure == "conflict":
+        objects[target["artifacts"][-1]["uri"].split("/", 3)[-1]] = b"wrong bytes"
+    if failure == "mutation":
+        (release / "glue/scripts/validate_history.py").write_text("mutated")
+    if failure:
+        with pytest.raises((ValueError, RuntimeError)):
+            apply_deployment(plan, "create", session=session)
+        assert not events
+    else:
+        assert apply_deployment(plan, "create", session=session).status == "complete"
+        assert events == ["put", "put", "create"]
+        events.clear()
+        result = apply_deployment(plan, "update", session=session)
+        assert result.job == "unchanged" and events == []
+        assert all(item.outcome == "unchanged" for item in result.artifacts)
 
 
 @pytest.mark.parametrize(
     "account,name,error",
     [
         ("999999999999", "dev", "Unknown AWS account"),
-        ("123456789012", "prod", "Environment conflicts"),
+        ("123456789012", "prod", "Unknown AWS account"),
     ],
 )
 def test_account_and_environment_must_agree(environment, account, name, error):
@@ -176,8 +284,6 @@ def test_glue_calls_shared_runner_with_verified_config_and_provenance(monkeypatc
         hashlib.sha256(content).hexdigest(),
         "--release_revision",
         "a" * 40,
-        "--release_manifest_uri",
-        "s3://example-release/manifest.json",
         "--JOB_NAME",
         "quality-dev",
         "--JOB_RUN_ID",
@@ -297,94 +403,6 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
     assert closed == [True]
 
 
-def test_poe_tasks_apply_profiles_and_preserve_run_status(
-    release, environment, tmp_path, monkeypatch
-):
-    """Run real Poe tasks against a fake AWS CLI; never use real credentials."""
-    import os
-    import subprocess
-    import sys
-
-    plan = tmp_path / "plan"
-    binaries = tmp_path / "bin"
-    binaries.mkdir()
-    log = tmp_path / "aws.jsonl"
-    executable = binaries / "aws"
-    executable.write_text("""#!/usr/bin/env python3
-import json, os, sys
-from pathlib import Path
-args = sys.argv[1:]
-assert args[:1] == ['--profile'], args
-profile, args = args[1], args[2:]
-assert profile == os.environ['EXPECTED_PROFILE'], (profile, args)
-with open(os.environ['AWS_TEST_LOG'], 'a') as stream:
-    stream.write(json.dumps({'profile': profile, 'args': args}) + '\\n')
-if args[:2] == ['sts', 'get-caller-identity']:
-    print(os.environ.get('AWS_TEST_ACCOUNT', '123456789012'))
-elif args[:2] == ['glue', 'get-job']:
-    print(json.dumps(json.loads(Path(os.environ['AWS_TEST_PLAN'], 'update-job.json').read_text())['JobUpdate']))
-elif args[:2] == ['glue', 'start-job-run']:
-    print('{"JobRunId": "jr_synthetic"}')
-elif args[:2] == ['glue', 'get-job-run']:
-    print(json.dumps({'State': os.environ.get('AWS_TEST_STATE', 'SUCCEEDED')}))
-elif args[:2] in (['s3', 'cp'], ['glue', 'create-job'], ['glue', 'update-job']):
-    print('{}')
-else:
-    raise AssertionError(args)
-""")
-    executable.chmod(0o755)
-    monkeypatch.setenv("PATH", str(binaries) + os.pathsep + os.environ["PATH"])
-    monkeypatch.setenv("AWS_TEST_PLAN", str(plan))
-    monkeypatch.setenv("AWS_TEST_LOG", str(log))
-    monkeypatch.setenv("EXPECTED_PROFILE", "data-migration-dev")
-
-    def poe(*arguments, expected=0):
-        result = subprocess.run(
-            [sys.executable, "-m", "poethepoet", *map(str, arguments)],
-            text=True,
-            capture_output=True,
-        )
-        assert result.returncode == expected, result.stdout + result.stderr
-
-    poe(
-        "plan-deployment",
-        "--config",
-        environment,
-        "--environment",
-        "dev",
-        "--bundle",
-        release / "bundle",
-        "--output",
-        plan,
-    )
-    poe("deploy", "--plan", plan, "--operation", "create")
-    monkeypatch.setenv("EXPECTED_PROFILE", "alternate")
-    poe("deploy", "--plan", plan, "--operation", "update", "--profile", "alternate")
-    poe(
-        "run-glue",
-        "--plan",
-        plan,
-        "--config-uri",
-        "s3://config/run.yaml",
-        "--config-sha256",
-        "a" * 64,
-        "--profile",
-        "alternate",
-    )
-    assert json.loads((plan / "runs/jr_synthetic.json").read_text())["JobRunId"] == "jr_synthetic"
-    monkeypatch.setenv("EXPECTED_PROFILE", "data-migration-dev")
-    poe("glue-status", "--plan", plan, "--run-id", "jr_synthetic")
-    assert json.loads((plan / "runs/jr_synthetic.status.json").read_text())["State"] == "SUCCEEDED"
-    monkeypatch.setenv("AWS_TEST_STATE", "FAILED")
-    poe("glue-status", "--plan", plan, "--run-id", "jr_synthetic", expected=1)
-    before = log.read_text().splitlines()
-    monkeypatch.setenv("AWS_TEST_ACCOUNT", "999999999999")
-    poe("deploy", "--plan", plan, "--operation", "update", expected=1)
-    after = log.read_text().splitlines()
-    assert len(after) == len(before) + 1
-    assert json.loads(after[-1])["args"][:2] == ["sts", "get-caller-identity"]
-
-
 def test_yaml_job_template_configures_hosting_and_rejects_unquoted_accounts(
     release, environment, tmp_path, monkeypatch
 ):
@@ -401,15 +419,15 @@ def test_yaml_job_template_configures_hosting_and_rejects_unquoted_accounts(
     template.update(
         Timeout=15, SecurityConfiguration="verified-security", Connections={"Connections": ["vpc"]}
     )
-    (tmp_path / "glue").mkdir()
-    (tmp_path / "glue/job.yaml").write_text(yaml.safe_dump(template))
-    monkeypatch.chdir(tmp_path)
+    (release / "glue/job.yaml").write_text(yaml.safe_dump(template))
+    git(release, "add", ".")
+    git(release, "commit", "-qm", "Custom native hosting")
     output = tmp_path / "custom-plan"
     plan_deployment(
         config=environment,
         account="123456789012",
         environment="dev",
-        bundle=release / "bundle",
+        revision=git(release, "rev-parse", "HEAD"),
         output=output,
     )
     payload = json.loads((output / "create-job.json").read_text())

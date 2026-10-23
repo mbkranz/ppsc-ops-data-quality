@@ -12,3 +12,5 @@ params.local.yaml
 credentials*
 
 glue/environments.local.yaml
+
+.venv-release/

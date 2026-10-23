@@ -1,48 +1,73 @@
-name: Glue release
+name: Publish prepared release
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: Existing release tag (v*) to build and publish
+      revision:
+        description: Exact committed SHA containing finalized DVC locks and pushed outputs
+        required: true
+        type: string
+      release:
+        description: Versioned release tag matching project.version
         required: true
         type: string
 permissions:
-  contents: read
+  contents: write
+  statuses: write
+  id-token: write
+concurrency:
+  group: release-publication
+  cancel-in-progress: false
 jobs:
-  release:
+  publish:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    environment: release
+    env:
+      RELEASE_SHA: ${{ inputs.revision }}
+      RELEASE: ${{ inputs.release }}
+      DVC_REMOTE_URL: ${{ vars.DVC_REMOTE_URL }}
+      UV_PROJECT_ENVIRONMENT: .venv-release
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.revision }}
           fetch-depth: 0
-      - name: Verify exact release tag
-        env:
-          RELEASE_TAG: ${{ inputs.tag }}
+      - name: Assert exact approved source
+        shell: bash
         run: |
           set -eu
-          case "$RELEASE_TAG" in v*) ;; *) echo 'Expected a v* release tag' >&2; exit 1;; esac
-          test "$(git rev-parse HEAD)" = "$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")"
-      - uses: astral-sh/setup-uv@v6
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          git merge-base --is-ancestor HEAD origin/main
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           version: '0.12.23'
-          enable-cache: true
-      - run: uv sync --locked --python 3.11
-      - run: sudo apt-get update && sudo apt-get install -y graphviz
-      - run: uv run --locked poe check
-      - run: uv run --locked poe check-queries
-      - run: uv run --locked poe check-synthetic
-      - run: uv run --locked poe build-release
-      - run: uv run --locked poe smoke-release
-      - uses: actions/upload-artifact@v4
+          python-version: '3.11.17'
+      - run: uv sync --locked --only-group release
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
         with:
-          name: glue-release
-          path: build/release/bundle/
-          if-no-files-found: error
-      - name: Publish verified assets for the existing tag
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.tag }}
-        run: gh release create "$RELEASE_TAG" build/release/bundle/* --verify-tag --generate-notes
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
+      - name: Verify retrieval with an independent empty cache
+        shell: bash
+        run: |
+          set -eu
+          test -n "$DVC_REMOTE_URL"
+          uv run --no-sync python -m scripts.verify_release_checkout --publish-tag "$RELEASE"
+          uv run --no-sync dvc cache dir --local "$RUNNER_TEMP/release-verification-cache"
+          uv run --no-sync dvc remote add --local --force release "$DVC_REMOTE_URL"
+          uv run --no-sync dvc remote modify --local release verify true
+          uv run --no-sync dvc pull dvc.yaml -r release
+          uv run --no-sync dvc status dvc.yaml --quiet
+          uv run --no-sync poe smoke-release
+          git diff --exit-code -- dvc.lock uv.lock
+      - name: Record successful artifact gate and publish this SHA
+        shell: bash
+        run: |
+          set -eu
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$RELEASE_SHA" \
+            -f state=success -f context=release-artifacts \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          gh release create "$RELEASE" --target "$RELEASE_SHA" --generate-notes

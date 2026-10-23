@@ -19,7 +19,6 @@ class GlueArguments(BaseModel):
 
     configuration: ConfigurationResource
     release_revision: str = Field(pattern=r"^[0-9a-f]{40}$")
-    release_manifest_uri: str = Field(min_length=1)
     job_name: str = Field(min_length=1)
     job_run_id: str = Field(min_length=1)
 
@@ -30,7 +29,6 @@ def resolve_arguments(argv: list[str] | None = None) -> GlueArguments:
         "config_uri",
         "config_sha256",
         "release_revision",
-        "release_manifest_uri",
         "JOB_NAME",
         "JOB_RUN_ID",
     ):
@@ -39,7 +37,6 @@ def resolve_arguments(argv: list[str] | None = None) -> GlueArguments:
     return GlueArguments(
         configuration=ConfigurationResource(uri=args.config_uri, sha256=args.config_sha256),
         release_revision=args.release_revision,
-        release_manifest_uri=args.release_manifest_uri,
         job_name=args.JOB_NAME,
         job_run_id=args.JOB_RUN_ID,
     )
@@ -61,7 +58,6 @@ def execute_glue(request: GlueArguments, *, s3_client: Any) -> ValidationOutcome
                 "config_uri": resource.uri,
                 "config_sha256": resource.sha256,
                 "release_revision": request.release_revision,
-                "release_manifest_uri": request.release_manifest_uri,
                 "glue_job_name": request.job_name,
                 "glue_job_run_id": request.job_run_id,
             },

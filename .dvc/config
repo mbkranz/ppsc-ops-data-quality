@@ -1,0 +1,3 @@
+# Configure the approved release URL in .dvc/config.local or CI.
+# dvc remote add --local release s3://<approved-bucket>/dvc-store/
+# dvc remote modify --local release verify true

@@ -19,31 +19,19 @@ tasks:
     args:
       - {name: profile, options: [--profile], default: data-migration-dev}
   build-release:
-    help: Build a locked CPython 3.11/Linux Glue wheel bundle from a clean checkout.
-    uses:
-      REVISION: _source-revision
+    help: Reproduce the deterministic release graph in the prepared release environment.
+    cmd: dvc repro dvc.yaml
+  publish-release:
+    help: Require local freshness and upload the complete release graph; CI verifies retrieval before tagging.
     sequence:
-      - shell: |
-          set -eu
-          test -z "$(git status --porcelain)" || { echo 'Commit source changes before release building' >&2; exit 1; }
-          python -c 'import sys; assert sys.version_info[:2] == (3, 11), "Build releases with Python 3.11"'
-          test ! -e build/release || { echo 'Use a fresh checkout/build directory' >&2; exit 1; }
-          mkdir -p build/release/wheels
-      - cmd: uv export --locked --no-dev --no-emit-project --format requirements-txt --output-file build/release/requirements.txt
-      - cmd: uv build --wheel --no-sources --out-dir build/release/project
-        env:
-          SOURCE_DATE_EPOCH: '315532800'
-      - cmd: 'uv run --no-project --python 3.11 --with pip==25.3 python -m pip download --require-hashes --only-binary=:all: --no-deps --python-version
-          3.11 --implementation cp --abi cp311 --platform manylinux_2_34_x86_64 --platform manylinux_2_28_x86_64 --platform manylinux2014_x86_64 --requirement
-          build/release/requirements.txt --dest build/release/wheels'
-      - cmd: python -m scripts.package_release --revision ${REVISION}
-  _source-revision:
-    cmd: git rev-parse HEAD
+      - cmd: dvc status dvc.yaml --quiet
+      - cmd: dvc push dvc.yaml -r release
   smoke-release:
     help: Install only bundled wheels; check imports, installed CLI, compilation and synthetic validation.
     sequence:
+      - cmd: rm -rf build/release/smoke-wheels build/release/invalid-run build/release/smoke-queries build/release/smoke-validation
       - cmd: python -m zipfile -e build/release/bundle/dependencies.gluewheels.zip build/release/smoke-wheels
-      - cmd: uv venv --python 3.11 build/release/smoke-env
+      - cmd: uv venv --python 3.11 --clear build/release/smoke-env
       - cmd: uv pip install --python build/release/smoke-env/bin/python --no-index --find-links build/release/smoke-wheels ppsc-ops-data-quality
       - cmd: uv pip check --python build/release/smoke-env/bin/python
       - cmd: build/release/smoke-env/bin/python -I -c "from pathlib import Path; import sys, ppsc_ops_data_quality; assert Path(ppsc_ops_data_quality.__file__).is_relative_to(Path(sys.prefix)),
@@ -63,12 +51,17 @@ tasks:
     args:
       - {name: config, options: [--config], default: glue/environments.local.yaml}
       - {name: environment, options: [--environment], required: true}
-      - {name: bundle, options: [--bundle], default: build/release/bundle}
+      - {name: revision, options: [--revision], required: true}
       - {name: output, options: [--output], required: true}
       - {name: profile, options: [--profile], default: data-migration-dev}
     uses:
       ACCOUNT: _aws-account --profile ${profile}
-    cmd: python -m scripts.plan_deployment --config ${config} --account ${ACCOUNT} --environment ${environment} --bundle ${bundle} --output ${output}
+    sequence:
+      - shell: |
+          set -eu
+          repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+          test "$(gh api "repos/$repo/commits/${revision}/status" --jq '.statuses | any(.context == "release-artifacts" and .state == "success")')" = true
+      - cmd: python -m scripts.plan_deployment --config ${config} --account ${ACCOUNT} --environment ${environment} --revision ${revision} --output ${output}
   _check-plan-account:
     args:
       - {name: plan, options: [--plan], required: true}
@@ -84,16 +77,7 @@ tasks:
       - {name: operation, options: [--operation], required: true}
       - {name: profile, options: [--profile], default: data-migration-dev}
     sequence:
-      - ref: _check-plan-account --plan ${plan} --profile ${profile}
-      - cmd: python -m scripts.package_release --verify-plan ${plan}
-      - shell: |
-          set -eu
-          case "${operation}" in create|update) ;; *) echo 'operation must be create or update' >&2; exit 1;; esac
-          region=$(jq -r .region "${plan}/target.json")
-          while IFS="$(printf '\t')" read -r source destination; do
-            aws --profile "${profile}" s3 cp "$source" "$destination" --region "$region" --only-show-errors
-          done < "${plan}/uploads.tsv"
-          aws --profile "${profile}" glue "${operation}-job" --region "$region" --cli-input-json "file://${plan}/${operation}-job.json"
+      - cmd: python -m scripts.apply_deployment --plan ${plan} --operation ${operation} --profile ${profile}
   run-glue:
     help: Submit a hash-pinned runtime config to the exact deployed release in a plan.
     args:

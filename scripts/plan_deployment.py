@@ -10,7 +10,8 @@ import boto3
 from botocore.validate import validate_parameters
 
 from ppsc_ops_data_quality.core.configuration import load_yaml
-from scripts.package_release import sha256, verify_bundle
+from scripts.package_release import sha256
+from scripts.release_artifact import verify_release
 
 
 def deployment_target(config: Path, account: str, environment: str):
@@ -18,10 +19,10 @@ def deployment_target(config: Path, account: str, environment: str):
     accounts = [target["account_id"] for target in targets.values()]
     if any(not isinstance(account_id, str) for account_id in accounts):
         raise ValueError("Quote account IDs in YAML configuration")
-    if len(accounts) != len(set(accounts)):
-        raise ValueError("Deployment accounts must be unique")
     matches = [
-        (name, target) for name, target in targets.items() if target["account_id"] == account
+        (name, target)
+        for name, target in targets.items()
+        if target["account_id"] == account and name == environment
     ]
     if len(matches) != 1 or not re.fullmatch(r"\d{12}", account):
         raise ValueError("Unknown AWS account; configure the STS identity before deployment")
@@ -47,11 +48,12 @@ def deployment_target(config: Path, account: str, environment: str):
     return target
 
 
-def plan_deployment(*, config, account, environment, bundle, output):
+def plan_deployment(
+    *, config: Path, account: str, environment: str, revision: str, output: Path
+) -> None:
     target = deployment_target(config, account, environment)
-    manifest_path = bundle / "manifest.json"
-    manifest = verify_bundle(bundle)
-    prefix = f"{target['artifact_s3_uri'].rstrip('/')}/releases/{sha256(manifest_path)}"
+    archive = verify_release(revision)
+    prefix = f"{target['artifact_s3_uri'].rstrip('/')}/releases/{revision}"
     job = load_yaml(Path("glue/job.yaml"))
     if {"Role", "Command"}.intersection(job):
         raise ValueError("Job template must not override the release command or execution role")
@@ -66,11 +68,10 @@ def plan_deployment(*, config, account, environment, bundle, output):
     job.setdefault("DefaultArguments", {}).update(
         {
             "--additional-python-modules": f"{prefix}/dependencies.gluewheels.zip",
-            "--release_revision": manifest["revision"],
-            "--release_manifest_uri": f"{prefix}/manifest.json",
+            "--release_revision": revision,
         }
     )
-    if job["GlueVersion"] != manifest["runtime"]["glue_version"]:
+    if job["GlueVersion"] != "5.0":
         raise ValueError("Job template Glue version conflicts with release runtime")
     if job["DefaultArguments"].get("--python-modules-installer-option") != "--no-index":
         raise ValueError("Released wheel installation must remain offline (--no-index)")
@@ -78,6 +79,19 @@ def plan_deployment(*, config, account, environment, bundle, output):
     validate_parameters(
         {"Name": target["job_name"], **job}, model.operation_model("CreateJob").input_shape
     )
+    validate_parameters(
+        {"JobName": target["job_name"], "JobUpdate": job},
+        model.operation_model("UpdateJob").input_shape,
+    )
+    artifacts = [
+        {
+            "source": str(path.resolve()),
+            "uri": f"{prefix}/{path.name}",
+            "sha256": sha256(path),
+            "size": path.stat().st_size,
+        }
+        for path in [Path("glue/scripts/validate_history.py"), archive]
+    ]
     output.mkdir(parents=True, exist_ok=False)
     for name, payload in {
         "create-job": {"Name": target["job_name"], **job},
@@ -85,25 +99,21 @@ def plan_deployment(*, config, account, environment, bundle, output):
         "target": {
             **target,
             "release_uri": prefix,
-            "revision": manifest["revision"],
-            "bundle": str(bundle.resolve()),
-            "manifest_sha256": sha256(manifest_path),
+            "environment": environment,
+            "revision": revision,
+            "lock_sha256": sha256(Path("dvc.lock")),
+            "runtime": {"glue_version": "5.0", "python_version": "3.11", "architecture": "x86_64"},
+            "artifacts": artifacts,
         },
     }.items():
         (output / f"{name}.json").write_text(json.dumps(payload, indent=2) + "\n")
-    # Only declared artifacts; completion manifest is uploaded last by Poe.
-    (output / "uploads.tsv").write_text(
-        "".join(
-            f"{(bundle / name).resolve()}\t{prefix}/{name}\n"
-            for name in [*sorted(manifest["files"]), "manifest.json"]
-        )
-    )
     print(
         json.dumps(
             {
                 "job_name": target["job_name"],
                 "region": target["region"],
                 "release_uri": prefix,
+                "environment": environment,
                 "output": str(output),
             },
             indent=2,
@@ -116,6 +126,6 @@ if __name__ == "__main__":
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--account", required=True)
     parser.add_argument("--environment", choices=["dev", "prod"], required=True)
-    parser.add_argument("--bundle", type=Path, required=True)
+    parser.add_argument("--revision", required=True)
     parser.add_argument("--output", type=Path, required=True)
     plan_deployment(**vars(parser.parse_args()))

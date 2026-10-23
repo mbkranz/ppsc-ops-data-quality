@@ -19,7 +19,7 @@ build a release, render its deployment plan, deploy, and submit a settled event:
 
 ```bash
 uv sync --locked --python 3.11
-uv run poe plan-deployment --environment dev --output build/deployment-dev
+uv run --no-sync poe plan-deployment --revision EXACT_RELEASE_SHA --environment dev --output build/deployment-dev
 uv run poe deploy --plan build/deployment-dev --operation create
 # Upload/hash params.local.yaml, then:
 uv run poe run-glue --plan build/deployment-dev \

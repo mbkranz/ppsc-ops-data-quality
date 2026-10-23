@@ -7,7 +7,10 @@
 - Treat schema profiles as validation inputs; confirm deployed catalog types separately.
 - Python suite builders are authoritative. Serialize each registered runtime suite before validation.
 - Keep authored SQL-file execution deferred until the metadata/comment contract in runtime/TODO.md is agreed.
-- Use Poe for operational entry points. Add DVC only for a real deterministic build DAG.
+- Use Poe for operational entry points and root DVC for the four release producers only.
+- Never cache live Athena/GX validation, deployment, run submission or report publication.
+- Prepare locked release tools once; DVC producers call real commands without nested environment setup.
+- Finalize dvc.lock from real outputs before committing. Publication retrieves without reproducing; deployment pulls only bundle.
 - Keep credentials, live configuration and record-level outputs out of version control.
 - Use synthetic fixtures in CI. Local checks do not establish live Athena/Glue acceptance.
 - Run `uv run poe check`, `uv run poe check-queries` and `uv run poe check-synthetic` before proposing changes.

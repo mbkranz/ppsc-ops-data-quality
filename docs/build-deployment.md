@@ -1,203 +1,164 @@
 # Build, deploy and run operational validation
 
-This closes the repository's packaging and job-entry-point gaps on PR #6. AWS
-acceptance is a separate, still-open step: no deployment or live run has been
-performed from this workspace.
+## Ownership
 
-## Reference review and decisions
+uv owns locked tools; DVC owns only deterministic release outputs; Git owns the
+unchanged Glue driver, job template, source and finalized locks. Poe exposes
+operational commands. Python validates artifacts, renders native payloads and
+calls the AWS SDK. Live Athena/GX validation, report publication, STS, deployment,
+submission and catalog operations are uncached.
 
-Reviewed `ppsc-survey` **v2**, pinned at
-[`9fd741c`](https://github.com/mbkranz/ppsc-survey/tree/9fd741c049163c8e31368edce7ed9b832344a139):
-`runtime/glue.py` separates arguments and job lifecycle, `runtime/resources.py`
-verifies selected resources with injectable clients, and `runtime/validation.py`
-composes validation and publication. Those responsibilities are used here. The
-survey Spark session, resource inventory and serialized suite loader are not
-needed: Athena executes queries and Python suite builders remain authoritative.
-The separately named `ppsc-survey-v2` repository is not the runtime reference.
+The common CLI/Glue runner, Ibis queries, native GX suites, inclusive
+`Completion_Status_Timestamp__c >= 2024-12-16` Flow conditions, missing/prelaunch
+profiling, rollup definitions and report formats are unchanged. Glue 5.0 uses a
+CPython 3.11/Linux x86_64 driver; Athena executes SQL without initializing Spark.
+Exit codes remain 0 for success, 1 for quality failure and 2 for execution or
+publication errors. Every invocation creates fresh run evidence.
 
-Use Glue 5.0's CPython 3.11/Linux driver. Athena executes the SQL; the driver does
-not create a Spark session or load the lake into a DataFrame. Python Shell 3.9 is
-incompatible with this project's Python/GX requirements. Two G.1X workers are an
-initial hosting choice, subject to measurement. This is not a Spark migration.
+## Prepare a candidate
 
-The installed `ppsc-dq validate` command and Glue script call the same packaged
-`runtime.validation.run_validation`. Python suite builders remain authoritative. The
-example script delegates to that command. Configuration, credentials, rendered
-plans and validation evidence remain outside Git.
+Use Linux x86_64, Python **3.11.17**, uv **0.12.23**, locked pip **25.3** and
+Hatchling **1.27.0**. Backend dependencies are locked; wheel builds disable
+isolation and set `SOURCE_DATE_EPOCH=315532800`. Prepare each environment once:
 
-Poe owns uv, Git, AWS and release operations. Python assembles/verifies artifact
-hashes and renders payloads; it does not wrap CLI invocations. DVC adoption is evaluated separately from YAML/task cleanup; see
-[release graph evaluation](release-build-evaluation.md). The graph has two branches
-that converge at assembly. Deployment and live results remain outside cached builds.
+```bash
+uv sync --locked
+uv run --no-sync poe check
+uv run --no-sync poe check-queries
+uv run --no-sync poe check-synthetic
+UV_PROJECT_ENVIRONMENT=.venv-release uv sync --locked --only-group release
+UV_PROJECT_ENVIRONMENT=.venv-release uv run --no-sync poe build-release
+UV_PROJECT_ENVIRONMENT=.venv-release uv run --no-sync poe smoke-release
+UV_PROJECT_ENVIRONMENT=.venv-release uv run --no-sync dvc status dvc.yaml --quiet
+```
 
-## Implemented and remaining work
+The release graph has four exclusive outputs:
 
-| Area | Repository addition | Status / completion criterion |
+| Stage | Output | Purpose |
 | --- | --- | --- |
-| Athena entry point | `ppsc-dq validate`, shared `runtime/validation.py` | Implemented; placeholder bindings rejected before connection |
-| Dependency packaging | `build-release`, `package_release.py`, manifest with source/lock/artifact/wheel hashes | Implemented; full wheel download/install is a Python 3.11 CI gate |
-| Installed runtime | `smoke-release`, Python 3.11 CI | Install only bundled wheels with no index; dependency check plus isolated installed compilation/synthetic checks |
-| Release publication | Manual exact-tag `release.yml` | Verify existing tag, check/build/smoke, upload bundle, publish GitHub release |
-| Deployment | `plan-deployment`, `deploy` | STS account selection; explicit create/update; checksums reverified before upload |
-| Glue execution | `validate_history.py`, `run-glue`, `glue-status` | Hash-check runtime configuration; verify deployed job matches plan; retain run ID |
-| Discovery | `render-report-catalog`, `register-report-catalog` | Bind existing DDL; submit two separate statements; wait for both Athena executions |
-| Source acceptance | Actual catalog columns, temporal semantics and settled event | **Open:** data owner confirms bindings, types, deletion and timezone conventions |
-| AWS acceptance | Dev/prod settings, role, buckets, workgroup, network and catalog access | **Open:** cloud architect supplies verified environment values; run acceptance below |
-| Scheduling | Trigger/schedule | **Open:** establish accepted run selection and cadence after the first successful dev run |
+| `requirements` | `build/release/requirements/requirements.txt` | Hashed locked runtime export excluding development/release tools |
+| `dependencies` | `build/release/dependencies/` | Binary-only, hash-checked CPython 3.11 Linux wheels |
+| `wheel` | `build/release/project/` | Application wheel |
+| `bundle` | `build/release/bundle/dependencies.gluewheels.zip` | Deterministic ZIP containing the application once and its complete wheel closure |
 
-## Build and release
+The archive producer validates metadata, target tags and dependency closure,
+rejects duplicates/source archives and tolerates an existing output parent.
+Deleting only the archive is recoverable. The driver stays in Git and is uploaded
+from the selected checkout; it is not copied into a cached build directory.
+There is no build manifest, revision-dependent producer or runtime
+`release_manifest_uri` argument. Runtime configuration checksums and report
+completion manifests remain separate contracts.
 
-Requires uv, Git and Python 3.11. AWS operations additionally require AWS CLI v2,
-`jq` and normal AWS credentials. Graphviz is required for the repository checks.
+The installed smoke uses an isolated interpreter, index-free wheel installation,
+dependency checking, installed CLI help/error handling and the synthetic 28 Flow
+plus 25 rollup expectations, 53 expectation rows and two validation summaries.
+It does not establish managed Glue bootstrap/network compatibility.
+
+## Publish an exact release
+
+Configure the approved remote locally; no bucket or account is invented:
 
 ```bash
-uv sync --locked --python 3.11
-uv run --locked poe check
-uv run --locked poe check-queries
-uv run --locked poe check-synthetic
-# Commit source changes first. Start with no existing build/release directory.
-uv run --locked poe build-release
-uv run --locked poe smoke-release
+UV_PROJECT_ENVIRONMENT=.venv-release uv run --no-sync dvc remote add --local release s3://APPROVED_BUCKET/dvc-store/
+UV_PROJECT_ENVIRONMENT=.venv-release uv run --no-sync dvc remote modify --local release verify true
 ```
 
-The builder exports production dependencies from `uv.lock` with hashes, downloads
-binary CPython 3.11 wheels for Glue-compatible Linux platforms, and adds exactly
-one project wheel. It creates `build/release/bundle/` containing:
+After tests/smoke and the local freshness gate pass, commit source, configuration,
+`uv.lock` and the actual `dvc.lock`, push that exact commit, then push all release
+outputs with `UV_PROJECT_ENVIRONMENT=.venv-release uv run --no-sync poe publish-release`.
+The task transfers artifacts; it does not create a GitHub release.
 
-- `dependencies.gluewheels.zip`: project plus all runtime dependencies;
-- `validate_history.py`: the minimal driver;
-- `requirements.txt`: the hashed dependency export;
-- `manifest.json`: full Git revision, runtime, lock hash and all artifact/wheel hashes.
+Dispatch **Publish prepared release** (`release.yml`) from protected `main`, with
+that full `revision` and a matching versioned `release` tag. The workflow uses one
+fresh checkout and independent empty cache, enables remote verification, pulls
+`dvc.yaml`, checks local `dvc status dvc.yaml --quiet`, runs installed smoke and
+checks that locks did not change. It then records commit status `release-artifacts`
+and creates the GitHub release at that SHA. Publication contains no `dvc repro`
+and fails instead of rebuilding missing/stale artifacts. Protect release tags
+and restrict publishers/status writers; a tag by itself is mutable.
 
-Every wheel must be available for the target. Missing/incompatible binaries fail
-the build instead of falling back to compilation. The smoke environment has no
-package-index access during installation. It verifies the packaged CLI, imports from the smoke environment (never checkout source),, native GX execution and report generation using synthetic data. It does
-not reproduce Glue's preinstalled libraries, bootstrap or network environment.
+The GitHub `release` environment needs approved `DVC_REMOTE_URL`, `AWS_ROLE_ARN`,
+`AWS_ACCOUNT_ID`, `AWS_REGION`, OIDC trust and artifact retention. Keep historical
+objects until rollback retention is established. A local-remote retrieval test
+is not evidence that the canonical S3 remote is populated.
 
-The dependency ZIP uses AWS's documented `.gluewheels.zip` format with
-`--additional-python-modules` and `--python-modules-installer-option=--no-index`.
-See [AWS Python dependency packaging](https://docs.aws.amazon.com/glue/latest/dg/aws-glue-programming-python-libraries.html).
+## Retrieve, plan and deploy
 
-For publication, create an appropriate existing `v*` tag on the reviewed commit,
-then dispatch **Glue release** with that tag. Deployment uses those downloaded
-bundle files without rebuilding. Dev and prod receive the same bundle hash.
-The deployment manifest's content hash is the S3 release directory; different
-build bytes get a different directory even for the same source revision.
-
-## Plan and deploy
-
-Operational tasks default to `--profile data-migration-dev`; use `--profile PROFILE`
-for an explicit override. Every plan/deploy/run/status/catalog task checks STS.
-The local profile is never added to Glue configuration.
-
-Populate `glue/environments.local.yaml` from the example. Each account must map
-uniquely to dev or prod. Quote each account ID to preserve all 12 digits.
-`glue/job.yaml` configures workers, timeout, concurrency and optional network/security
-settings. The planner fills the role, script/dependency URIs and release provenance,
-then validates the payload against the installed Glue SDK model. The role must belong to that account. Use existing
-artifact buckets and execution roles; this project does not provision them.
+Check out the published tag as a detached checkout, resolve its full SHA and
+prepare the deployment tools. Verify the GitHub release was published and that
+its commit passed `release-artifacts`. Restore only the final archive:
 
 ```bash
-uv run poe plan-deployment --environment dev --output build/deployment-dev
-# Review target.json, create-job.json/update-job.json and uploads.tsv.
-uv run poe deploy --plan build/deployment-dev --operation create
-# Existing job: use --operation update explicitly.
+git checkout --detach vX.Y.Z
+revision=$(git rev-parse HEAD)
+uv sync --locked --group release
+uv run --no-sync dvc remote modify --local release verify true
+uv run --no-sync dvc pull bundle -r release
+uv run --no-sync poe plan-deployment --revision "$revision" --environment dev --output build/deployment-dev
+uv run --no-sync poe deploy --plan build/deployment-dev --operation create
+# Use --operation update explicitly for an existing job.
 ```
 
-Planning reads STS, verifies the supplied bundle and writes local payloads. It
-uploads nothing and changes no job. To render entirely offline, invoke
-`python -m scripts.plan_deployment` with the same arguments plus `--account`,
-`--config` and `--bundle`; this does not verify a live identity.
+Do not run a whole-graph status check after final-only retrieval: its intermediates
+are intentionally absent. The planner checks the exact clean checkout, final
+bundle MD5 against the selected DVC lock, embedded application/version/Python
+metadata, environment/account/role and both native Glue SDK payloads. It reads
+`glue/job.yaml` and `glue/scripts/validate_history.py` directly. The plan records
+revision, lock digest, runtime tuple and actual driver/archive SHA256 and size.
+It performs no AWS writes. A direct planner call with `--account` is an offline
+rendering operation; the public task independently checks the release gate and STS.
 
-Deployment rechecks the active account and local checksums, uploads only the
-manifest's files with the manifest last, and calls the chosen Glue API. No
-catch-all create-on-update-error fallback is used. Release upload completion is
-not equivalent to a successfully updated job: retain the command result and run
-acceptance. Retry uses the same hash-addressed artifact paths. Updating a job
-replaces the managed job settings; include any required VPC connections or
-organization-specific security configuration in `glue/job.yaml` before acceptance.
+Populate ignored `glue/environments.local.yaml` from the example. Quote account
+IDs. Explicit environment selection permits several environments in one account
+while always asserting STS identity and same-account execution roles. Local tasks
+default to `--profile data-migration-dev`; overrides remain available. Glue uses
+its execution role. Include required VPC/security/job settings in the Git template.
 
-## Configure, run and inspect
+Deployment rechecks identity and local bytes, inspects all immutable destinations,
+then conditionally uploads both driver and archive below `releases/<full-sha>/`
+before calling the chosen create/update API. Identical bytes are reusable;
+conflicting bytes and denied service reads fail. SDK errors propagate. The
+compact `deployment.json` receipt retains staged artifacts and activation outcome.
+Early identity/local-input failures can occur before a receipt exists.
+Rollback checks out an earlier retained release and applies its earlier Git job
+settings and retrieved archive without building.
 
-Populate `params.local.yaml` from `params.example.yaml` and independently verify:
-source databases/physical types; SCD2 interval and deletion semantics; the
-triggering Survey Result; BEFORE < execution < settled AFTER; rollup effective
-point; and business timezone/Flow run date. An effective timestamp does not pin
-an Iceberg physical version. Preserve explicit physical source pins upstream or
-materialized run inputs when immutable data replay is required.
+## Run and inspect
 
-Upload the run configuration to a unique S3 object. Calculate its SHA256 locally
-(`sha256sum params.local.yaml`), then submit that exact hash:
+Create a versioned runtime YAML from `params.example.yaml`. Confirm actual catalog
+columns/types, SCD2 intervals, deletion history, BEFORE < event < settled AFTER,
+rollup effective point and timezone/date semantics. Independent source tables
+sharing a timestamp do not thereby form an atomic snapshot.
 
 ```bash
-aws --profile data-migration-dev s3 cp params.local.yaml s3://YOUR_CONFIG_BUCKET/quality-runs/RUN_ID.yaml
-uv run poe run-glue --plan build/deployment-dev \
-  --config-uri s3://YOUR_CONFIG_BUCKET/quality-runs/RUN_ID.yaml \
-  --config-sha256 YOUR_64_CHARACTER_SHA256
-uv run poe glue-status --plan build/deployment-dev --run-id RETURNED_JOB_RUN_ID
+aws --profile data-migration-dev s3 cp params.local.yaml s3://CONFIG_BUCKET/quality-runs/RUN_ID.yaml
+uv run --no-sync poe run-glue --plan build/deployment-dev \
+  --config-uri s3://CONFIG_BUCKET/quality-runs/RUN_ID.yaml --config-sha256 EXACT_SHA256
+uv run --no-sync poe glue-status --plan build/deployment-dev --run-id RETURNED_JOB_RUN_ID
 ```
 
-`run-glue` compares the deployed script and dependency arguments with the planned
-release before submission. Submission is asynchronous. Repeat status inspection
-until terminal. Submissions are retained in `plan/runs/JOB_RUN_ID.json`, with status
-evidence alongside them; terminal failures return nonzero. Inspect the reported CloudWatch log group on failure. Do not
-interpret a returned job-run ID as success. Automatic job retries and bookmarks
-are disabled. Each invocation creates a new report UUID; retries are distinct
-runs rather than overwriting earlier evidence.
+`run-glue` compares deployed command/default arguments with the plan before
+submission. Poll status until terminal; run IDs/status files stay under the plan.
+The runner preserves exact configuration URI/hash, release revision, source/query
+identifiers and Glue execution identity. Reports retain gzip native GX JSON,
+complete Data Docs assets, compiled SQL, registered suites and Snappy Parquet with
+one row per expectation plus separate validation summaries. Partial publication
+has no completion marker; a visible Parquet object is not a completed run.
 
-The driver checks configuration bytes before querying. It records config URI and
-hash, source revision, manifest URI, Glue job and Glue run ID in report metadata.
-It publishes native JSON, HTML/assets and one Parquet row per expectation. A
-completed validation with failed expectations exits 1; execution/publishing errors
-exit 2. Both are Glue FAILED, distinguished by native results and the manifest.
-Only a successful validation exits 0. Startup, configuration or connection errors
-before validation setup have CloudWatch evidence but may have no report manifest;
-partial S3 publication has no completion marker. Do not treat its visible Parquet
-objects as a completed run without checking the manifest.
-
-## Register discovery tables
-
-Use an existing report database. Render from the same runtime report prefix:
+## Register discovery and accept
 
 ```bash
-uv run poe render-report-catalog --config params.local.yaml \
+uv run --no-sync poe render-report-catalog --config params.local.yaml \
   --database quality_reports --first-run-date 2026-10-21 --output build/catalog-dev
-uv run poe register-report-catalog --plan build/deployment-dev --catalog build/catalog-dev
-# For each returned query ID, require SUCCEEDED:
-aws --profile data-migration-dev athena get-query-execution --query-execution-id RETURNED_QUERY_ID \
-  --query 'QueryExecution.Status'
+uv run --no-sync poe register-report-catalog --plan build/deployment-dev --catalog build/catalog-dev
 ```
 
-DDL points only at the two Parquet prefixes. Partition projection removes the
-need for a crawler or per-run partition updates. `IF NOT EXISTS` does not reconcile
-an already incompatible table schema; inspect existing Glue table definitions
-before declaring acceptance. HTML/JSON remain archived under `runs/`.
+Inspect both Athena DDL executions and existing table schemas. Verify terminal
+Glue success, expected quality-failure/error behavior, matching native results,
+53 synthetic expectation rows/two summaries, complete Data Docs assets and
+report completion manifests. Promote the same archive/driver hashes to prod after
+dev acceptance. Retain failed-run evidence; retries get fresh run IDs.
 
-## Live acceptance and promotion
-
-1. Cloud architect provides dev/prod account IDs, region, artifact/config/report
-   locations, Glue execution role, Athena workgroup/staging location and report
-   database. The deployment identity needs scoped artifact writes, Glue job
-   create/update/start/inspect and PassRole for the declared execution role.
-2. Execution role needs config/bundle reads, Athena execution, Glue catalog reads,
-   lake/report/staging S3 access and applicable KMS/Lake Formation permissions.
-   Verify endpoints/egress and CloudWatch logging in the actual execution network.
-   Report catalog creation needs its own catalog/DDL permissions.
-3. Build/install the Python 3.11 bundle in CI and review the synthetic results.
-   Deploy dev and run a known settled event with an independently expected outcome.
-4. Require Glue terminal state, the matching report completion manifest, both
-   native validation results, usable Data Docs assets and discoverable Parquet.
-   Verify unique `(run_id, validation_definition_name, expectation_index)` and
-   counts against native results; verify source query and Glue/config provenance.
-5. Exercise a known data failure and a configuration-hash failure in dev. Confirm
-   Glue FAILED, the correct evidence/absence of completion marker, and no silent
-   success after report publication errors.
-6. Retain accepted run IDs and exact bundle manifest. Deploy the **same** bundle
-   to prod with a separately reviewed prod plan and run configuration. Rollback
-   renders a new plan from a previously accepted bundle and updates the job;
-   existing evidence is retained. Resolve cadence and population selection before
-   enabling any scheduled trigger.
-
-Outstanding live inputs are deployment settings and verified data bindings, not
-additional runtime abstractions. No AWS deploy/run result is claimed by local
-checks or synthetic tests.
+Canonical S3 retrieval, environment/role/workgroup/network/catalog bindings,
+platform-matched container verification and managed Glue acceptance remain
+operational prerequisites. Local synthetic results do not close them.

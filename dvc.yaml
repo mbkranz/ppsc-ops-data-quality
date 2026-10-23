@@ -1,0 +1,51 @@
+artifacts:
+  runtime:
+    path: build/release/bundle/dependencies.gluewheels.zip
+    type: model
+stages:
+  requirements:
+    cmd: >-
+      python -c 'import sys; assert sys.version_info[:3] == (3, 11, 17)' && test "$(uv --version | cut
+      -d " " -f 2)" = 0.12.23 && mkdir -p build/release/requirements && uv export --locked --no-default-groups
+      --no-dev --no-emit-project --format requirements-txt --output-file build/release/requirements/requirements.txt
+    deps:
+      - pyproject.toml
+      - uv.lock
+      - .python-version
+    outs:
+      - build/release/requirements/requirements.txt
+  dependencies:
+    cmd: >-
+      python -c 'import pip; assert pip.__version__ == "25.3"' && python -m pip download --require-hashes
+      --only-binary=:all: --no-deps --python-version 3.11 --implementation cp --abi cp311 --platform manylinux_2_34_x86_64
+      --platform manylinux_2_28_x86_64 --platform manylinux2014_x86_64 --requirement build/release/requirements/requirements.txt
+      --dest build/release/dependencies
+    deps:
+      - build/release/requirements/requirements.txt
+      - .python-version
+    outs:
+      - build/release/dependencies
+  wheel:
+    cmd:
+      - rm -rf build/release/project
+      - >-
+        SOURCE_DATE_EPOCH=315532800 uv build --wheel --no-sources --no-build-isolation --no-create-gitignore
+        --out-dir build/release/project
+    deps:
+      - src
+      - README.md
+      - pyproject.toml
+      - uv.lock
+      - .python-version
+      - .dvcignore
+    outs:
+      - build/release/project
+  bundle:
+    cmd: python -m scripts.package_release
+    deps:
+      - build/release/dependencies
+      - build/release/project
+      - scripts/package_release.py
+      - scripts/glue_wheels.py
+    outs:
+      - build/release/bundle/dependencies.gluewheels.zip

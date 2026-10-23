@@ -625,14 +625,9 @@ def expected_account_values(
         raise ValueError("Supply one Ibis expression per output name.")
     expressions = {field.get_name(): field for field in fields}
     if "CABOR_Completion_Date__c" in expressions:
-        permission_route = (
-            (Record.Completion_Status__c == "Complete")
-            & (Record.Survey_Index_Number__c == "1008")
-            & Record.Consent_Status__c.isin(["Yes", "N/A"])
+        expressions["CABOR_Completion_Date__c_is_deterministic"] = cabor_lookup_is_deterministic(
+            Record
         )
-        expressions["CABOR_Completion_Date__c_is_deterministic"] = ~permission_route.fill_null(
-            False
-        ) | (Record["FlowRecordLookup.Pediatric_Permission_For_Assent.match_count"] <= 1)
     return Record.select(
         Record.Id.name("Record.Id"),
         Record["Participant__r.Account.Id"].name("Account.Id"),
@@ -649,16 +644,7 @@ def survey_rollup_expressions(Record: ir.Table) -> dict[str, ir.Value]:
     return {indicator.get_name(): indicator.sum() for indicator in survey_rollup_indicators(Record)}
 
 
-def expected_survey_rollups(Account: ir.Table, Survey_Result__c: ir.Table) -> ir.Table:
-    """Compose expected rollups at ONE ROW PER PERSON ACCOUNT, a separate grain.
-
-    Lineage: Account.PersonContactId -> Survey_Result__c.Participant__c -> the
-    conditional aggregates in survey_rollup_expressions(). A left join retains
-    person Accounts without children and CASE ELSE 0 gives each count zero.
-    Inputs must be complete current snapshots, with deleted survey rows excluded
-    upstream. This is a snapshot aggregation, independent of the per-event Flow
-    projection; no arbitrary event is selected to consolidate Account state.
-    """
+def _survey_rollup_record(Account: ir.Table, Survey_Result__c: ir.Table) -> ir.Table:
     Account = (
         Account.filter(Account.IsPersonAccount)
         .select("Id", "PersonContactId")
@@ -671,7 +657,7 @@ def expected_survey_rollups(Account: ir.Table, Survey_Result__c: ir.Table) -> ir
         "Consent_Status__c",
         "Consent_Revoked__c",
     ).alias("Survey_Result__c")
-    Record = Account.left_join(
+    return Account.left_join(
         Survey_Result__c,
         Account.PersonContactId == Survey_Result__c.Participant__c,
     ).select(
@@ -682,6 +668,16 @@ def expected_survey_rollups(Account: ir.Table, Survey_Result__c: ir.Table) -> ir
         Survey_Result__c.Consent_Status__c,
         Survey_Result__c.Consent_Revoked__c,
     )
+
+
+def expected_survey_rollups(Account: ir.Table, Survey_Result__c: ir.Table) -> ir.Table:
+    """Compose conditional counts at one row per person Account.
+
+    LEFT JOIN preserves zero-child Accounts. Duplicate source Accounts contribute
+    to the same group, just as duplicate survey matches do. Inputs are complete
+    snapshots with deleted survey rows excluded upstream.
+    """
+    Record = _survey_rollup_record(Account, Survey_Result__c)
     return Record.group_by("Account.Id", "PersonContactId").aggregate(
         **survey_rollup_expressions(Record)
     )
@@ -691,15 +687,27 @@ ROLLUP_ACCOUNT_FIELDS = tuple(field.removeprefix("Account.") for field in ROLLUP
 SURVEY_COMPLETION_FLOW_LAUNCH_DATE = date(2024, 12, 16)
 
 
+def cabor_lookup_is_deterministic(Record: ir.Table) -> ir.BooleanValue:
+    """Keep unsorted permission ambiguity separate from the authored assignment."""
+    permission_route = (
+        (Record.Completion_Status__c == "Complete")
+        & (Record.Survey_Index_Number__c == "1008")
+        & Record.Consent_Status__c.isin(["Yes", "N/A"])
+    )
+    return ~permission_route.fill_null(False) | (
+        Record["FlowRecordLookup.Pediatric_Permission_For_Assent.match_count"] <= 1
+    )
+
+
 def flow_account_comparison(
-    ExpectedAccount: ir.Table,
+    Record: ir.Table,
     AccountAfter: ir.Table,
     *,
     event_id_column: str = "survey_result_id",
 ) -> ir.Table:
-    """LEFT JOIN expected per-event values to an independent Account AFTER state.
+    """Project resolved per-event assignments beside independent AFTER values.
 
-    Input ExpectedAccount is expected_account_values() output. AccountAfter has
+    Input Record is add_flow_context() output. AccountAfter has
     Id, the 19 Account fields, and event_id_column identifying the survey event
     whose observed AFTER state that row represents. Join on both event and Account
     identity: separate events for one Account must not share an arbitrary latest
@@ -716,56 +724,71 @@ def flow_account_comparison(
     retain an unknown predicate. This is a business scope, not a FlowDecision.
     Pre-launch events remain available for profiling and migration reconciliation.
     """
-    ExpectedAccount = ExpectedAccount.alias("Expected_Account")
     survey_completion_occurred_on_or_after_launch = (
-        ExpectedAccount.Completion_Status_Timestamp__c.date()
+        Record.Completion_Status_Timestamp__c.date()
         >= ibis.literal(SURVEY_COMPLETION_FLOW_LAUNCH_DATE, type="date")
     ).name("survey_completion_occurred_on_or_after_launch")
     AccountAfter = AccountAfter.alias("Account_After")
-    Joined = ExpectedAccount.left_join(
+    Joined = Record.left_join(
         AccountAfter,
         [
-            ExpectedAccount["Account.Id"] == AccountAfter.Id,
-            ExpectedAccount["Record.Id"] == AccountAfter[event_id_column],
+            Record["Participant__r.Account.Id"] == AccountAfter.Id,
+            Record.Id == AccountAfter[event_id_column],
         ],
     )
     return Joined.select(
-        ExpectedAccount["Record.Id"].name("survey_result_id"),
-        ExpectedAccount.Participant__c.name("participant_contact_id"),
-        ExpectedAccount["Account.Id"].name("expected_account_id"),
+        Record.Id.name("survey_result_id"),
+        Record.Participant__c.name("participant_contact_id"),
+        Record["Participant__r.Account.Id"].name("expected_account_id"),
         AccountAfter.Id.name("observed_account_id"),
-        ExpectedAccount.Survey_Index_Number__c.name("survey_index_number"),
-        ExpectedAccount.Completion_Status_Timestamp__c.name("survey_completion_timestamp"),
+        Record.Survey_Index_Number__c.name("survey_index_number"),
+        Record.Completion_Status_Timestamp__c.name("survey_completion_timestamp"),
         survey_completion_occurred_on_or_after_launch,
-        ExpectedAccount.CABOR_Completion_Date__c_is_deterministic.name(
-            "cabor_lookup_is_deterministic"
-        ),
-        **{
-            f"expected__{field}": ExpectedAccount[field]
-            for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW
-        },
+        cabor_lookup_is_deterministic(Record).name("cabor_lookup_is_deterministic"),
+        **{f"expected__{field.get_name()}": field for field in derived_account_expressions(Record)},
         **{f"observed__{field}": AccountAfter[field] for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW},
     )
 
 
-def rollup_account_comparison(ExpectedRollups: ir.Table, AccountSnapshot: ir.Table) -> ir.Table:
-    """LEFT JOIN expected rollup counts to Account fields from the same snapshot.
+def rollup_account_comparison(
+    Account: ir.Table, Survey_Result__c: ir.Table, AccountSnapshot: ir.Table
+) -> ir.Table:
+    """Aggregate resolved conditional counts beside independently observed fields.
 
-    Input ExpectedRollups is expected_survey_rollups() output. Preserve the one
-    row per person Account grain; a duplicate observed Account produces duplicate
-    expected_account_id values and fails the uniqueness expectation.
+    Group by an observation's row identity, not just its values: identical
+    duplicate observations must remain separate comparison rows. Joining before
+    aggregation otherwise preserves the same source-account/survey multiplicity
+    as expected_survey_rollups(), including unmatched observations and zero children.
     """
-    ExpectedRollups = ExpectedRollups.alias("Expected_Rollups")
-    AccountSnapshot = AccountSnapshot.alias("Account_Snapshot")
-    Joined = ExpectedRollups.left_join(
-        AccountSnapshot, ExpectedRollups["Account.Id"] == AccountSnapshot.Id
-    )
-    return Joined.select(
-        ExpectedRollups["Account.Id"].name("expected_account_id"),
-        ExpectedRollups.PersonContactId.name("person_contact_id"),
+    Record = _survey_rollup_record(Account, Survey_Result__c)
+    AccountSnapshot = AccountSnapshot.mutate(
+        _comparison_observation_row=ibis.row_number().over(ibis.window())
+    ).alias("Account_Snapshot")
+    Joined = Record.left_join(AccountSnapshot, Record["Account.Id"] == AccountSnapshot.Id).select(
+        Record,
         AccountSnapshot.Id.name("observed_account_id"),
-        **{f"expected__{field}": ExpectedRollups[field] for field in ROLLUP_ACCOUNT_FIELDS},
+        AccountSnapshot._comparison_observation_row,
         **{f"observed__{field}": AccountSnapshot[field] for field in ROLLUP_ACCOUNT_FIELDS},
+    )
+    observed_fields = [f"observed__{field}" for field in ROLLUP_ACCOUNT_FIELDS]
+    Comparison = Joined.group_by(
+        Joined["Account.Id"].name("expected_account_id"),
+        Joined.PersonContactId.name("person_contact_id"),
+        Joined.observed_account_id,
+        Joined._comparison_observation_row,
+        *[Joined[field] for field in observed_fields],
+    ).aggregate(
+        **{
+            f"expected__{field}": expression
+            for field, expression in survey_rollup_expressions(Joined).items()
+        }
+    )
+    return Comparison.select(
+        "expected_account_id",
+        "person_contact_id",
+        "observed_account_id",
+        *[f"expected__{field}" for field in ROLLUP_ACCOUNT_FIELDS],
+        *observed_fields,
     )
 
 
@@ -782,7 +805,7 @@ def flow_account_query(
 
     Lineage: snapshot(Account BEFORE) + snapshot(Contact at execution) +
     snapshot(Survey_Result__c at execution) -> join_account -> add_flow_context ->
-    expected_account_values -> flow_account_comparison -> snapshot(Account AFTER).
+    flow_account_comparison -> snapshot(Account AFTER).
     Named local variables mirror the Salesforce objects and existing expressions.
 
     Only the selected trigger is projected; FlowRecordLookups retain all survey
@@ -820,9 +843,8 @@ def flow_account_query(
     )
     Record = join_account(Trigger, ContactAtExecution, AccountBefore)
     Record = add_flow_context(Record, Survey_Result__c, flow_run_date=ibis.literal(flow_run_date))
-    ExpectedAccount = expected_account_values(Record)
     AccountAfterBySurveyEvent = AccountAfter.mutate(survey_result_id=ibis.literal(survey_result_id))
-    return flow_account_comparison(ExpectedAccount, AccountAfterBySurveyEvent)
+    return flow_account_comparison(Record, AccountAfterBySurveyEvent)
 
 
 def rollup_account_query(
@@ -838,5 +860,4 @@ def rollup_account_query(
     SurveyResultSnapshot = snapshot(history["Survey_Result__c"], as_of=as_of).alias(
         "Survey_Results_At_Snapshot"
     )
-    ExpectedRollups = expected_survey_rollups(AccountSnapshot, SurveyResultSnapshot)
-    return rollup_account_comparison(ExpectedRollups, AccountSnapshot)
+    return rollup_account_comparison(AccountSnapshot, SurveyResultSnapshot, AccountSnapshot)

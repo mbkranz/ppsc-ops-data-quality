@@ -43,13 +43,13 @@ def test_parts_stop_at_named_inputs_and_preserve_schemas():
             "Expected_Account": {"Flow_Context"},
             "Account_After": {"Account_History"},
             "Account_After_By_Survey_Event": {"Account_After"},
-            "Flow_Comparison": {"Expected_Account", "Account_After_By_Survey_Event"},
+            "Flow_Comparison": {"Flow_Context", "Account_After_By_Survey_Event"},
         },
         "rollups": {
             "Account_Snapshot": {"Account_History"},
             "Survey_Result_Snapshot": {"Survey_Result__c_History"},
             "Expected_Rollups": {"Account_Snapshot", "Survey_Result_Snapshot"},
-            "Rollup_Comparison": {"Expected_Rollups", "Account_Snapshot"},
+            "Rollup_Comparison": {"Account_Snapshot", "Survey_Result_Snapshot"},
         },
     }
     for suite, stages in parts.items():

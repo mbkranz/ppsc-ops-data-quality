@@ -228,9 +228,7 @@ def illustrative_parts() -> dict[str, list[DiagramPart]]:
     Context = _add_part(
         flow, "Flow_Context", "add_flow_context", _cut_input(Context, previous, boundary)
     )
-    Expected = _add_part(
-        flow, "Expected_Account", "expected_account_values", expected_account_values(Context)
-    )
+    _add_part(flow, "Expected_Account", "expected_account_values", expected_account_values(Context))
     AccountAfter = _add_part(
         flow, "Account_After", "snapshot", snapshot(history["Account"], as_of=after_at)
     )
@@ -244,7 +242,7 @@ def illustrative_parts() -> dict[str, list[DiagramPart]]:
         flow,
         "Flow_Comparison",
         "flow_account_comparison",
-        flow_account_comparison(Expected, Observed),
+        flow_account_comparison(Context, Observed),
     )
 
     rollups = []
@@ -257,7 +255,7 @@ def illustrative_parts() -> dict[str, list[DiagramPart]]:
         "snapshot",
         snapshot(history["Survey_Result__c"], as_of=after_at),
     )
-    ExpectedRollups = _add_part(
+    _add_part(
         rollups,
         "Expected_Rollups",
         "expected_survey_rollups",
@@ -267,7 +265,7 @@ def illustrative_parts() -> dict[str, list[DiagramPart]]:
         rollups,
         "Rollup_Comparison",
         "rollup_account_comparison",
-        rollup_account_comparison(ExpectedRollups, AccountSnapshot),
+        rollup_account_comparison(AccountSnapshot, SurveySnapshot, AccountSnapshot),
     )
     return {"flow": flow, "rollups": rollups}
 

@@ -19,7 +19,7 @@ Fields are grouped by their Salesforce object, including expected and observed f
 | [Account_Snapshot](account_to_survey_results_rollups_Account_Snapshot.svg) | `snapshot()` | `Account_History` |
 | [Survey_Result_Snapshot](account_to_survey_results_rollups_Survey_Result_Snapshot.svg) | `snapshot()` | `Survey_Result__c_History` |
 | [Expected_Rollups](account_to_survey_results_rollups_Expected_Rollups.svg) | `expected_survey_rollups()` | `Account_Snapshot`, `Survey_Result_Snapshot` |
-| [Rollup_Comparison](account_to_survey_results_rollups_Rollup_Comparison.svg) | `rollup_account_comparison()` | `Account_Snapshot`, `Expected_Rollups` |
+| [Rollup_Comparison](account_to_survey_results_rollups_Rollup_Comparison.svg) | `rollup_account_comparison()` | `Account_Snapshot`, `Survey_Result_Snapshot` |
 
 ## Account_Snapshot
 

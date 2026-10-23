@@ -3,586 +3,6 @@
 -- Execution: 2026-10-21 12:00; BEFORE: 11:59:59; settled AFTER: 12:05.
 
 -- flow
-WITH "Survey_Results_At_Execution" AS (
-  SELECT
-    *
-  FROM "example_survey_result"."history" AS "history"
-  WHERE
-    "history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
-    AND (
-      (
-        "history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
-      )
-      OR (
-        "history"."valid_to" IS NULL
-      )
-    )
-), "Contact_At_Execution" AS (
-  SELECT
-    *
-  FROM "example_contact"."history" AS "history_2"
-  WHERE
-    "history_2"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
-    AND (
-      (
-        "history_2"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
-      )
-      OR (
-        "history_2"."valid_to" IS NULL
-      )
-    )
-), "Account_Before" AS (
-  SELECT
-    *
-  FROM "example_account"."history" AS "history_3"
-  WHERE
-    "history_3"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T11:59:59') AS TIMESTAMP)
-    AND (
-      (
-        "history_3"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T11:59:59') AS TIMESTAMP)
-      )
-      OR (
-        "history_3"."valid_to" IS NULL
-      )
-    )
-), "Contact" AS (
-  SELECT
-    *
-  FROM "Contact_At_Execution" AS "Contact_At_Execution"
-), "Account" AS (
-  SELECT
-    *
-  FROM "Account_Before" AS "Account_Before"
-), "Trigger_Survey_Result" AS (
-  SELECT
-    *
-  FROM "Survey_Results_At_Execution" AS "Survey_Results_At_Execution"
-  WHERE
-    "Survey_Results_At_Execution"."Id" = 'EXAMPLE_VERIFIED_SURVEY_EVENT'
-), "FlowRecordLookup_First_Remote_Physical_Measurement" AS (
-  SELECT
-    "Survey_Results_At_Execution_2"."Id",
-    "Survey_Results_At_Execution_2"."Participant__c",
-    "Survey_Results_At_Execution_2"."Completion_Status_Timestamp__c"
-  FROM "Survey_Results_At_Execution" AS "Survey_Results_At_Execution_2"
-  WHERE
-    "Survey_Results_At_Execution_2"."Survey_Index_Number__c" = '2009'
-), "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent" AS (
-  SELECT
-    "Survey_Results_At_Execution_3"."Id",
-    "Survey_Results_At_Execution_3"."Participant__c",
-    "Survey_Results_At_Execution_3"."Consent_Status_Timestamp__c"
-  FROM "Survey_Results_At_Execution" AS "Survey_Results_At_Execution_3"
-  WHERE
-    "Survey_Results_At_Execution_3"."Survey_Index_Number__c" IN ('1003', '1004')
-    AND "Survey_Results_At_Execution_3"."Consent_Status__c" = 'Yes'
-), "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent" AS (
-  SELECT
-    "Survey_Results_At_Execution_4"."Id",
-    "Survey_Results_At_Execution_4"."Participant__c",
-    "Survey_Results_At_Execution_4"."Consent_Status_Timestamp__c"
-  FROM "Survey_Results_At_Execution" AS "Survey_Results_At_Execution_4"
-  WHERE
-    "Survey_Results_At_Execution_4"."Survey_Index_Number__c" IN ('1001', '1002')
-    AND "Survey_Results_At_Execution_4"."Consent_Status__c" = 'Yes'
-), "Survey_Result__c" AS (
-  SELECT
-    *
-  FROM "Trigger_Survey_Result" AS "Trigger_Survey_Result"
-), "Pediatric_Permission" AS (
-  SELECT
-    "Survey_Results_At_Execution_6"."Participant__c",
-    MIN("Survey_Results_At_Execution_6"."Id") AS "Id",
-    COUNT(*) AS "match_count",
-    CASE
-      WHEN COUNT(*) = 1
-      THEN MIN("Survey_Results_At_Execution_6"."California_Signature__c")
-      ELSE CAST(NULL AS TIMESTAMP)
-    END AS "California_Signature__c"
-  FROM (
-    SELECT
-      *
-    FROM "Survey_Results_At_Execution" AS "Survey_Results_At_Execution_5"
-    WHERE
-      "Survey_Results_At_Execution_5"."Survey_Index_Number__c" = '1007'
-      AND "Survey_Results_At_Execution_5"."Consent_Status__c" = 'Yes'
-  ) AS "Survey_Results_At_Execution_6"
-  GROUP BY
-    1
-), "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked" AS (
-  SELECT
-    "Survey_Result__c_3"."Id",
-    "Survey_Result__c_3"."Participant__c",
-    "Survey_Result__c_3"."Survey_Index_Number__c",
-    "Survey_Result__c_3"."Completion_Status__c",
-    "Survey_Result__c_3"."Consent_Status__c",
-    "Survey_Result__c_3"."Completion_Status_Timestamp__c",
-    "Survey_Result__c_3"."California_Signature__c",
-    "Survey_Result__c_3"."Participant__r.AccountId",
-    "Survey_Result__c_3"."Participant__r.Birthdate",
-    "Survey_Result__c_3"."Participant__r.Account.Id",
-    "Survey_Result__c_3"."Participant__r.Account.Age_at_Time_of_Consent__pc",
-    "Survey_Result__c_3"."Participant__r.Account.CABOR_Completion_Date__c",
-    "Survey_Result__c_3"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-    "Survey_Result__c_3"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-    "Survey_Result__c_3"."Participant__r.Account.EHR_Consent_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-    "Survey_Result__c_3"."Participant__r.Account.Basics_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.Overall_Health_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.Lifestyle_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.Personal_and_Family_History_Complete__c",
-    "Survey_Result__c_3"."Participant__r.Account.HC_Access_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.Life_Functioning_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.EH_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.Behavioral_Health_Completion__c",
-    "Survey_Result__c_3"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
-    "Survey_Result__c_3"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-    "Survey_Result__c_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-    "Survey_Result__c_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
-    ROW_NUMBER() OVER (
-      PARTITION BY "Survey_Result__c_3"."Id"
-      ORDER BY "Survey_Result__c_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c" ASC NULLS FIRST
-    ) - 1 AS "_lookup_rank"
-  FROM (
-    SELECT
-      "Survey_Result__c_2"."Id",
-      "Survey_Result__c_2"."Participant__c",
-      "Survey_Result__c_2"."Survey_Index_Number__c",
-      "Survey_Result__c_2"."Completion_Status__c",
-      "Survey_Result__c_2"."Consent_Status__c",
-      "Survey_Result__c_2"."Completion_Status_Timestamp__c",
-      "Survey_Result__c_2"."California_Signature__c",
-      "Contact"."AccountId" AS "Participant__r.AccountId",
-      "Contact"."Birthdate" AS "Participant__r.Birthdate",
-      "Account"."Id" AS "Participant__r.Account.Id",
-      "Account"."Age_at_Time_of_Consent__pc" AS "Participant__r.Account.Age_at_Time_of_Consent__pc",
-      "Account"."CABOR_Completion_Date__c" AS "Participant__r.Account.CABOR_Completion_Date__c",
-      "Account"."Earliest_Primary_Consent_Date_for_Report__c" AS "Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-      "Account"."Latest_Primary_Consent_Date_for_Report__c" AS "Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-      "Account"."EHR_Consent_Date_Time__c" AS "Participant__r.Account.EHR_Consent_Date_Time__c",
-      "Account"."EHR_Reconsent_Date_Time__c" AS "Participant__r.Account.EHR_Reconsent_Date_Time__c",
-      "Account"."Update_to_Primary_Consent_Completed__c" AS "Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-      "Account"."Basics_Date_Time__c" AS "Participant__r.Account.Basics_Date_Time__c",
-      "Account"."Overall_Health_Date_Time__c" AS "Participant__r.Account.Overall_Health_Date_Time__c",
-      "Account"."Lifestyle_Date_Time__c" AS "Participant__r.Account.Lifestyle_Date_Time__c",
-      "Account"."Personal_and_Family_History_Complete__c" AS "Participant__r.Account.Personal_and_Family_History_Complete__c",
-      "Account"."HC_Access_Date_Time__c" AS "Participant__r.Account.HC_Access_Date_Time__c",
-      "Account"."Life_Functioning_Date_Time__c" AS "Participant__r.Account.Life_Functioning_Date_Time__c",
-      "Account"."First_Physical_Measurement_Date_Time__c" AS "Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-      "Account"."Last_Physical_Measurement_Date_Time__c" AS "Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-      "Account"."EH_Date_Time__c" AS "Participant__r.Account.EH_Date_Time__c",
-      "Account"."Behavioral_Health_Completion__c" AS "Participant__r.Account.Behavioral_Health_Completion__c",
-      "Account"."Environmental_Exposures_Date_Time__c" AS "Participant__r.Account.Environmental_Exposures_Date_Time__c",
-      "Account"."Social_Determinants_of_Health_Completion__c" AS "Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent"."Id" AS "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent"."Consent_Status_Timestamp__c" AS "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c"
-    FROM (
-      SELECT
-        "Survey_Result__c"."Id",
-        "Survey_Result__c"."Participant__c",
-        "Survey_Result__c"."Survey_Index_Number__c",
-        "Survey_Result__c"."Completion_Status__c",
-        "Survey_Result__c"."Consent_Status__c",
-        "Survey_Result__c"."Completion_Status_Timestamp__c",
-        "Survey_Result__c"."California_Signature__c"
-      FROM "Survey_Result__c" AS "Survey_Result__c"
-    ) AS "Survey_Result__c_2"
-    LEFT OUTER JOIN "Contact" AS "Contact"
-      ON "Survey_Result__c_2"."Participant__c" = "Contact"."Id"
-    LEFT OUTER JOIN "Account" AS "Account"
-      ON "Contact"."AccountId" = "Account"."Id"
-    LEFT OUTER JOIN "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent" AS "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent"
-      ON "Survey_Result__c_2"."Participant__c" = "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent"."Participant__c"
-      AND "Survey_Result__c_2"."Id" <> "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent"."Id"
-  ) AS "Survey_Result__c_3"
-), "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked" AS (
-  SELECT
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Id",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Survey_Index_Number__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Completion_Status__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Consent_Status__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Completion_Status_Timestamp__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."California_Signature__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.AccountId",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Birthdate",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Id",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Age_at_Time_of_Consent__pc",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.CABOR_Completion_Date__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.EHR_Consent_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Basics_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Overall_Health_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Lifestyle_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Personal_and_Family_History_Complete__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.HC_Access_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Life_Functioning_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.EH_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Behavioral_Health_Completion__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
-    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
-    ROW_NUMBER() OVER (
-      PARTITION BY "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Id"
-      ORDER BY "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c" ASC NULLS FIRST
-    ) - 1 AS "_lookup_rank"
-  FROM (
-    SELECT
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Id",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Survey_Index_Number__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Completion_Status__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Consent_Status__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Completion_Status_Timestamp__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."California_Signature__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.AccountId",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Birthdate",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Id",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Age_at_Time_of_Consent__pc",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.CABOR_Completion_Date__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.EHR_Consent_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Basics_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Overall_Health_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Lifestyle_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Personal_and_Family_History_Complete__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.HC_Access_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Life_Functioning_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.EH_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Behavioral_Health_Completion__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent"."Id" AS "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent"."Consent_Status_Timestamp__c" AS "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c"
-    FROM (
-      SELECT
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Id",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Survey_Index_Number__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Completion_Status__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Consent_Status__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Completion_Status_Timestamp__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."California_Signature__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.AccountId",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Birthdate",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Id",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Age_at_Time_of_Consent__pc",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.CABOR_Completion_Date__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.EHR_Consent_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Basics_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Overall_Health_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Lifestyle_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Personal_and_Family_History_Complete__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.HC_Access_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Life_Functioning_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.EH_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Behavioral_Health_Completion__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c"
-      FROM (
-        SELECT
-          *
-        FROM "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked" AS "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked"
-        WHERE
-          "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked"."_lookup_rank" = 0
-      ) AS "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"
-    ) AS "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"
-    LEFT OUTER JOIN "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent" AS "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent"
-      ON "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__c" = "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent"."Participant__c"
-      AND "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Id" <> "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent"."Id"
-  ) AS "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"
-), "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked" AS (
-  SELECT
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Id",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Survey_Index_Number__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Completion_Status__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Consent_Status__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Completion_Status_Timestamp__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."California_Signature__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.AccountId",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Birthdate",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Id",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Age_at_Time_of_Consent__pc",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.CABOR_Completion_Date__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.EHR_Consent_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Basics_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Overall_Health_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Lifestyle_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Personal_and_Family_History_Complete__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.HC_Access_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Life_Functioning_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.EH_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Behavioral_Health_Completion__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.First_Remote_Physical_Measurement.Id",
-    "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c",
-    ROW_NUMBER() OVER (
-      PARTITION BY "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Id"
-      ORDER BY "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c" ASC NULLS FIRST
-    ) - 1 AS "_lookup_rank"
-  FROM (
-    SELECT
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Id",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Survey_Index_Number__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Completion_Status__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Consent_Status__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Completion_Status_Timestamp__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."California_Signature__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.AccountId",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Birthdate",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Id",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Age_at_Time_of_Consent__pc",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.CABOR_Completion_Date__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.EHR_Consent_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Basics_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Overall_Health_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Lifestyle_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Personal_and_Family_History_Complete__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.HC_Access_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Life_Functioning_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.EH_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Behavioral_Health_Completion__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
-      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement"."Id" AS "FlowRecordLookup.First_Remote_Physical_Measurement.Id",
-      "FlowRecordLookup_First_Remote_Physical_Measurement"."Completion_Status_Timestamp__c" AS "FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c"
-    FROM (
-      SELECT
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Id",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Survey_Index_Number__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Completion_Status__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Consent_Status__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Completion_Status_Timestamp__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."California_Signature__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.AccountId",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Birthdate",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Id",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Age_at_Time_of_Consent__pc",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.CABOR_Completion_Date__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.EHR_Consent_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Basics_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Overall_Health_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Lifestyle_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Personal_and_Family_History_Complete__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.HC_Access_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Life_Functioning_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.EH_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Behavioral_Health_Completion__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
-        "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c"
-      FROM (
-        SELECT
-          *
-        FROM "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked" AS "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked"
-        WHERE
-          "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked"."_lookup_rank" = 0
-      ) AS "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"
-    ) AS "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"
-    LEFT OUTER JOIN "FlowRecordLookup_First_Remote_Physical_Measurement" AS "FlowRecordLookup_First_Remote_Physical_Measurement"
-      ON "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__c" = "FlowRecordLookup_First_Remote_Physical_Measurement"."Participant__c"
-  ) AS "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"
-), "Flow_Context" AS (
-  SELECT
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Id",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Survey_Index_Number__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Completion_Status__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Consent_Status__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Completion_Status_Timestamp__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."California_Signature__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.AccountId",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Birthdate",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Id",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Age_at_Time_of_Consent__pc",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.CABOR_Completion_Date__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.EHR_Consent_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Basics_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Overall_Health_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Lifestyle_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Personal_and_Family_History_Complete__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.HC_Access_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Life_Functioning_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.EH_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Behavioral_Health_Completion__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.First_Remote_Physical_Measurement.Id",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Pediatric_Permission_For_Assent.match_count",
-    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c",
-    CAST(FLOOR(
-      DATE_DIFF(
-        'DAY',
-        DATE_TRUNC(
-          'DAY',
-          "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Birthdate"
-        ),
-        DATE_TRUNC('DAY', FROM_ISO8601_DATE('2026-10-21'))
-      ) / CAST(365.25 AS DOUBLE)
-    ) AS BIGINT) AS "FlowFormula_Age_At_Execution"
-  FROM (
-    SELECT
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Id",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Survey_Index_Number__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Completion_Status__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Consent_Status__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Completion_Status_Timestamp__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."California_Signature__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.AccountId",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Birthdate",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Id",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Age_at_Time_of_Consent__pc",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.CABOR_Completion_Date__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.EHR_Consent_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Basics_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Overall_Health_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Lifestyle_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Personal_and_Family_History_Complete__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.HC_Access_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Life_Functioning_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.EH_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Behavioral_Health_Completion__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.First_Remote_Physical_Measurement.Id",
-      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c",
-      "Pediatric_Permission"."Id" AS "FlowRecordLookup.Pediatric_Permission_For_Assent.Id",
-      COALESCE("Pediatric_Permission"."match_count", 0) AS "FlowRecordLookup.Pediatric_Permission_For_Assent.match_count",
-      "Pediatric_Permission"."California_Signature__c" AS "FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c"
-    FROM (
-      SELECT
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Id",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Survey_Index_Number__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Completion_Status__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Consent_Status__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Completion_Status_Timestamp__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."California_Signature__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.AccountId",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Birthdate",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Id",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Age_at_Time_of_Consent__pc",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.CABOR_Completion_Date__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.EHR_Consent_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Basics_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Overall_Health_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Lifestyle_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Personal_and_Family_History_Complete__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.HC_Access_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Life_Functioning_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.EH_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Behavioral_Health_Completion__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.First_Remote_Physical_Measurement.Id",
-        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c"
-      FROM (
-        SELECT
-          *
-        FROM "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked" AS "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked"
-        WHERE
-          "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked"."_lookup_rank" = 0
-      ) AS "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"
-    ) AS "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"
-    LEFT OUTER JOIN "Pediatric_Permission" AS "Pediatric_Permission"
-      ON "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__c" = "Pediatric_Permission"."Participant__c"
-      AND "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Completion_Status__c" = 'Complete'
-      AND "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Survey_Index_Number__c" = '1008'
-      AND "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Consent_Status__c" IN ('Yes', 'N/A')
-  ) AS "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"
-)
 SELECT
   "Flow_Context"."Id" AS "Record.Id", /* Source identity: Record.Id; source: Survey_Result__c.Id */
   "Flow_Context"."Participant__r.Account.Id" AS "Account.Id", /* Source identity: Account.Id; source: Account.Id */
@@ -855,53 +275,644 @@ SELECT
   OR (
     "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.match_count" /* Number of candidate pediatric permissions; source: FlowRecordLookup.Get_Permission_1007 */ <= 1
   ) AS "CABOR_Completion_Date__c_is_deterministic" /* Signature lookup has at most one candidate on the assent route; source: FlowRecordLookup.Get_Permission_1007 */
-FROM "Flow_Context" AS "Flow_Context";
+FROM (
+  SELECT
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Id",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Survey_Index_Number__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Completion_Status__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Consent_Status__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Completion_Status_Timestamp__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."California_Signature__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.AccountId",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Birthdate",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Id",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Age_at_Time_of_Consent__pc",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.CABOR_Completion_Date__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.EHR_Consent_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Basics_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Overall_Health_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Lifestyle_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Personal_and_Family_History_Complete__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.HC_Access_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Life_Functioning_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.EH_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Behavioral_Health_Completion__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.First_Remote_Physical_Measurement.Id",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Pediatric_Permission_For_Assent.match_count",
+    "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c",
+    CAST(FLOOR(
+      DATE_DIFF(
+        'DAY',
+        DATE_TRUNC(
+          'DAY',
+          "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"."Participant__r.Birthdate"
+        ),
+        DATE_TRUNC('DAY', FROM_ISO8601_DATE('2026-10-21'))
+      ) / CAST(365.25 AS DOUBLE)
+    ) AS BIGINT) AS "FlowFormula_Age_At_Execution"
+  FROM (
+    SELECT
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Id",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Survey_Index_Number__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Completion_Status__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Consent_Status__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Completion_Status_Timestamp__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."California_Signature__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.AccountId",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Birthdate",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Id",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Age_at_Time_of_Consent__pc",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.CABOR_Completion_Date__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.EHR_Consent_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Basics_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Overall_Health_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Lifestyle_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Personal_and_Family_History_Complete__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.HC_Access_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Life_Functioning_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.EH_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Behavioral_Health_Completion__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.First_Remote_Physical_Measurement.Id",
+      "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c",
+      "Pediatric_Permission"."Id" AS "FlowRecordLookup.Pediatric_Permission_For_Assent.Id",
+      COALESCE("Pediatric_Permission"."match_count", 0) AS "FlowRecordLookup.Pediatric_Permission_For_Assent.match_count",
+      "Pediatric_Permission"."California_Signature__c" AS "FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c"
+    FROM (
+      SELECT
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Id",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Survey_Index_Number__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Completion_Status__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Consent_Status__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Completion_Status_Timestamp__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."California_Signature__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.AccountId",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Birthdate",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Id",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Age_at_Time_of_Consent__pc",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.CABOR_Completion_Date__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.EHR_Consent_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Basics_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Overall_Health_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Lifestyle_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Personal_and_Family_History_Complete__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.HC_Access_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Life_Functioning_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.EH_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Behavioral_Health_Completion__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.First_Remote_Physical_Measurement.Id",
+        "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c"
+      FROM (
+        SELECT
+          *
+        FROM (
+          SELECT
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Id",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Survey_Index_Number__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Completion_Status__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Consent_Status__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Completion_Status_Timestamp__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."California_Signature__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.AccountId",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Birthdate",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Id",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Age_at_Time_of_Consent__pc",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.CABOR_Completion_Date__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.EHR_Consent_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Basics_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Overall_Health_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Lifestyle_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Personal_and_Family_History_Complete__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.HC_Access_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Life_Functioning_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.EH_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Behavioral_Health_Completion__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.First_Remote_Physical_Measurement.Id",
+            "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c",
+            ROW_NUMBER() OVER (
+              PARTITION BY "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."Id"
+              ORDER BY "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c" ASC NULLS FIRST
+            ) - 1 AS "_lookup_rank"
+          FROM (
+            SELECT
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Id",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Survey_Index_Number__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Completion_Status__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Consent_Status__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Completion_Status_Timestamp__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."California_Signature__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.AccountId",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Birthdate",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Id",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Age_at_Time_of_Consent__pc",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.CABOR_Completion_Date__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.EHR_Consent_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Basics_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Overall_Health_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Lifestyle_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Personal_and_Family_History_Complete__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.HC_Access_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Life_Functioning_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.EH_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Behavioral_Health_Completion__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
+              "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
+              "FlowRecordLookup_First_Remote_Physical_Measurement"."Id" AS "FlowRecordLookup.First_Remote_Physical_Measurement.Id",
+              "FlowRecordLookup_First_Remote_Physical_Measurement"."Completion_Status_Timestamp__c" AS "FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c"
+            FROM (
+              SELECT
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Id",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Survey_Index_Number__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Completion_Status__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Consent_Status__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Completion_Status_Timestamp__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."California_Signature__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.AccountId",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Birthdate",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Id",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Age_at_Time_of_Consent__pc",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.CABOR_Completion_Date__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.EHR_Consent_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Basics_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Overall_Health_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Lifestyle_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Personal_and_Family_History_Complete__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.HC_Access_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Life_Functioning_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.EH_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Behavioral_Health_Completion__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
+                "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c"
+              FROM (
+                SELECT
+                  *
+                FROM (
+                  SELECT
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Id",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Survey_Index_Number__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Completion_Status__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Consent_Status__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Completion_Status_Timestamp__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."California_Signature__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.AccountId",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Birthdate",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Id",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Age_at_Time_of_Consent__pc",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.CABOR_Completion_Date__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.EHR_Consent_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Basics_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Overall_Health_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Lifestyle_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Personal_and_Family_History_Complete__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.HC_Access_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Life_Functioning_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.EH_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Behavioral_Health_Completion__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
+                    "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
+                    ROW_NUMBER() OVER (
+                      PARTITION BY "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."Id"
+                      ORDER BY "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c" ASC NULLS FIRST
+                    ) - 1 AS "_lookup_rank"
+                  FROM (
+                    SELECT
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Id",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Survey_Index_Number__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Completion_Status__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Consent_Status__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Completion_Status_Timestamp__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."California_Signature__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.AccountId",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Birthdate",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Id",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Age_at_Time_of_Consent__pc",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.CABOR_Completion_Date__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.EHR_Consent_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Basics_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Overall_Health_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Lifestyle_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Personal_and_Family_History_Complete__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.HC_Access_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Life_Functioning_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.EH_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Behavioral_Health_Completion__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+                      "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
+                      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent"."Id" AS "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
+                      "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent"."Consent_Status_Timestamp__c" AS "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c"
+                    FROM (
+                      SELECT
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Id",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Survey_Index_Number__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Completion_Status__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Consent_Status__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Completion_Status_Timestamp__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."California_Signature__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.AccountId",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Birthdate",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Id",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Age_at_Time_of_Consent__pc",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.CABOR_Completion_Date__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.EHR_Consent_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Basics_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Overall_Health_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Lifestyle_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Personal_and_Family_History_Complete__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.HC_Access_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Life_Functioning_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.EH_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Behavioral_Health_Completion__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+                        "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c"
+                      FROM (
+                        SELECT
+                          *
+                        FROM (
+                          SELECT
+                            "Survey_Result__c_3"."Id",
+                            "Survey_Result__c_3"."Participant__c",
+                            "Survey_Result__c_3"."Survey_Index_Number__c",
+                            "Survey_Result__c_3"."Completion_Status__c",
+                            "Survey_Result__c_3"."Consent_Status__c",
+                            "Survey_Result__c_3"."Completion_Status_Timestamp__c",
+                            "Survey_Result__c_3"."California_Signature__c",
+                            "Survey_Result__c_3"."Participant__r.AccountId",
+                            "Survey_Result__c_3"."Participant__r.Birthdate",
+                            "Survey_Result__c_3"."Participant__r.Account.Id",
+                            "Survey_Result__c_3"."Participant__r.Account.Age_at_Time_of_Consent__pc",
+                            "Survey_Result__c_3"."Participant__r.Account.CABOR_Completion_Date__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+                            "Survey_Result__c_3"."Participant__r.Account.EHR_Consent_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.EHR_Reconsent_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Basics_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Overall_Health_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Lifestyle_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Personal_and_Family_History_Complete__c",
+                            "Survey_Result__c_3"."Participant__r.Account.HC_Access_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Life_Functioning_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.EH_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Behavioral_Health_Completion__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
+                            "Survey_Result__c_3"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+                            "Survey_Result__c_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+                            "Survey_Result__c_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
+                            ROW_NUMBER() OVER (
+                              PARTITION BY "Survey_Result__c_3"."Id"
+                              ORDER BY "Survey_Result__c_3"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c" ASC NULLS FIRST
+                            ) - 1 AS "_lookup_rank"
+                          FROM (
+                            SELECT
+                              "Survey_Result__c_2"."Id",
+                              "Survey_Result__c_2"."Participant__c",
+                              "Survey_Result__c_2"."Survey_Index_Number__c",
+                              "Survey_Result__c_2"."Completion_Status__c",
+                              "Survey_Result__c_2"."Consent_Status__c",
+                              "Survey_Result__c_2"."Completion_Status_Timestamp__c",
+                              "Survey_Result__c_2"."California_Signature__c",
+                              "Contact"."AccountId" AS "Participant__r.AccountId",
+                              "Contact"."Birthdate" AS "Participant__r.Birthdate",
+                              "Account"."Id" AS "Participant__r.Account.Id",
+                              "Account"."Age_at_Time_of_Consent__pc" AS "Participant__r.Account.Age_at_Time_of_Consent__pc",
+                              "Account"."CABOR_Completion_Date__c" AS "Participant__r.Account.CABOR_Completion_Date__c",
+                              "Account"."Earliest_Primary_Consent_Date_for_Report__c" AS "Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c",
+                              "Account"."Latest_Primary_Consent_Date_for_Report__c" AS "Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c",
+                              "Account"."EHR_Consent_Date_Time__c" AS "Participant__r.Account.EHR_Consent_Date_Time__c",
+                              "Account"."EHR_Reconsent_Date_Time__c" AS "Participant__r.Account.EHR_Reconsent_Date_Time__c",
+                              "Account"."Update_to_Primary_Consent_Completed__c" AS "Participant__r.Account.Update_to_Primary_Consent_Completed__c",
+                              "Account"."Basics_Date_Time__c" AS "Participant__r.Account.Basics_Date_Time__c",
+                              "Account"."Overall_Health_Date_Time__c" AS "Participant__r.Account.Overall_Health_Date_Time__c",
+                              "Account"."Lifestyle_Date_Time__c" AS "Participant__r.Account.Lifestyle_Date_Time__c",
+                              "Account"."Personal_and_Family_History_Complete__c" AS "Participant__r.Account.Personal_and_Family_History_Complete__c",
+                              "Account"."HC_Access_Date_Time__c" AS "Participant__r.Account.HC_Access_Date_Time__c",
+                              "Account"."Life_Functioning_Date_Time__c" AS "Participant__r.Account.Life_Functioning_Date_Time__c",
+                              "Account"."First_Physical_Measurement_Date_Time__c" AS "Participant__r.Account.First_Physical_Measurement_Date_Time__c",
+                              "Account"."Last_Physical_Measurement_Date_Time__c" AS "Participant__r.Account.Last_Physical_Measurement_Date_Time__c",
+                              "Account"."EH_Date_Time__c" AS "Participant__r.Account.EH_Date_Time__c",
+                              "Account"."Behavioral_Health_Completion__c" AS "Participant__r.Account.Behavioral_Health_Completion__c",
+                              "Account"."Environmental_Exposures_Date_Time__c" AS "Participant__r.Account.Environmental_Exposures_Date_Time__c",
+                              "Account"."Social_Determinants_of_Health_Completion__c" AS "Participant__r.Account.Social_Determinants_of_Health_Completion__c",
+                              "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent"."Id" AS "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+                              "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent"."Consent_Status_Timestamp__c" AS "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c"
+                            FROM (
+                              SELECT
+                                "Survey_Result__c"."Id",
+                                "Survey_Result__c"."Participant__c",
+                                "Survey_Result__c"."Survey_Index_Number__c",
+                                "Survey_Result__c"."Completion_Status__c",
+                                "Survey_Result__c"."Consent_Status__c",
+                                "Survey_Result__c"."Completion_Status_Timestamp__c",
+                                "Survey_Result__c"."California_Signature__c"
+                              FROM (
+                                SELECT
+                                  *
+                                FROM (
+                                  SELECT
+                                    *
+                                  FROM (
+                                    SELECT
+                                      *
+                                    FROM "example_survey_result"."history" AS "history"
+                                    WHERE
+                                      "history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+                                      AND (
+                                        (
+                                          "history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+                                        )
+                                        OR (
+                                          "history"."valid_to" IS NULL
+                                        )
+                                      )
+                                  ) AS "Survey_Results_At_Execution"
+                                  WHERE
+                                    "Survey_Results_At_Execution"."Id" = 'EXAMPLE_VERIFIED_SURVEY_EVENT'
+                                ) AS "Trigger_Survey_Result"
+                              ) AS "Survey_Result__c"
+                            ) AS "Survey_Result__c_2"
+                            LEFT OUTER JOIN (
+                              SELECT
+                                *
+                              FROM (
+                                SELECT
+                                  *
+                                FROM "example_contact"."history" AS "history_2"
+                                WHERE
+                                  "history_2"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+                                  AND (
+                                    (
+                                      "history_2"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+                                    )
+                                    OR (
+                                      "history_2"."valid_to" IS NULL
+                                    )
+                                  )
+                              ) AS "Contact_At_Execution"
+                            ) AS "Contact"
+                              ON "Survey_Result__c_2"."Participant__c" = "Contact"."Id"
+                            LEFT OUTER JOIN (
+                              SELECT
+                                *
+                              FROM (
+                                SELECT
+                                  *
+                                FROM "example_account"."history" AS "history_3"
+                                WHERE
+                                  "history_3"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T11:59:59') AS TIMESTAMP)
+                                  AND (
+                                    (
+                                      "history_3"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T11:59:59') AS TIMESTAMP)
+                                    )
+                                    OR (
+                                      "history_3"."valid_to" IS NULL
+                                    )
+                                  )
+                              ) AS "Account_Before"
+                            ) AS "Account"
+                              ON "Contact"."AccountId" = "Account"."Id"
+                            LEFT OUTER JOIN (
+                              SELECT
+                                "Survey_Results_At_Execution_4"."Id",
+                                "Survey_Results_At_Execution_4"."Participant__c",
+                                "Survey_Results_At_Execution_4"."Consent_Status_Timestamp__c"
+                              FROM (
+                                SELECT
+                                  *
+                                FROM "example_survey_result"."history" AS "history"
+                                WHERE
+                                  "history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+                                  AND (
+                                    (
+                                      "history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+                                    )
+                                    OR (
+                                      "history"."valid_to" IS NULL
+                                    )
+                                  )
+                              ) AS "Survey_Results_At_Execution_4"
+                              WHERE
+                                "Survey_Results_At_Execution_4"."Survey_Index_Number__c" IN ('1001', '1002')
+                                AND "Survey_Results_At_Execution_4"."Consent_Status__c" = 'Yes'
+                            ) AS "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent"
+                              ON "Survey_Result__c_2"."Participant__c" = "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent"."Participant__c"
+                              AND "Survey_Result__c_2"."Id" <> "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent"."Id"
+                          ) AS "Survey_Result__c_3"
+                        ) AS "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked"
+                        WHERE
+                          "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked"."_lookup_rank" = 0
+                      ) AS "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_2"
+                    ) AS "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"
+                    LEFT OUTER JOIN (
+                      SELECT
+                        "Survey_Results_At_Execution_3"."Id",
+                        "Survey_Results_At_Execution_3"."Participant__c",
+                        "Survey_Results_At_Execution_3"."Consent_Status_Timestamp__c"
+                      FROM (
+                        SELECT
+                          *
+                        FROM "example_survey_result"."history" AS "history"
+                        WHERE
+                          "history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+                          AND (
+                            (
+                              "history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+                            )
+                            OR (
+                              "history"."valid_to" IS NULL
+                            )
+                          )
+                      ) AS "Survey_Results_At_Execution_3"
+                      WHERE
+                        "Survey_Results_At_Execution_3"."Survey_Index_Number__c" IN ('1003', '1004')
+                        AND "Survey_Results_At_Execution_3"."Consent_Status__c" = 'Yes'
+                    ) AS "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent"
+                      ON "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Participant__c" = "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent"."Participant__c"
+                      AND "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_3"."Id" <> "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent"."Id"
+                  ) AS "FlowRecordLookup_Earliest_Other_Yes_Primary_Consent_Ranked_4"
+                ) AS "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked"
+                WHERE
+                  "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked"."_lookup_rank" = 0
+              ) AS "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_2"
+            ) AS "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"
+            LEFT OUTER JOIN (
+              SELECT
+                "Survey_Results_At_Execution_2"."Id",
+                "Survey_Results_At_Execution_2"."Participant__c",
+                "Survey_Results_At_Execution_2"."Completion_Status_Timestamp__c"
+              FROM (
+                SELECT
+                  *
+                FROM "example_survey_result"."history" AS "history"
+                WHERE
+                  "history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+                  AND (
+                    (
+                      "history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+                    )
+                    OR (
+                      "history"."valid_to" IS NULL
+                    )
+                  )
+              ) AS "Survey_Results_At_Execution_2"
+              WHERE
+                "Survey_Results_At_Execution_2"."Survey_Index_Number__c" = '2009'
+            ) AS "FlowRecordLookup_First_Remote_Physical_Measurement"
+              ON "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_3"."Participant__c" = "FlowRecordLookup_First_Remote_Physical_Measurement"."Participant__c"
+          ) AS "FlowRecordLookup_Earliest_Other_Yes_EHR_Consent_Ranked_4"
+        ) AS "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked"
+        WHERE
+          "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked"."_lookup_rank" = 0
+      ) AS "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_2"
+    ) AS "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"
+    LEFT OUTER JOIN (
+      SELECT
+        "Survey_Results_At_Execution_6"."Participant__c",
+        MIN("Survey_Results_At_Execution_6"."Id") AS "Id",
+        COUNT(*) AS "match_count",
+        CASE
+          WHEN COUNT(*) = 1
+          THEN MIN("Survey_Results_At_Execution_6"."California_Signature__c")
+          ELSE CAST(NULL AS TIMESTAMP)
+        END AS "California_Signature__c"
+      FROM (
+        SELECT
+          *
+        FROM (
+          SELECT
+            *
+          FROM "example_survey_result"."history" AS "history"
+          WHERE
+            "history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+            AND (
+              (
+                "history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+              )
+              OR (
+                "history"."valid_to" IS NULL
+              )
+            )
+        ) AS "Survey_Results_At_Execution_5"
+        WHERE
+          "Survey_Results_At_Execution_5"."Survey_Index_Number__c" = '1007'
+          AND "Survey_Results_At_Execution_5"."Consent_Status__c" = 'Yes'
+      ) AS "Survey_Results_At_Execution_6"
+      GROUP BY
+        1
+    ) AS "Pediatric_Permission"
+      ON "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Participant__c" = "Pediatric_Permission"."Participant__c"
+      AND "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Completion_Status__c" = 'Complete'
+      AND "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Survey_Index_Number__c" = '1008'
+      AND "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_3"."Consent_Status__c" IN ('Yes', 'N/A')
+  ) AS "FlowRecordLookup_First_Remote_Physical_Measurement_Ranked_4"
+) AS "Flow_Context";
 
 -- rollups
-WITH "Account_At_Snapshot" AS (
-  SELECT
-    *
-  FROM "example_account"."history" AS "history"
-  WHERE
-    "history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
-    AND (
-      (
-        "history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
-      )
-      OR (
-        "history"."valid_to" IS NULL
-      )
-    )
-), "Survey_Results_At_Execution" AS (
-  SELECT
-    *
-  FROM "example_survey_result"."history" AS "history_2"
-  WHERE
-    "history_2"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
-    AND (
-      (
-        "history_2"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
-      )
-      OR (
-        "history_2"."valid_to" IS NULL
-      )
-    )
-), "Person_Account" AS (
-  SELECT
-    "Account_At_Snapshot"."Id",
-    "Account_At_Snapshot"."PersonContactId"
-  FROM "Account_At_Snapshot" AS "Account_At_Snapshot"
-  WHERE
-    "Account_At_Snapshot"."IsPersonAccount"
-), "Survey_Result__c" AS (
-  SELECT
-    "Survey_Results_At_Execution"."Participant__c",
-    "Survey_Results_At_Execution"."Completion_Status__c",
-    "Survey_Results_At_Execution"."Survey_Index_Number__c",
-    "Survey_Results_At_Execution"."Consent_Status__c",
-    "Survey_Results_At_Execution"."Consent_Revoked__c"
-  FROM "Survey_Results_At_Execution" AS "Survey_Results_At_Execution"
-)
 SELECT
   "Person_Account_2"."Account.Id", /* Source identity: Account.Id; source: Account.Id */
   "Person_Account_2"."PersonContactId", /* Source identity: PersonContactId; source: Account.PersonContactId */
@@ -1188,8 +1199,51 @@ FROM (
     "Survey_Result__c"."Survey_Index_Number__c",
     "Survey_Result__c"."Consent_Status__c",
     "Survey_Result__c"."Consent_Revoked__c"
-  FROM "Person_Account" AS "Person_Account"
-  LEFT OUTER JOIN "Survey_Result__c" AS "Survey_Result__c"
+  FROM (
+    SELECT
+      "Account_At_Snapshot"."Id",
+      "Account_At_Snapshot"."PersonContactId"
+    FROM (
+      SELECT
+        *
+      FROM "example_account"."history" AS "history"
+      WHERE
+        "history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+        AND (
+          (
+            "history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+          )
+          OR (
+            "history"."valid_to" IS NULL
+          )
+        )
+    ) AS "Account_At_Snapshot"
+    WHERE
+      "Account_At_Snapshot"."IsPersonAccount"
+  ) AS "Person_Account"
+  LEFT OUTER JOIN (
+    SELECT
+      "Survey_Results_At_Execution"."Participant__c",
+      "Survey_Results_At_Execution"."Completion_Status__c",
+      "Survey_Results_At_Execution"."Survey_Index_Number__c",
+      "Survey_Results_At_Execution"."Consent_Status__c",
+      "Survey_Results_At_Execution"."Consent_Revoked__c"
+    FROM (
+      SELECT
+        *
+      FROM "example_survey_result"."history" AS "history_2"
+      WHERE
+        "history_2"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+        AND (
+          (
+            "history_2"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+          )
+          OR (
+            "history_2"."valid_to" IS NULL
+          )
+        )
+    ) AS "Survey_Results_At_Execution"
+  ) AS "Survey_Result__c"
     ON "Person_Account"."PersonContactId" = "Survey_Result__c"."Participant__c"
 ) AS "Person_Account_2"
 GROUP BY

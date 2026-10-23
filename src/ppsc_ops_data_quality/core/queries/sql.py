@@ -9,6 +9,80 @@ from sqlglot import exp
 from sqlglot.optimizer.scope import Scope, traverse_scope
 
 
+def _resolve_final_projection(query: exp.Query) -> exp.Query:
+    """Remove a column-only projection over an aggregate without regrouping rows."""
+    if not isinstance(query, exp.Select) or any(
+        value for key, value in query.args.items() if key not in ("expressions", "from_", "with_")
+    ):
+        return query
+    source = query.args.get("from_")
+    if source is None or not isinstance(source.this, exp.Subquery):
+        return query
+    subquery = source.this
+    inner = subquery.this
+    if (
+        not isinstance(inner, exp.Select)
+        or not inner.args.get("group")
+        or inner.args.get("with_")
+        or inner.args.get("order")
+        or inner.args.get("distinct")
+        or inner.args.get("having")
+        or inner.args.get("qualify")
+    ):
+        return query
+    projections = {projection.alias_or_name: projection for projection in inner.selects}
+    resolved = []
+    for projection in query.selects:
+        column = projection.unalias()
+        if (
+            not isinstance(column, exp.Column)
+            or column.table != subquery.alias
+            or column.name not in projections
+        ):
+            return query
+        resolved.append(
+            exp.alias_(
+                projections[column.name].unalias().copy(), projection.alias_or_name, quoted=True
+            )
+        )
+    # Ibis groups by SELECT ordinals. Resolve them before changing projection order.
+    group = inner.args["group"]
+    group.set(
+        "expressions",
+        [
+            inner.selects[int(value.this) - 1].unalias().copy()
+            if isinstance(value, exp.Literal) and value.is_int
+            else value
+            for value in group.expressions
+        ],
+    )
+    inner.set("expressions", resolved)
+    inner.set("with_", query.args.get("with_"))
+    return inner
+
+
+def _inline_ctes(query: exp.Query) -> exp.Query:
+    """Keep a SELECT-first query without adding an otherwise redundant GX wrapper."""
+    with_clause = query.args.get("with_")
+    if with_clause is None:
+        return query
+    if with_clause.args.get("recursive"):
+        raise ValueError("Recursive CTEs cannot be rendered as a SELECT-first Query Asset")
+    # Resolve references by scope, not by spelling: a CTE may share a physical
+    # table's name, including inside its own non-recursive definition.
+    for scope in traverse_scope(query):
+        for alias, (node, source) in scope.selected_sources.items():
+            if isinstance(node, exp.Table) and isinstance(source, Scope) and source.is_cte:
+                node.replace(
+                    exp.Subquery(
+                        this=source.expression.copy(),
+                        alias=exp.TableAlias(this=exp.to_identifier(alias, quoted=True)),
+                    )
+                )
+    query.set("with_", None)
+    return query
+
+
 def _name_relation_aliases(query: exp.Query) -> None:
     """Replace compiler aliases with source names without crossing SQL scopes."""
     scopes = list(traverse_scope(query))
@@ -42,7 +116,11 @@ def to_sqlglot(
 ) -> exp.Query:
     """Compile the completed Ibis query to Athena's AST, then annotate projections.
 
-    All Ibis composition happens first. Named Ibis relations supply readable SQL
+    All Ibis composition happens first. Query-local CTEs become derived tables,
+    so the result starts with SELECT without a SELECT-* wrapper. A column-only
+    projection over an aggregate is folded into its original grouping, exposing
+    the conditional aggregate expressions without merging or deduplicating groups.
+    Named Ibis relations supply readable SQL
     source aliases; numeric suffixes disambiguate repeated references. Stable
     output aliases connect the final SELECT list to authoritative lineage.
     Branch provenance is nested metadata;
@@ -63,6 +141,8 @@ def to_sqlglot(
             if isinstance(value, tuple):
                 node.set(key, list(value))
     _name_relation_aliases(query)
+    query = _resolve_final_projection(query)
+    query = _inline_ctes(query)
     if projection_lineage is None:
         return query
     annotated = []

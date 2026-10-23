@@ -42,7 +42,7 @@ OBSERVED_ACCOUNT_AFTER_BY_SURVEY_EVENT = _AccountAfterBySurveyEvent.schema()
 _ExpectedRollups = expected_survey_rollups(_Account, _Survey_Result__c)
 EXPECTED_ACCOUNT_SURVEY_ROLLUPS = _ExpectedRollups.schema()
 
-FLOW_ACCOUNT_COMPARISON = flow_account_comparison(
-    _ExpectedAccount, _AccountAfterBySurveyEvent
+FLOW_ACCOUNT_COMPARISON = flow_account_comparison(_FlowRecord, _AccountAfterBySurveyEvent).schema()
+ROLLUP_ACCOUNT_COMPARISON = rollup_account_comparison(
+    _Account, _Survey_Result__c, _Account
 ).schema()
-ROLLUP_ACCOUNT_COMPARISON = rollup_account_comparison(_ExpectedRollups, _Account).schema()

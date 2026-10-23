@@ -1,9 +1,8 @@
 """Adapt a final Ibis comparison to a native GX SQL Query Asset.
 
 Provenance: GX Core 1.24 QueryAsset/add_batch_definition_whole_table APIs.
-The SELECT wrapper accommodates compiled CTEs and leading lineage comments:
-GX requires query text to begin with SELECT followed by whitespace. SQLGlot
-retains the existing annotated projection nodes inside that wrapper.
+The shared renderer returns a SELECT-first query with explicit projections.
+GX requires query text to begin with SELECT followed by whitespace.
 
 GX batch parameters select configured partitions. BEFORE/execution/AFTER times
 belong to the Ibis query builder and are not arbitrary GX batch parameters.
@@ -12,7 +11,6 @@ belong to the Ibis query builder and are not arbitrary GX batch parameters.
 from collections.abc import Mapping
 
 import ibis.expr.types as ir
-from sqlglot import exp
 
 from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 
@@ -22,13 +20,12 @@ def query_asset_sql(
 ) -> str:
     """Return one Athena SELECT, with lineage comments and no terminal semicolon.
 
-    Compose Ibis first. to_sqlglot() annotates the compiled comparison; wrapping
-    it then preserves those annotations. No SQL string substitution is performed.
+    Compose Ibis first. to_sqlglot() resolves and annotates the final projections.
+    No additional SELECT or SQL string substitution is performed.
     The SQL text carries comments; structured meta remains in the annotated AST
     and canonical lineage mapping rather than being serialized into SQL.
     """
-    annotated = to_sqlglot(comparison, projection_lineage=projection_lineage)
-    query = exp.select("*").from_(annotated.subquery(alias="comparison"))
+    query = to_sqlglot(comparison, projection_lineage=projection_lineage)
     return query.sql(dialect="athena", pretty=True)
 
 

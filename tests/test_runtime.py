@@ -22,7 +22,6 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ROLLUP_ACCOUNT_FIELDS,
-    expected_survey_rollups,
     flow_account_comparison,
     rollup_account_comparison,
 )
@@ -52,7 +51,7 @@ def rollup_comparison():
     survey = ibis.memtable(
         pa.Table.from_pylist([], schema=SURVEY_RESULT_VALIDATION_INPUT.to_pyarrow())
     )
-    return rollup_account_comparison(expected_survey_rollups(account, survey), account)
+    return rollup_account_comparison(account, survey, account)
 
 
 class RuntimeTests(unittest.TestCase):

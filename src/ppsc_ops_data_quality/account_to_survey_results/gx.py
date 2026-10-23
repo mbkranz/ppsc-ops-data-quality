@@ -2,7 +2,7 @@
 
     from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_comparison
     Expected = expected_account_values(Record)
-    Comparison = flow_account_comparison(Expected, AccountAfter)
+    Comparison = flow_account_comparison(Record, AccountAfter)
     # Supply Comparison as a GX Batch, then:
     result = batch.validate(flow_account_suite(), result_format="SUMMARY")
 

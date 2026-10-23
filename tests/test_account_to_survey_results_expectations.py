@@ -72,7 +72,7 @@ def flow_inputs(*, completion_timestamp=NEW):
         survey,
         flow_run_date=ibis.date("2026-10-21"),
     )
-    return derivations.expected_account_values(record), after
+    return record, after
 
 
 class BuiltInExpectations(unittest.TestCase):
@@ -255,7 +255,6 @@ class BuiltInExpectations(unittest.TestCase):
                 "Consent_Revoked__c": [False],
             }
         )
-        expected = derivations.expected_survey_rollups(account, survey)
         observed = ibis.memtable(
             [
                 {
@@ -268,7 +267,9 @@ class BuiltInExpectations(unittest.TestCase):
                 {"Id": "a2", **{f: 0 for f in checks.ROLLUP_ACCOUNT_FIELDS}},
             ],
         )
-        frame = self.ibis_backend.execute(queries.rollup_account_comparison(expected, observed))
+        frame = self.ibis_backend.execute(
+            queries.rollup_account_comparison(account, survey, observed)
+        )
         self.assertTrue(
             self.validate(frame, checks.rollup_account_suite(expected_row_count=2)).success
         )

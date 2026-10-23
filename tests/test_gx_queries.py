@@ -16,7 +16,11 @@ from test_snapshot import example_queries
 
 from ppsc_ops_data_quality.account_to_survey_results.gx import flow_account_suite
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
-from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_comparison
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
+    ROLLUP_ACCOUNT_FIELDS,
+    flow_account_comparison,
+    rollup_account_comparison,
+)
 from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 from ppsc_ops_data_quality.gx_queries import query_asset_sql, query_batch_definition
 from scripts.check_validation import comparisons, render_examples, synthetic_history_tables
@@ -25,11 +29,10 @@ from scripts.check_validation import comparisons, render_examples, synthetic_his
 class QueryAssetTests(unittest.TestCase):
     def test_compiled_sources_have_descriptive_aliases(self):
         expected_sources = {
-            "flow": {"Account", "Contact", "Expected_Account", "Account_After", "Flow_Context"},
+            "flow": {"Account", "Contact", "Account_After", "Flow_Context"},
             "rollup": {
                 "Person_Account",
                 "Survey_Result__c",
-                "Expected_Rollups",
                 "Account_Snapshot",
             },
         }
@@ -71,6 +74,20 @@ class QueryAssetTests(unittest.TestCase):
         finally:
             backend.disconnect()
 
+    def test_inlining_cte_with_the_same_name_as_its_physical_source(self):
+        backend = ibis.duckdb.connect()
+        try:
+            table = backend.create_table("Account", ibis.memtable({"Id": ["a", "a"]}))
+            expression = table.alias("Account").mutate(marker=ibis.literal("Account"))
+            query = to_sqlglot(expression)
+            self.assertIsNone(query.args.get("with_"))
+            self.assertCountEqual(
+                backend.raw_sql(query.sql(dialect="duckdb")).fetchall(),
+                [("a", "Account"), ("a", "Account")],
+            )
+        finally:
+            backend.disconnect()
+
     def test_rendered_comparisons_preserve_synthetic_results(self):
         backend = ibis.duckdb.connect()
         try:
@@ -79,6 +96,66 @@ class QueryAssetTests(unittest.TestCase):
                     original = backend.raw_sql(backend.compile(comparison)).fetchall()
                     rendered = to_sqlglot(comparison).sql(dialect="duckdb")
                     self.assertCountEqual(backend.raw_sql(rendered).fetchall(), original)
+        finally:
+            backend.disconnect()
+
+    def test_rollup_grouping_preserves_identical_observations_and_missing_parents(self):
+        backend = ibis.duckdb.connect()
+        try:
+            account = backend.create_table(
+                "Account",
+                ibis.memtable(
+                    {
+                        "Id": ["a1", "a1", "a2", None],
+                        "PersonContactId": ["c1", "c1", "c2", "c3"],
+                        "IsPersonAccount": [True, True, True, True],
+                    }
+                ),
+            )
+            survey = backend.create_table(
+                "Survey",
+                ibis.memtable(
+                    {
+                        "Participant__c": ["c1", "c1", "c3"],
+                        "Completion_Status__c": ["Complete"] * 3,
+                        "Survey_Index_Number__c": ["1001"] * 3,
+                        "Consent_Status__c": ["Yes"] * 3,
+                        "Consent_Revoked__c": [False] * 3,
+                    }
+                ),
+            )
+            observed = backend.create_table(
+                "Observed",
+                ibis.memtable(
+                    {
+                        "Id": ["a1", "a1"],
+                        **{field: [0, 0] for field in ROLLUP_ACCOUNT_FIELDS},
+                    }
+                ),
+            )
+            comparison = rollup_account_comparison(account, survey, observed)
+            self.assertCountEqual(
+                backend.raw_sql(
+                    backend.compile(
+                        comparison.select(
+                            "expected_account_id",
+                            "person_contact_id",
+                            "observed_account_id",
+                            "expected__Count_of_Completed_Primary_Consent__pc",
+                        )
+                    )
+                ).fetchall(),
+                [
+                    ("a1", "c1", "a1", 4),
+                    ("a1", "c1", "a1", 4),
+                    ("a2", "c2", None, 0),
+                    (None, "c3", None, 1),
+                ],
+            )
+            self.assertCountEqual(
+                backend.raw_sql(to_sqlglot(comparison).sql(dialect="duckdb")).fetchall(),
+                backend.raw_sql(backend.compile(comparison)).fetchall(),
+            )
         finally:
             backend.disconnect()
 
@@ -100,7 +177,7 @@ class QueryAssetTests(unittest.TestCase):
                     for column in query.find_all(exp.Column):
                         self.assertNotRegex(column.table, r"^t\d+$")
 
-    def test_compiled_ctes_and_lineage_are_accepted_by_gx(self):
+    def test_single_explicit_projection_and_resolved_conditions_are_accepted_by_gx(self):
         for name, comparison in example_queries().items():
             sql = query_asset_sql(comparison, projection_lineage=PROJECTION_LINEAGE)
             asset = QueryAsset(name=name, query=sql)
@@ -108,10 +185,26 @@ class QueryAssetTests(unittest.TestCase):
             ast = sqlglot.parse_one(sql, read="athena")
             self.assertIsInstance(ast, exp.Select)
             self.assertIsNotNone(ast.find(exp.Subquery))
+            self.assertEqual(len(sqlglot.parse(sql, read="athena")), 1)
+            self.assertFalse(ast.is_star)
+            self.assertIsNone(ast.args.get("with_"))
+            self.assertEqual(ast.named_selects, list(comparison.columns))
+            expected_projections = [
+                p for p in ast.selects if p.alias_or_name.startswith("expected__")
+            ]
+            self.assertEqual(len(expected_projections), 19)
+            for projection in expected_projections:
+                self.assertIsNotNone(projection.find(exp.Case), projection.sql())
+                if name == "rollup":
+                    self.assertIsNotNone(projection.find(exp.Sum), projection.sql())
+            for projection in ast.selects:
+                if projection.alias_or_name.startswith("observed__"):
+                    self.assertIsInstance(projection.unalias(), exp.Column)
             self.assertIn("expected__", sql)
             self.assertIn("observed__", sql)
             self.assertIn("Independently observed Account.", sql)
             annotated = to_sqlglot(comparison, projection_lineage=PROJECTION_LINEAGE)
+            self.assertEqual(sql, annotated.sql(dialect="athena", pretty=True))
             self.assertEqual(annotated.meta["ppsc"]["unannotated_fields"], [])
             expected = next(
                 p for p in annotated.selects if p.alias_or_name.startswith("expected__")

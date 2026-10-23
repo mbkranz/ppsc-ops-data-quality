@@ -6,12 +6,12 @@ suites compare expected and independently observed values. No Athena views or
 intermediate tables are required.
 
 Query builders explicitly name source objects and intermediate relations (for
-example, `Account`, `Contact`, `Flow_Context`, and `Expected_Account`) using native
+example, `Account`, `Contact`, `Flow_Context`, and `Account_Snapshot`) using native
 Ibis aliases. The shared Athena renderer replaces compiler-generated `tN` source
 references with those relation names, adding numeric suffixes where necessary.
 Renaming is SQL-scope-aware and does not change physical table bindings, output
-column names, lineage, or literal values. Named relations compile to query-local
-CTEs; they do not publish database views.
+column names, lineage, or literal values. The shared renderer inlines named
+relations as derived tables; they do not publish database views.
 
 Regenerate both illustrative SQL files with `uv run poe render-queries`. This only
 compiles expressions locally; it does not execute SQL or contact AWS.
@@ -149,7 +149,13 @@ from an independent source count when you need a volume contract.
 
 For finer composition, import `flow_account_comparison()` and
 `rollup_account_comparison()` from `account_to_survey_results/queries.py` and supply already bound Ibis
-relations. The derivation functions remain directly importable from
+relations. The Flow comparison takes the `add_flow_context()` record and an
+independent event-bound Account AFTER relation, not a precomputed expected-value
+table. The rollup comparison takes the source Account snapshot, survey snapshot,
+and independently observed Account snapshot. Both project the existing conditional
+expressions directly as `expected__*`, beside the independent `observed__*` fields.
+The standalone expected-value builders remain available for inspection.
+The derivation functions remain directly importable from
 `account_to_survey_results/queries.py`.
 
 ## Snapshot and batch semantics
@@ -203,10 +209,15 @@ such as `expected__Basics_Date_Time__c` retain the original Flow branch lineage;
 `observed__Basics_Date_Time__c` describes an independent observed Account field.
 Observed fields do not inherit expected calculation branches.
 
-The GX adapter wraps the compiled query in `SELECT * FROM (...) AS comparison`.
-GX 1.24 requires SELECT followed by whitespace at the start of query text; the
-wrapper accommodates Ibis CTEs and leading lineage comments. SQL text contains
-readable comments; structured SQLGlot meta remains in the AST/canonical mapping.
+Each comparison is one executable SELECT statement with an explicit final
+projection, not an additional `SELECT *` wrapper. GX 1.24 requires SELECT followed
+by whitespace at the start of query text; the renderer satisfies this by inlining
+Ibis CTEs as derived tables. Internal SELECTs remain necessary for history
+snapshots, lookup ranking, and observation row identities. The final `expected__*`
+projections contain the resolved CASE expressions (SUM of CASE for rollups).
+Rollup grouping includes an internal observed-row identity so even identical
+duplicate observations survive; this identity is not an output column.
+SQL text contains readable comments; structured SQLGlot meta remains in the AST/canonical mapping.
 Native GX expectations also carry canonical field/branch lineage in `meta["ppsc"]`.
 
 The example SQL files use `example_account.history`, `example_contact.history`,

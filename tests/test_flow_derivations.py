@@ -146,10 +146,6 @@ class ExpectedValues(unittest.TestCase):
         row = self.row(signature=None)
         self.assertTrue(pd.isna(row.CABOR_Completion_Date__c))
         row = self.row("1008", earliest=None)
-        self.assertEqual(
-            row.FlowDecision_Assent_Account_Update_target,
-            "FlowRecordUpdate.Assent_No_Permission_And_No_Primary_Date",
-        )
         self.assertTrue(pd.isna(row.Earliest_Primary_Consent_Date_for_Report__c))
         self.assertTrue(pd.isna(row.CABOR_Completion_Date__c))
         self.assertTrue(row.CABOR_Completion_Date__c_is_deterministic)
@@ -158,10 +154,6 @@ class ExpectedValues(unittest.TestCase):
         import pandas as pd
 
         row = self.row("1008", prior="1007", earliest=None)
-        self.assertEqual(
-            row.FlowDecision_Assent_Account_Update_target,
-            "FlowRecordUpdate.Assent_With_Permission_Or_Primary_Date",
-        )
         self.assertEqual(row.CABOR_Completion_Date__c, SIGN)
         self.assertEqual(row.Earliest_Primary_Consent_Date_for_Report__c, NEW)
         row = self.row(
@@ -181,10 +173,6 @@ class ExpectedValues(unittest.TestCase):
         self.assertEqual(row["FlowRecordLookup.Pediatric_Permission_For_Assent.match_count"], 2)
         self.assertFalse(row.CABOR_Completion_Date__c_is_deterministic)
         self.assertTrue(pd.isna(row.CABOR_Completion_Date__c))
-        self.assertEqual(
-            row.FlowDecision_Assent_Account_Update_target,
-            "FlowRecordUpdate.Assent_With_Permission_Or_Primary_Date",
-        )
 
     def test_physical_lookup(self):
         row = self.row("2009", prior="2009")
@@ -239,39 +227,11 @@ class ExpectedValues(unittest.TestCase):
         self.assertIn("CASE", sql)
         self.assertIn("SUM(", sql)
 
-    def test_decisions_return_typed_targets_and_null_when_unreached(self):
-        import pandas as pd
-
+    def test_intermediate_decision_targets_are_not_projected(self):
         row = self.row("2001")
-        self.assertEqual(
-            row.FlowDecision_Survey_Completion_Route_target, "FlowRecordUpdate.Basics_Completion"
-        )
-        self.assertTrue(pd.isna(row.FlowDecision_Primary_Consent_Account_Update_target))
-        self.assertTrue(pd.isna(row.FlowDecision_EHR_Consent_Account_Update_target))
-        self.assertTrue(pd.isna(row.FlowDecision_Assent_Account_Update_target))
-        row = self.row("1001")
-        self.assertEqual(
-            row.FlowDecision_Survey_Completion_Route_target,
-            "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent",
-        )
-        self.assertEqual(
-            row.FlowDecision_Primary_Consent_Account_Update_target,
-            "FlowRecordUpdate.Primary_Consent_Without_Prior_Yes",
-        )
-        row = self.row("1001", prior="1002")
-        self.assertEqual(
-            row.FlowDecision_Primary_Consent_Account_Update_target,
-            "FlowRecordUpdate.Primary_Consent_With_Prior_Yes",
-        )
-        row = self.row("1003")
-        self.assertEqual(
-            row.FlowDecision_EHR_Consent_Account_Update_target,
-            "FlowRecordUpdate.EHR_Consent_Without_Prior_Yes",
-        )
-        row = self.row("1003", prior="1004")
-        self.assertEqual(
-            row.FlowDecision_EHR_Consent_Account_Update_target,
-            "FlowRecordUpdate.EHR_Consent_With_Prior_Yes",
+        self.assertFalse(
+            any(column.startswith("FlowDecision_") for column in row.index),
+            "resolved routing conditions belong in final expected expressions",
         )
 
     def context(self, index="1001", **kwargs):
@@ -307,9 +267,7 @@ class ExpectedValues(unittest.TestCase):
         self.assertEqual(p["source_entities"], ["FlowRecordUpdate.updateAccount2001"])
         self.assertEqual(p["branches"][0]["rule_id"], "set_basics_completion_timestamp")
         self.assertEqual(p["workbook_rows"], [14506])
-        decision = by_name["FlowDecision_Assent_Account_Update_target"].meta["ppsc"]
-        self.assertEqual(decision["source_entity"], "FlowDecision.Decision_4")
-        self.assertEqual(decision["entity_type"], "FlowDecision")
+        self.assertFalse(any(name.startswith("FlowDecision_") for name in by_name))
 
     def test_ast_copy_and_dump_load_preserve_metadata(self):
         import json
@@ -375,7 +333,13 @@ class ExpectedValues(unittest.TestCase):
             ids.update(
                 b["rule_id"] for b in lineage.PROJECTION_LINEAGE[indicator.get_name()]["branches"]
             )
-        self.assertEqual(ids, set(lineage.BRANCH_LINEAGE))
+        intermediate_decision_ids = {
+            branch["rule_id"]
+            for name, metadata in lineage.PROJECTION_LINEAGE.items()
+            if name.startswith("FlowDecision_")
+            for branch in metadata.get("branches", [])
+        }
+        self.assertEqual(ids, set(lineage.BRANCH_LINEAGE) - intermediate_decision_ids)
 
     def test_annotated_athena_ast_matches_ibis_execution(self):
         import pandas as pd

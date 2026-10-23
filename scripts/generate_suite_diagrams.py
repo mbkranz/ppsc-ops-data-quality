@@ -214,15 +214,8 @@ def illustrative_parts() -> dict[str, list[DiagramPart]]:
         flow, "Joined_Record", "join_account", join_account(Trigger, Contact, AccountBefore)
     )
     Context = add_flow_context(Record, Survey, flow_run_date=ibis.literal(date(2026, 10, 21)))
-    routes = [
-        op.to_expr()
-        for op in Context.op().find(ops.AliasedRelation)
-        if op.name == "Survey_Completion_Route"
-    ]
-    if len(routes) != 1:
-        raise ValueError("Expected one Survey_Completion_Route boundary in add_flow_context")
-    previous = routes[0]
-    boundary = _add_part(flow, "Survey_Completion_Route", "add_flow_context", previous)
+    previous = Record
+    boundary = Record
     for name, lookup in (
         ("Record_With_Primary_Consent", FlowRecordLookup_Earliest_Other_Yes_Primary_Consent),
         ("Record_With_EHR_Consent", FlowRecordLookup_Earliest_Other_Yes_EHR_Consent),

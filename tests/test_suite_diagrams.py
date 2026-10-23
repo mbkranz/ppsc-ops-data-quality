@@ -23,9 +23,8 @@ def test_parts_stop_at_named_inputs_and_preserve_schemas():
             "Survey_Results_At_Execution": {"Survey_Result__c_History"},
             "Trigger_Survey_Result": {"Survey_Results_At_Execution"},
             "Joined_Record": {"Trigger_Survey_Result", "Contact_At_Execution", "Account_Before"},
-            "Survey_Completion_Route": {"Joined_Record"},
             "Record_With_Primary_Consent": {
-                "Survey_Completion_Route",
+                "Joined_Record",
                 "Survey_Results_At_Execution",
             },
             "Record_With_EHR_Consent": {
@@ -105,8 +104,6 @@ def test_parent_ownership_survives_boundaries():
     assert flow["Joined_Record"]["Participant__r.Birthdate"] == "Salesforce object: Contact"
     assert flow["Joined_Record"]["Id"] == "Salesforce object: Survey_Result__c"
     for name in (
-        "FlowDecision_Survey_Completion_Route_target",
-        "FlowDecision_Primary_Consent_Account_Update_target",
         "FlowFormula_Age_At_Execution",
         "FlowRecordLookup.Pediatric_Permission_For_Assent.match_count",
     ):
@@ -114,7 +111,7 @@ def test_parent_ownership_survives_boundaries():
     assert flow["Expected_Account"]["Basics_Date_Time__c"] == object_parent
     for role in ("expected", "observed"):
         assert flow["Flow_Comparison"][f"{role}__Basics_Date_Time__c"] == object_parent
-    assert {flow_parent, object_parent} <= case_parents
+    assert object_parent in case_parents
     assert set(outputs_by_suite["rollups"]["Rollup_Comparison"].values()) == {object_parent}
 
 

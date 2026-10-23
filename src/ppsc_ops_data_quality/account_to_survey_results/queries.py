@@ -239,8 +239,9 @@ def FlowRecordLookup_Pediatric_Permission_For_Assent(
         Permission,
         [
             Record.Participant__c == Permission.Participant__c,
-            Record.FlowDecision_Survey_Completion_Route_target
-            == "FlowRecordLookup.Pediatric_Permission_For_Assent",
+            Record.Completion_Status__c == "Complete",
+            Record.Survey_Index_Number__c == "1008",
+            Record.Consent_Status__c.isin(["Yes", "N/A"]),
         ],
     ).select(
         Record,
@@ -276,141 +277,16 @@ def FlowFormula_Age_At_Execution(Record: ir.Table, flow_run_date: ir.DateValue) 
 def add_flow_context(
     Record: ir.Table, Survey_Result__c: ir.Table, *, flow_run_date: ir.DateValue
 ) -> ir.Table:
-    """Compose translated FlowDecisions, lookup results and execution-date age.
+    """Append only lookup values and execution-date age needed by final expressions.
 
-    Conditions below select Flow connectors; names explicitly identify decision
-    outputs. Unreached decisions have a NULL target. Original IDs and workbook
-    rows are in FLOW_ENTITY_LINEAGE and PROJECTION_LINEAGE. The four lookups
-    preserve the event grain, including missing or ambiguous lookup results.
+    Flow routing is represented directly in derived_account_expressions(). It is
+    not materialized as intermediate target strings and then decoded again. The
+    four lookups preserve event grain, including missing or ambiguous results.
     """
-    Index = Record.Survey_Index_Number__c
-    Yes = Record.Consent_Status__c == "Yes"
-    Complete = Record.Completion_Status__c == "Complete"
-    route_to_earliest_other_yes_primary_consent = Complete & (Index.isin(["1001", "1002"]) & Yes)
-    route_to_earliest_other_yes_ehr_consent = Complete & (Index.isin(["1003", "1004"]) & Yes)
-    route_to_primary_consent_update_completion = Complete & (Index == "1005")
-    route_to_pediatric_permission_for_assent = Complete & (
-        (Index == "1008") & Record.Consent_Status__c.isin(["Yes", "N/A"])
-    )
-    route_to_basics_completion = Complete & Index.isin(["2001", "2002"])
-    route_to_overall_health_completion = Complete & Index.isin(["2003", "2004"])
-    route_to_lifestyle_completion = Complete & (Index == "2005")
-    route_to_personal_and_family_history_completion = Complete & (Index == "2006")
-    route_to_healthcare_access_completion = Complete & (Index == "2007")
-    route_to_life_functioning_completion = Complete & (Index == "2008")
-    route_to_first_remote_physical_measurement = Complete & (Index == "2009")
-    route_to_emotional_health_completion = Complete & (Index == "2010")
-    route_to_behavioral_health_completion = Complete & (Index == "2011")
-    route_to_environmental_exposures_completion = Complete & (Index == "2012")
-    route_to_social_determinants_completion = Complete & (Index == "2013")
-    survey_completion_flow_decision = ibis.cases(
-        (
-            route_to_earliest_other_yes_primary_consent,
-            "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent",
-        ),
-        (
-            route_to_earliest_other_yes_ehr_consent,
-            "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent",
-        ),
-        (
-            route_to_primary_consent_update_completion,
-            "FlowRecordUpdate.Primary_Consent_Update_Completion",
-        ),
-        (
-            route_to_pediatric_permission_for_assent,
-            "FlowRecordLookup.Pediatric_Permission_For_Assent",
-        ),
-        (route_to_basics_completion, "FlowRecordUpdate.Basics_Completion"),
-        (route_to_overall_health_completion, "FlowRecordUpdate.Overall_Health_Completion"),
-        (route_to_lifestyle_completion, "FlowRecordUpdate.Lifestyle_Completion"),
-        (
-            route_to_personal_and_family_history_completion,
-            "FlowRecordUpdate.Personal_And_Family_History_Completion",
-        ),
-        (route_to_healthcare_access_completion, "FlowRecordUpdate.Healthcare_Access_Completion"),
-        (route_to_life_functioning_completion, "FlowRecordUpdate.Life_Functioning_Completion"),
-        (
-            route_to_first_remote_physical_measurement,
-            "FlowRecordLookup.First_Remote_Physical_Measurement",
-        ),
-        (route_to_emotional_health_completion, "FlowRecordUpdate.Emotional_Health_Completion"),
-        (route_to_behavioral_health_completion, "FlowRecordUpdate.Behavioral_Health_Completion"),
-        (
-            route_to_environmental_exposures_completion,
-            "FlowRecordUpdate.Environmental_Exposures_Completion",
-        ),
-        (
-            route_to_social_determinants_completion,
-            "FlowRecordUpdate.Social_Determinants_Completion",
-        ),
-        else_=ibis.null().cast("string"),
-    ).name("FlowDecision_Survey_Completion_Route_target")
-
-    Record = Record.mutate(survey_completion_flow_decision).alias("Survey_Completion_Route")
     Record = FlowRecordLookup_Earliest_Other_Yes_Primary_Consent(Record, Survey_Result__c)
     Record = FlowRecordLookup_Earliest_Other_Yes_EHR_Consent(Record, Survey_Result__c)
     Record = FlowRecordLookup_First_Remote_Physical_Measurement(Record, Survey_Result__c)
     Record = FlowRecordLookup_Pediatric_Permission_For_Assent(Record, Survey_Result__c)
-
-    primary_consent_without_prior_yes = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"
-    ) & Record["FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id"].isnull()
-    primary_consent_with_prior_yes = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"
-    ) & ~Record["FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id"].isnull()
-    primary_consent_account_update_flow_decision = ibis.cases(
-        (primary_consent_without_prior_yes, "FlowRecordUpdate.Primary_Consent_Without_Prior_Yes"),
-        (primary_consent_with_prior_yes, "FlowRecordUpdate.Primary_Consent_With_Prior_Yes"),
-        else_=ibis.null().cast("string"),
-    ).name("FlowDecision_Primary_Consent_Account_Update_target")
-
-    ehr_consent_without_prior_yes = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"
-    ) & Record["FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id"].isnull()
-    ehr_consent_with_prior_yes = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"
-    ) & ~Record["FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id"].isnull()
-    ehr_consent_account_update_flow_decision = ibis.cases(
-        (ehr_consent_without_prior_yes, "FlowRecordUpdate.EHR_Consent_Without_Prior_Yes"),
-        (ehr_consent_with_prior_yes, "FlowRecordUpdate.EHR_Consent_With_Prior_Yes"),
-        else_=ibis.null().cast("string"),
-    ).name("FlowDecision_EHR_Consent_Account_Update_target")
-
-    assent_no_permission_and_no_primary_date = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordLookup.Pediatric_Permission_For_Assent"
-    ) & (
-        Record["FlowRecordLookup.Pediatric_Permission_For_Assent.Id"].isnull()
-        & Record["Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"].isnull()
-    )
-    assent_with_permission_or_primary_date = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordLookup.Pediatric_Permission_For_Assent"
-    ) & ~(
-        Record["FlowRecordLookup.Pediatric_Permission_For_Assent.Id"].isnull()
-        & Record["Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"].isnull()
-    )
-    assent_account_update_flow_decision = ibis.cases(
-        (
-            assent_no_permission_and_no_primary_date,
-            "FlowRecordUpdate.Assent_No_Permission_And_No_Primary_Date",
-        ),
-        (
-            assent_with_permission_or_primary_date,
-            "FlowRecordUpdate.Assent_With_Permission_Or_Primary_Date",
-        ),
-        else_=ibis.null().cast("string"),
-    ).name("FlowDecision_Assent_Account_Update_target")
-
-    Record = Record.mutate(
-        primary_consent_account_update_flow_decision,
-        ehr_consent_account_update_flow_decision,
-        assent_account_update_flow_decision,
-    )
     return Record.mutate(
         FlowFormula_Age_At_Execution=FlowFormula_Age_At_Execution(Record, flow_run_date)
     ).alias("Flow_Context")
@@ -424,149 +300,103 @@ def derived_account_expressions(Record: ir.Table) -> tuple[ir.Value, ...]:
     NULL value stays NULL. No query executes here. Bind again when changing the
     Record relation. Provenance is independent in ACCOUNT_FIELD_LINEAGE.
     """
-    set_age_at_flow_execution = Record.FlowDecision_Survey_Completion_Route_target.isin(
-        [
-            "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent",
-            "FlowRecordLookup.Pediatric_Permission_For_Assent",
-        ]
+    Index = Record.Survey_Index_Number__c
+    Complete = Record.Completion_Status__c == "Complete"
+    primary_consent = Complete & Index.isin(["1001", "1002"]) & (Record.Consent_Status__c == "Yes")
+    ehr_consent = Complete & Index.isin(["1003", "1004"]) & (Record.Consent_Status__c == "Yes")
+    assent = Complete & (Index == "1008") & Record.Consent_Status__c.isin(["Yes", "N/A"])
+    primary_consent_with_prior_yes = (
+        primary_consent & Record["FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id"].notnull()
     )
+    ehr_consent_with_prior_yes = (
+        ehr_consent & Record["FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id"].notnull()
+    )
+    assent_with_permission_or_primary_date = assent & ~(
+        Record["FlowRecordLookup.Pediatric_Permission_For_Assent.Id"].isnull()
+        & Record["Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"].isnull()
+    )
+
     age_at_flow_execution = ibis.cases(
-        (set_age_at_flow_execution, Record.FlowFormula_Age_At_Execution),
+        (primary_consent | assent, Record.FlowFormula_Age_At_Execution),
         else_=Record["Participant__r.Account.Age_at_Time_of_Consent__pc"],
     ).name("Age_at_Time_of_Consent__pc")
 
-    set_california_signature_from_primary_consent = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"
-    )
-    set_california_signature_from_pediatric_permission = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordLookup.Pediatric_Permission_For_Assent"
-    )
     california_signature_timestamp = ibis.cases(
-        (set_california_signature_from_primary_consent, Record.California_Signature__c),
+        (primary_consent, Record.California_Signature__c),
         (
-            set_california_signature_from_pediatric_permission,
+            assent,
             Record["FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c"],
         ),
         else_=Record["Participant__r.Account.CABOR_Completion_Date__c"],
     ).name("CABOR_Completion_Date__c")
 
-    set_earliest_primary_consent_report_timestamp = (
-        Record.FlowDecision_Primary_Consent_Account_Update_target
-        == "FlowRecordUpdate.Primary_Consent_With_Prior_Yes"
-    ) | (
-        Record.FlowDecision_Assent_Account_Update_target
-        == "FlowRecordUpdate.Assent_With_Permission_Or_Primary_Date"
-    )
     earliest_primary_consent_report_timestamp = ibis.cases(
-        (set_earliest_primary_consent_report_timestamp, Record.Completion_Status_Timestamp__c),
+        (
+            primary_consent_with_prior_yes | assent_with_permission_or_primary_date,
+            Record.Completion_Status_Timestamp__c,
+        ),
         else_=Record["Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"],
     ).name("Earliest_Primary_Consent_Date_for_Report__c")
 
-    set_latest_primary_consent_report_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target.isin(
-            [
-                "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent",
-                "FlowRecordLookup.Pediatric_Permission_For_Assent",
-            ]
-        )
-    )
     latest_primary_consent_report_timestamp = ibis.cases(
-        (set_latest_primary_consent_report_timestamp, Record.Completion_Status_Timestamp__c),
+        (primary_consent | assent, Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c"],
     ).name("Latest_Primary_Consent_Date_for_Report__c")
 
-    set_ehr_consent_timestamp = (
-        Record.FlowDecision_EHR_Consent_Account_Update_target
-        == "FlowRecordUpdate.EHR_Consent_With_Prior_Yes"
-    )
     ehr_consent_timestamp = ibis.cases(
-        (set_ehr_consent_timestamp, Record.Completion_Status_Timestamp__c),
+        (ehr_consent_with_prior_yes, Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.EHR_Consent_Date_Time__c"],
     ).name("EHR_Consent_Date_Time__c")
 
-    set_ehr_reconsent_timestamp = (
-        Record.FlowDecision_EHR_Consent_Account_Update_target
-        == "FlowRecordUpdate.EHR_Consent_Without_Prior_Yes"
-    )
     ehr_reconsent_timestamp = ibis.cases(
-        (set_ehr_reconsent_timestamp, Record.Completion_Status_Timestamp__c),
+        (
+            ehr_consent & Record["FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id"].isnull(),
+            Record.Completion_Status_Timestamp__c,
+        ),
         else_=Record["Participant__r.Account.EHR_Reconsent_Date_Time__c"],
     ).name("EHR_Reconsent_Date_Time__c")
 
-    set_primary_consent_update_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordUpdate.Primary_Consent_Update_Completion"
-    )
     primary_consent_update_timestamp = ibis.cases(
-        (set_primary_consent_update_timestamp, Record.Completion_Status_Timestamp__c),
+        (Complete & (Index == "1005"), Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.Update_to_Primary_Consent_Completed__c"],
     ).name("Update_to_Primary_Consent_Completed__c")
 
-    set_basics_completion_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target == "FlowRecordUpdate.Basics_Completion"
-    )
     basics_completion_timestamp = ibis.cases(
-        (set_basics_completion_timestamp, Record.Completion_Status_Timestamp__c),
+        (Complete & Index.isin(["2001", "2002"]), Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.Basics_Date_Time__c"],
     ).name("Basics_Date_Time__c")
 
-    set_overall_health_completion_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordUpdate.Overall_Health_Completion"
-    )
     overall_health_completion_timestamp = ibis.cases(
-        (set_overall_health_completion_timestamp, Record.Completion_Status_Timestamp__c),
+        (Complete & Index.isin(["2003", "2004"]), Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.Overall_Health_Date_Time__c"],
     ).name("Overall_Health_Date_Time__c")
 
-    set_lifestyle_completion_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordUpdate.Lifestyle_Completion"
-    )
     lifestyle_completion_timestamp = ibis.cases(
-        (set_lifestyle_completion_timestamp, Record.Completion_Status_Timestamp__c),
+        (Complete & (Index == "2005"), Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.Lifestyle_Date_Time__c"],
     ).name("Lifestyle_Date_Time__c")
 
-    set_personal_and_family_history_completion_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordUpdate.Personal_And_Family_History_Completion"
-    )
     personal_and_family_history_completion_timestamp = ibis.cases(
         (
-            set_personal_and_family_history_completion_timestamp,
+            Complete & (Index == "2006"),
             Record.Completion_Status_Timestamp__c,
         ),
         else_=Record["Participant__r.Account.Personal_and_Family_History_Complete__c"],
     ).name("Personal_and_Family_History_Complete__c")
 
-    set_healthcare_access_completion_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordUpdate.Healthcare_Access_Completion"
-    )
     healthcare_access_completion_timestamp = ibis.cases(
-        (set_healthcare_access_completion_timestamp, Record.Completion_Status_Timestamp__c),
+        (Complete & (Index == "2007"), Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.HC_Access_Date_Time__c"],
     ).name("HC_Access_Date_Time__c")
 
-    set_life_functioning_completion_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordUpdate.Life_Functioning_Completion"
-    )
     life_functioning_completion_timestamp = ibis.cases(
-        (set_life_functioning_completion_timestamp, Record.Completion_Status_Timestamp__c),
+        (Complete & (Index == "2008"), Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.Life_Functioning_Date_Time__c"],
     ).name("Life_Functioning_Date_Time__c")
 
-    set_first_remote_physical_measurement_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordLookup.First_Remote_Physical_Measurement"
-    )
     first_remote_physical_measurement_timestamp = ibis.cases(
         (
-            set_first_remote_physical_measurement_timestamp,
+            Complete & (Index == "2009"),
             Record[
                 "FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c"
             ],
@@ -574,51 +404,31 @@ def derived_account_expressions(Record: ir.Table) -> tuple[ir.Value, ...]:
         else_=Record["Participant__r.Account.First_Physical_Measurement_Date_Time__c"],
     ).name("First_Physical_Measurement_Date_Time__c")
 
-    set_latest_processed_remote_physical_measurement_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordLookup.First_Remote_Physical_Measurement"
-    )
     latest_processed_remote_physical_measurement_timestamp = ibis.cases(
         (
-            set_latest_processed_remote_physical_measurement_timestamp,
+            Complete & (Index == "2009"),
             Record.Completion_Status_Timestamp__c,
         ),
         else_=Record["Participant__r.Account.Last_Physical_Measurement_Date_Time__c"],
     ).name("Last_Physical_Measurement_Date_Time__c")
 
-    set_emotional_health_completion_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordUpdate.Emotional_Health_Completion"
-    )
     emotional_health_completion_timestamp = ibis.cases(
-        (set_emotional_health_completion_timestamp, Record.Completion_Status_Timestamp__c),
+        (Complete & (Index == "2010"), Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.EH_Date_Time__c"],
     ).name("EH_Date_Time__c")
 
-    set_behavioral_health_completion_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordUpdate.Behavioral_Health_Completion"
-    )
     behavioral_health_completion_timestamp = ibis.cases(
-        (set_behavioral_health_completion_timestamp, Record.Completion_Status_Timestamp__c),
+        (Complete & (Index == "2011"), Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.Behavioral_Health_Completion__c"],
     ).name("Behavioral_Health_Completion__c")
 
-    set_environmental_exposures_completion_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordUpdate.Environmental_Exposures_Completion"
-    )
     environmental_exposures_completion_timestamp = ibis.cases(
-        (set_environmental_exposures_completion_timestamp, Record.Completion_Status_Timestamp__c),
+        (Complete & (Index == "2012"), Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.Environmental_Exposures_Date_Time__c"],
     ).name("Environmental_Exposures_Date_Time__c")
 
-    set_social_determinants_completion_timestamp = (
-        Record.FlowDecision_Survey_Completion_Route_target
-        == "FlowRecordUpdate.Social_Determinants_Completion"
-    )
     social_determinants_completion_timestamp = ibis.cases(
-        (set_social_determinants_completion_timestamp, Record.Completion_Status_Timestamp__c),
+        (Complete & (Index == "2013"), Record.Completion_Status_Timestamp__c),
         else_=Record["Participant__r.Account.Social_Determinants_of_Health_Completion__c"],
     ).name("Social_Determinants_of_Health_Completion__c")
 
@@ -799,7 +609,7 @@ def survey_rollup_indicators(Record: ir.Table) -> tuple[ir.Value, ...]:
 def expected_account_values(
     Record: ir.Table, *, fields: Sequence[ir.Value] | None = None
 ) -> ir.Table:
-    """Select expected Account AFTER values and available Flow routing evidence.
+    """Select expected Account AFTER values and lookup determinism evidence.
 
     fields accepts ordinary named Ibis values. Pass a subset of
     derived_account_expressions(Record), or compose a value directly in select().
@@ -813,18 +623,12 @@ def expected_account_values(
     names = [field.get_name() for field in fields]
     if len(set(names)) != len(names):
         raise ValueError("Supply one Ibis expression per output name.")
-    evidence = [
-        "FlowDecision_Survey_Completion_Route_target",
-        "FlowDecision_Primary_Consent_Account_Update_target",
-        "FlowDecision_EHR_Consent_Account_Update_target",
-        "FlowDecision_Assent_Account_Update_target",
-        "FlowRecordLookup.Pediatric_Permission_For_Assent.match_count",
-    ]
     expressions = {field.get_name(): field for field in fields}
     if "CABOR_Completion_Date__c" in expressions:
         permission_route = (
-            Record.FlowDecision_Survey_Completion_Route_target
-            == "FlowRecordLookup.Pediatric_Permission_For_Assent"
+            (Record.Completion_Status__c == "Complete")
+            & (Record.Survey_Index_Number__c == "1008")
+            & Record.Consent_Status__c.isin(["Yes", "N/A"])
         )
         expressions["CABOR_Completion_Date__c_is_deterministic"] = ~permission_route.fill_null(
             False
@@ -835,7 +639,7 @@ def expected_account_values(
         Record.Participant__c,
         Record.Survey_Index_Number__c,
         Record.Completion_Status_Timestamp__c,
-        *[Record[column] for column in evidence if column in Record.columns],
+        Record["FlowRecordLookup.Pediatric_Permission_For_Assent.match_count"],
         **expressions,
     )
 

@@ -88,12 +88,12 @@ class QueryAssetTests(unittest.TestCase):
             output = Path(directory)
             render_examples(output)
             for generated in output.glob("*.sql"):
-                self.assertEqual(
-                    generated.read_text(encoding="utf-8"),
-                    (root / "sql" / generated.name).read_text(encoding="utf-8"),
-                )
-                queries = sqlglot.parse(generated.read_text(encoding="utf-8"), read="athena")
+                sql = generated.read_text(encoding="utf-8")
+                self.assertEqual(sql, (root / "sql" / generated.name).read_text(encoding="utf-8"))
+                queries = sqlglot.parse(sql, read="athena")
                 self.assertEqual(len(queries), 2)
+                self.assertNotIn("FlowDecision_", sql)
+                self.assertNotIn("Survey_Completion_Route", sql)
                 for query in queries:
                     for alias in query.find_all(exp.TableAlias):
                         self.assertNotRegex(alias.name, r"^t\d+$")

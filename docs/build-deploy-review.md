@@ -94,3 +94,9 @@ job template; it never rebuilds or deletes existing report evidence.
 Final portability review adds explicit Python bytecode/build-metadata ignores to
 DVC inputs and declares `.dvcignore` as a wheel-producer dependency. A native
 integration check confirms host-specific bytecode does not stale source identity.
+
+Hosted CI also exposed that installing an existing lock does not populate all
+resolver metadata for other supported Python/OS splits. The deliberate version
+change test uses supported online `uv lock`; recorded artifact retrieval and
+index-free installed smoke remain separate. This removes a warm-cache assumption
+from the integration check without weakening the release retrieval gate.

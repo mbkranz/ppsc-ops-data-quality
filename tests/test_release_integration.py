@@ -94,7 +94,8 @@ def test_reproducible_build_and_verified_fresh_publication(tmp_path):
     metadata_before, lock_before = metadata.read_bytes(), lockfile.read_bytes()
     download_before = (root / "build/release/dependencies").stat().st_mtime_ns
     metadata.write_text(metadata.read_text().replace('version = "0.1.0"', 'version = "0.1.1"'))
-    run("uv", "lock", "--offline")
+    # A new lock may need registry metadata for other supported Python/platform splits.
+    run("uv", "lock")
     dvc("repro", "dvc.yaml")
     assert (root / "build/release/dependencies").stat().st_mtime_ns == download_before
     metadata.write_bytes(metadata_before)

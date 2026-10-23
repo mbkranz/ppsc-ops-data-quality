@@ -2,9 +2,39 @@
 
 from collections.abc import Mapping
 from copy import deepcopy
+from re import fullmatch
 
 import ibis.expr.types as ir
 from sqlglot import exp
+from sqlglot.optimizer.scope import Scope, traverse_scope
+
+
+def _name_relation_aliases(query: exp.Query) -> None:
+    """Replace compiler aliases with source names without crossing SQL scopes."""
+    scopes = list(traverse_scope(query))
+    reserved = {name.casefold() for scope in scopes for name in scope.selected_sources}
+    source_names: dict[Scope, str] = {}
+    for scope in scopes:
+        for alias, (node, source) in list(scope.selected_sources.items()):
+            name = node.name if isinstance(node, exp.Table) else source_names.get(source, "Rows")
+            source_names.setdefault(scope, name)
+            if not fullmatch(r"t\d+", alias):
+                continue
+            candidate = name
+            suffix = 2
+            while candidate.casefold() in reserved:
+                candidate = f"{name}_{suffix}"
+                suffix += 1
+            reserved.add(candidate.casefold())
+            relation = node if isinstance(node, exp.Table) else node.parent
+            if not isinstance(relation, (exp.Table, exp.Subquery)):
+                raise ValueError(f"Unsupported SQL relation for alias {alias!r}")
+            relation.set("alias", exp.TableAlias(this=exp.to_identifier(candidate, quoted=True)))
+            for column in scope.columns:
+                if column.table == alias:
+                    column.set("table", exp.to_identifier(candidate, quoted=True))
+            scope.rename_source(alias, candidate)
+            scope.clear_cache()
 
 
 def to_sqlglot(
@@ -12,8 +42,10 @@ def to_sqlglot(
 ) -> exp.Query:
     """Compile the completed Ibis query to Athena's AST, then annotate projections.
 
-    All Ibis composition happens first. Stable output aliases connect the final
-    SELECT list to authoritative lineage. Branch provenance is nested metadata;
+    All Ibis composition happens first. Named Ibis relations supply readable SQL
+    source aliases; numeric suffixes disambiguate repeated references. Stable
+    output aliases connect the final SELECT list to authoritative lineage.
+    Branch provenance is nested metadata;
     compiler-generated WHEN positions and table aliases are never used as keys.
 
     Unknown/custom projected fields are left unannotated. The query-level record
@@ -30,6 +62,7 @@ def to_sqlglot(
         for key, value in list(node.args.items()):
             if isinstance(value, tuple):
                 node.set(key, list(value))
+    _name_relation_aliases(query)
     if projection_lineage is None:
         return query
     annotated = []

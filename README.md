@@ -214,32 +214,39 @@ expectation parameters separately with your run metadata.
 
 ## Documentation and follow-up work
 
-Generate the suite diagrams with Graphviz's `dot` executable installed (for example,
+Generate native Ibis table graphs with Graphviz's `dot` executable installed (for example,
 `sudo apt-get install graphviz` on Ubuntu):
 
 ```bash
 uv run poe suite-diagrams
 # Or choose one suite and an output directory:
 uv run python scripts/generate_suite_diagrams.py --suite flow --output build/suite-diagrams
-# Optional native expression diagnostic, using Ibis's unchanged formatting:
-uv run python scripts/generate_suite_diagrams.py --include-expression-graph --output build/suite-diagrams
 ```
 
-Each suite gets an overview grouped by exact GX row condition and expandable
-Markdown sections for fields, identities, lookup evidence and table/schema checks.
-Each section has a small SVG/DOT diagram connecting the actual target columns to
-their expectations. Paired expected and observed columns stay together; the
-shared row condition appears once as the enclosing scope label. Each expectation
-also retains its exact condition in the accompanying table.
+Each comparison is split into native Ibis graphs at meaningful function/table
+boundaries: snapshots, event selection, `join_account`, routing, each Flow lookup,
+final Flow decisions/age, `expected_account_values`, observation binding and the
+final comparison. Rollups separate snapshots, `expected_survey_rollups` and their
+comparison. The Markdown indexes show each part's builder, named inputs and output.
 
-The default diagrams use ordinary Graphviz clusters and styles, with no dependency
-on Ibis operation IDs or a JavaScript application. The optional diagnostic is the
-unmodified native Ibis expression graph. Both use illustrative unbound queries
-and execute no data. Regeneration replaces generated documentation, and CI
-verifies the generator. Keep generated diagnostic graphs under `build/`.
+Each part receives schema-preserving unbound tables for prior stages, so its graph
+does not expand the entire upstream pipeline. These are **diagram-only
+boundaries**: runtime queries are unchanged and no tables are actually materialized.
+Graphs are exported with `ibis.expr.visualize.to_graph()` as SVG and DOT, retaining
+Ibis's native nodes, edges and labels. Colors and clusters use the **parent entity**:
+Salesforce objects own fields (including both expected and observed values), and
+the source Flow owns its decisions, formulas and lookup evidence. Existing
+projection/Flow lineage supplies these parents; source-object ownership is carried
+through the diagram-only table boundaries. Shared expressions, mixed-object
+relations and unmapped query mechanics stay neutral gray. Each page includes a
+color legend; cluster labels and node tooltips also identify the parent.
+There are no GX overlays. Graphs show query construction, not GX checks or
+validation outcomes, and execute no data.
+Native Ibis node IDs are process-dependent, so regenerated graph files need not
+be byte-identical. CI verifies Ibis structure, parent ownership and boundary schemas.
 
-- [Flow suite diagram](docs/suites/account_to_survey_results_flow.md)
-- [Rollup suite diagram](docs/suites/account_to_survey_results_rollups.md)
+- [Flow table graph](docs/suites/account_to_survey_results_flow.md)
+- [Rollup table graph](docs/suites/account_to_survey_results_rollups.md)
 
 - [Query composition and original sources](docs/query-design.md)
 - [Schema contracts and conversions](src/ppsc_ops_data_quality/core/schemas/README.md)

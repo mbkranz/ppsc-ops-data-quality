@@ -20,10 +20,15 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ROLLUP_ACCOUNT_FIELDS,
+    add_flow_context,
+    expected_account_values,
+    expected_survey_rollups,
     flow_account_query,
+    join_account,
     rollup_account_query,
 )
-from ppsc_ops_data_quality.core.queries import history_tables
+from ppsc_ops_data_quality.core.queries import history_tables, snapshot
+from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 from ppsc_ops_data_quality.core.schemas import (
     ACCOUNT_HISTORY_VALIDATION_INPUT,
     CONTACT_HISTORY_VALIDATION_INPUT,
@@ -132,6 +137,67 @@ def compile_comparisons(output: Path):
         assert len(suite.expectations) == (27 if name == "flow" else 24)
         save_suite(suite, output / f"{name}.suite.json")
     return {"mode": "compile", "output": str(output), "live_queries": False}
+
+
+def render_examples(output: Path):
+    """Regenerate the checked-in illustrative expected and GX comparison SQL."""
+    history = history_tables(
+        account_database="example_account",
+        contact_database="example_contact",
+        survey_result_database="example_survey_result",
+    )
+    event_id = "EXAMPLE_VERIFIED_SURVEY_EVENT"
+    AccountBefore = snapshot(history["Account"], as_of=BEFORE_AT).alias("Account_Before")
+    Contact = snapshot(history["Contact"], as_of=EXECUTION_AT).alias("Contact_At_Execution")
+    Survey = snapshot(history["Survey_Result__c"], as_of=EXECUTION_AT).alias(
+        "Survey_Results_At_Execution"
+    )
+    Trigger = Survey.filter(Survey.Id == event_id).alias("Trigger_Survey_Result")
+    Record = add_flow_context(
+        join_account(Trigger, Contact, AccountBefore),
+        Survey,
+        flow_run_date=ibis.literal(FLOW_RUN_DATE),
+    )
+    expected = {
+        "flow": expected_account_values(Record),
+        "rollups": expected_survey_rollups(
+            snapshot(history["Account"], as_of=EXECUTION_AT).alias("Account_At_Snapshot"),
+            Survey,
+        ),
+    }
+    comparison = {
+        "flow": flow_account_query(
+            history,
+            survey_result_id=event_id,
+            account_before_at=BEFORE_AT,
+            execution_at=EXECUTION_AT,
+            account_after_at=AFTER_AT,
+            flow_run_date=FLOW_RUN_DATE,
+        ),
+        "rollups": rollup_account_query(history, as_of=EXECUTION_AT),
+    }
+    header = (
+        "-- ILLUSTRATIVE bindings/event/times; source profiles are defined in core/schemas/.\n"
+        "-- Direct SELECTs over history. Verify physical catalog types before execution.\n"
+        "-- Execution: 2026-10-21 12:00; BEFORE: 11:59:59; settled AFTER: 12:05.\n\n"
+    )
+    output.mkdir(parents=True, exist_ok=True)
+    for filename, queries, is_comparison in (
+        ("account_to_survey_results.sql", expected, False),
+        ("account_to_survey_results_gx_comparison.sql", comparison, True),
+    ):
+        statements = []
+        for name, query in queries.items():
+            sql = (
+                query_asset_sql(query, projection_lineage=PROJECTION_LINEAGE)
+                if is_comparison
+                else to_sqlglot(query, projection_lineage=PROJECTION_LINEAGE).sql(
+                    dialect="athena", pretty=True
+                )
+            )
+            statements.append(f"-- {name}\n{sql};\n")
+        (output / filename).write_text(header + "\n".join(statements), encoding="utf-8")
+    return {"mode": "render", "output": str(output), "live_queries": False}
 
 
 def validate_synthetic(run_directory: Path, *, s3_uri: str | None = None):
@@ -251,13 +317,18 @@ def verify_synthetic_evidence(directory: Path) -> None:
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Credential-free development verification")
-    parser.add_argument("check", choices=["compile", "synthetic"])
+    parser.add_argument("check", choices=["compile", "synthetic", "render"])
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
-    output = args.output or Path("build/checks") / (
-        args.check + "-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
-    )
-    summary = compile_comparisons(output) if args.check == "compile" else validate_synthetic(output)
+    if args.check == "render":
+        summary = render_examples(args.output or Path("sql"))
+    else:
+        output = args.output or Path("build/checks") / (
+            args.check + "-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
+        )
+        summary = (
+            compile_comparisons(output) if args.check == "compile" else validate_synthetic(output)
+        )
     print(json.dumps(summary, indent=2))
     return 0 if summary.get("success", True) else 1
 

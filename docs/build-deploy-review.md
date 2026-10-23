@@ -158,3 +158,25 @@ Hosted Windows execution also exposed a background DVC analytics process holding
 the temporary checkout open during cleanup. Temporary transfer subprocesses and
 the portable CI fixtures explicitly disable analytics; the original transfer
 error remains observable and cleanup no longer depends on an unrelated process.
+
+## Integration of the latest Ops changes
+
+Merged `5f573e3b8c81bab83b271e05cb7f4b1ee5030cbd` (`diagrams update`)
+into the portable-build work, preserving both histories. README and Poe use
+three-way merges; the incoming query code, tests, SQL examples, diagram generator
+and generated documentation are retained unchanged. The `render-queries` task
+remains a local compilation operation, while the existing portable build and SDK
+entry points remain available.
+
+The PPSC review confirms that query builders and the SQL renderer still return
+native Ibis expressions and SQLGlot ASTs. Diagram-only boundaries preserve schemas
+and parent ownership without introducing runtime materialization or GX overlays.
+The SQL renaming uses scopes rather than text replacement; behavioral checks cover
+self-joins, literal/output names and equivalent synthetic query results. These
+changes require no new orchestration layer or runtime dependency.
+
+The release wheel and final bundle were rebuilt from the integrated source and
+README; `dvc.lock` records the real regenerated outputs. Verification includes
+lint/format, all 156 tests, query compilation, the 53 synthetic expectations,
+installed offline release smoke and DVC freshness. Live AWS acceptance remains
+the separate gate described above.

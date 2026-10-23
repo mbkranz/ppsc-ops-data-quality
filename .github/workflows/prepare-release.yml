@@ -1,0 +1,65 @@
+name: Prepare Linux release
+run-name: Prepare release ${{ inputs.revision }}
+on:
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: Exact pushed source SHA; generated lock is returned for review
+        required: true
+        type: string
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    environment: release
+    env:
+      BUILD_REVISION: ${{ inputs.revision }}
+      UV_PROJECT_ENVIRONMENT: .venv-release
+      DVC_REMOTE_URL: ${{ vars.DVC_REMOTE_URL }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.revision }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require the exact source revision
+        shell: bash
+        run: |
+          set -eu
+          [[ "$BUILD_REVISION" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$BUILD_REVISION"
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          version: '0.12.23'
+          python-version: '3.11.17'
+      - run: uv sync --locked --only-group release
+      - name: Build directly on this Linux worker
+        run: uv run --no-sync dvc repro dvc.yaml
+      - run: uv run --no-sync poe smoke-release
+      - name: Keep the runtime lock unchanged
+        run: git diff --exit-code -- uv.lock
+      - uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          allowed-account-ids: ${{ vars.AWS_ACCOUNT_ID }}
+      - name: Store prepared outputs in the existing DVC remote
+        shell: bash
+        run: |
+          set -eu
+          test -n "$DVC_REMOTE_URL"
+          uv run --no-sync dvc remote add --local --force release "$DVC_REMOTE_URL"
+          uv run --no-sync dvc remote modify --local release verify true
+          uv run --no-sync dvc status dvc.yaml --quiet
+          uv run --no-sync dvc push dvc.yaml -r release
+          mkdir -p build/handoff
+          cp dvc.lock build/handoff/dvc.lock
+          printf '%s\n' "$BUILD_REVISION" > build/handoff/source-revision.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: prepared-release-lock
+          path: build/handoff/*
+          if-no-files-found: error
+          retention-days: 14

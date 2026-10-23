@@ -256,3 +256,8 @@ binding and audit/round-trip behavior. Generated SQL files are not runtime input
 A Query Asset or normal Athena view does not promise one computation for all GX
 metrics. Measure query count, scan bytes and runtime before adding materialization.
 Deployment is explicit through Poe. No data cleaning or quarantine behavior is included.
+
+## Linux and Windows release preparation
+
+See [portable release builds](docs/portable-build.md) for automatic local/GitHub
+build selection, exact-revision lock handoff and the separate publication gate.

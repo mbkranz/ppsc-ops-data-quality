@@ -20,32 +20,15 @@ tasks:
       - {name: profile, options: [--profile], default: data-migration-dev}
   build-release:
     help: Reproduce the deterministic release graph in the prepared release environment.
-    cmd: dvc repro dvc.yaml
+    cmd: python -m scripts.build_release
   publish-release:
     help: Require local freshness and upload the complete release graph; CI verifies retrieval before tagging.
     sequence:
       - cmd: dvc status dvc.yaml --quiet
       - cmd: dvc push dvc.yaml -r release
   smoke-release:
-    help: Install only bundled wheels; check imports, installed CLI, compilation and synthetic validation.
-    sequence:
-      - cmd: rm -rf build/release/smoke-wheels build/release/invalid-run build/release/smoke-queries build/release/smoke-validation
-      - cmd: python -m zipfile -e build/release/bundle/dependencies.gluewheels.zip build/release/smoke-wheels
-      - cmd: uv venv --python 3.11 --clear build/release/smoke-env
-      - cmd: uv pip install --python build/release/smoke-env/bin/python --no-index --find-links build/release/smoke-wheels ppsc-ops-data-quality
-      - cmd: uv pip check --python build/release/smoke-env/bin/python
-      - cmd: build/release/smoke-env/bin/python -I -c "from pathlib import Path; import sys, ppsc_ops_data_quality; assert Path(ppsc_ops_data_quality.__file__).is_relative_to(Path(sys.prefix)),
-          ppsc_ops_data_quality.__file__"
-      - cmd: build/release/smoke-env/bin/ppsc-dq --help
-      - shell: |-
-          set -eu
-          printf 'unexpected: true\n' > build/release/invalid.yaml
-          code=0
-          build/release/smoke-env/bin/ppsc-dq validate --config build/release/invalid.yaml --run-dir build/release/invalid-run || code=$?
-          test "$code" = 2
-          test ! -e build/release/invalid-run
-      - cmd: build/release/smoke-env/bin/python -I scripts/check_validation.py compile --output build/release/smoke-queries
-      - cmd: build/release/smoke-env/bin/python -I scripts/check_validation.py synthetic --output build/release/smoke-validation
+    help: Check the installed frozen bundle, CLI and synthetic reports (Linux producer).
+    cmd: python -m scripts.smoke_release
   plan-deployment:
     help: Resolve STS account and render a verified release deployment; no AWS writes.
     args:
@@ -57,19 +40,8 @@ tasks:
     uses:
       ACCOUNT: _aws-account --profile ${profile}
     sequence:
-      - shell: |
-          set -eu
-          repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
-          test "$(gh api "repos/$repo/commits/${revision}/status" --jq '.statuses | any(.context == "release-artifacts" and .state == "success")')" = true
-      - cmd: python -m scripts.plan_deployment --config ${config} --account ${ACCOUNT} --environment ${environment} --revision ${revision} --output ${output}
-  _check-plan-account:
-    args:
-      - {name: plan, options: [--plan], required: true}
-      - {name: profile, options: [--profile], default: data-migration-dev}
-    shell: |
-      set -eu
-      actual=$(aws --profile "${profile}" sts get-caller-identity --query Account --output text)
-      test "$actual" = "$(jq -r .account_id "${plan}/target.json")" || { echo 'AWS account differs from deployment plan' >&2; exit 1; }
+      - cmd: python -m scripts.github_release --revision ${revision}
+      - cmd: python -m scripts.plan_deployment --config "${config}" --account "${ACCOUNT}" --environment "${environment}" --revision "${revision}" --output "${output}"
   deploy:
     help: Upload verified artifacts and explicitly create or update the declared Glue job.
     args:
@@ -77,7 +49,7 @@ tasks:
       - {name: operation, options: [--operation], required: true}
       - {name: profile, options: [--profile], default: data-migration-dev}
     sequence:
-      - cmd: python -m scripts.apply_deployment --plan ${plan} --operation ${operation} --profile ${profile}
+      - cmd: python -m scripts.apply_deployment --plan "${plan}" --operation "${operation}" --profile "${profile}"
   run-glue:
     help: Submit a hash-pinned runtime config to the exact deployed release in a plan.
     args:
@@ -85,43 +57,14 @@ tasks:
       - {name: config_uri, options: [--config-uri], required: true}
       - {name: config_sha256, options: [--config-sha256], required: true}
       - {name: profile, options: [--profile], default: data-migration-dev}
-    sequence:
-      - ref: _check-plan-account --plan ${plan} --profile ${profile}
-      - shell: |
-          set -eu
-          region=$(jq -r .region "${plan}/target.json")
-          name=$(jq -r .job_name "${plan}/target.json")
-          aws --profile "${profile}" glue get-job --region "$region" --job-name "$name" --query Job --output json > "${plan}/live-job.json"
-          jq -e --slurpfile expected "${plan}/update-job.json" \
-            '.Command == $expected[0].JobUpdate.Command and .DefaultArguments == $expected[0].JobUpdate.DefaultArguments' \
-            "${plan}/live-job.json" > /dev/null
-          arguments=$(jq -cn --arg uri "${config_uri}" --arg hash "${config_sha256}" \
-            '{"--config_uri":$uri,"--config_sha256":$hash}')
-          aws --profile "${profile}" glue start-job-run --region "$region" --job-name "$name" --arguments "$arguments" \
-            --output json > "${plan}/run.json"
-          run_id=$(jq -er .JobRunId "${plan}/run.json")
-          mkdir -p "${plan}/runs"
-          cp "${plan}/run.json" "${plan}/runs/$run_id.json"
-          cat "${plan}/run.json"
+    cmd: python -m scripts.glue_operations run --plan "${plan}" --config-uri "${config_uri}" --config-sha256 "${config_sha256}" --profile "${profile}"
   glue-status:
     help: Inspect a submitted run. Repeat until terminal; retain the printed run ID.
     args:
       - {name: plan, options: [--plan], required: true}
       - {name: run_id, options: [--run-id], required: true}
       - {name: profile, options: [--profile], default: data-migration-dev}
-    sequence:
-      - ref: _check-plan-account --plan ${plan} --profile ${profile}
-      - shell: |
-          set -eu
-          region=$(jq -r .region "${plan}/target.json")
-          name=$(jq -r .job_name "${plan}/target.json")
-          mkdir -p "${plan}/runs"
-          aws --profile "${profile}" glue get-job-run --region "$region" --job-name "$name" --run-id "${run_id}" \
-            --query 'JobRun.{State:JobRunState,Error:ErrorMessage,Started:StartedOn,Completed:CompletedOn,LogGroup:LogGroupName}' \
-            --output json > "${plan}/runs/${run_id}.status.json"
-          cat "${plan}/runs/${run_id}.status.json"
-          state=$(jq -r .State "${plan}/runs/${run_id}.status.json")
-          case "$state" in FAILED|TIMEOUT|STOPPED|ERROR|EXPIRED) exit 1;; esac
+    cmd: python -m scripts.glue_operations status --plan "${plan}" --run-id "${run_id}" --profile "${profile}"
   render-report-catalog:
     help: Render two report DDL statements without contacting AWS.
     cmd: python -m scripts.render_report_catalog
@@ -131,19 +74,7 @@ tasks:
       - {name: plan, options: [--plan], required: true}
       - {name: catalog, options: [--catalog], required: true}
       - {name: profile, options: [--profile], default: data-migration-dev}
-    sequence:
-      - ref: _check-plan-account --plan ${plan} --profile ${profile}
-      - shell: |
-          set -eu
-          region=$(jq -r .region "${catalog}/target.json")
-          workgroup=$(jq -r .work_group "${catalog}/target.json")
-          context=$(jq -c .context "${catalog}/target.json")
-          results=$(jq -c .results "${catalog}/target.json")
-          for sql in "${catalog}"/00.sql "${catalog}"/01.sql; do
-            aws --profile "${profile}" athena start-query-execution --region "$region" --work-group "$workgroup" \
-              --query-execution-context "$context" --result-configuration "$results" \
-              --query-string "file://$sql" --output json
-          done
+    cmd: python -m scripts.register_report_catalog --plan "${plan}" --catalog "${catalog}" --profile "${profile}"
   check-queries:
     cmd: python -m scripts.check_validation compile
     help: Compile illustrative Athena queries and native suites without credentials.

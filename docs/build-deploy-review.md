@@ -100,3 +100,56 @@ resolver metadata for other supported Python/OS splits. The deliberate version
 change test uses supported online `uv lock`; recorded artifact retrieval and
 index-free installed smoke remain separate. This removes a warm-cache assumption
 from the integration check without weakening the release retrieval gate.
+
+
+## Portable build implementation and second review
+
+`docs/portable-build-plan.md` records the plan and `docs/portable-build.md`
+documents the implemented interface. Compatible Linux x86_64/glibc producers
+build locally using the prepared pinned environment; Windows and other
+incompatible hosts dispatch the exact clean pushed source SHA to
+`prepare-release.yml`. Actions builds directly and cannot redispatch. The four
+DVC stages retain their native Linux commands and exclusive outputs.
+
+PyGithub supplies exact dispatch/run identity and explicit release-artifact
+verification. The preparation workflow builds, performs installed offline smoke,
+pushes to the existing DVC store and returns the generated lock/source marker.
+It creates no commit/tag/release and never deploys. The launcher validates the
+returned graph against dvc.yaml, stages final-only retrieval in a temporary DVC
+checkout, checks local source/lock again and only then installs reviewable results.
+Corrupt retrieval preserves the prior lock and bundle. Publication still retrieves
+the finalized committed graph independently without rebuilding. SDK dependencies
+are tooling-only and do not enter the Glue runtime package.
+
+Glue run/status and Athena catalog submission now use explicit injected boto3
+sessions and validated request/result contracts. The account and full planned
+job shape are checked before a run; profile/region and existing JobRunId/status
+JSON fields are preserved. Non-idempotent Glue submission disables SDK retries
+and records an unknown outcome when a response is lost. Catalog submission
+preflights both statements and retains successful query IDs if a later request
+fails. Submission is not a claim of DDL completion. These live operations remain
+outside DVC.
+
+The second review against the PPSC reference required complete result evidence,
+validation before I/O, graph/path checks before retrieval, explicit unknown and
+partial states, compatibility of existing receipt keys, independent empty-cache
+fixtures on Windows and native unprotect before replacing protected Windows
+outputs. Those changes are implemented. Repeated installed smoke uses a fresh
+synthetic evidence directory and returns its path, preserving previous evidence.
+DVC's native generated-lock whitespace is scoped in .gitattributes, as in NIOCCS;
+strict unchanged-lock checks remain. Salesforce's simpler native Windows path
+was retained and the repository gained no shared orchestration framework.
+
+Executed local verification: all 148 tests pass with lint/format and the required
+check-queries/check-synthetic commands. The new 40 portable checks also pass in
+the release-tools-only environment without installing the application. Real
+Linux build, final DVC freshness, installed index-free import/CLI/query/synthetic
+checks, repeated smoke and existing native fresh-cache/full/final-only retrieval
+integration pass. Actual outputs regenerated dvc.lock; no hashes were fabricated.
+The final handoff fixture uses native DVC empty-cache configuration after Windows
+CI exposed read-only cache behavior in the NIOCCS implementation.
+
+Windows CI exercises portable tooling/SDK behavior and real local DVC handoff.
+The preparation workflow must reach the default branch and use the approved
+release environment's DVC/OIDC bindings before canonical remote dispatch can run.
+Canonical S3 and managed Glue/Athena acceptance remain separate pending live gates.

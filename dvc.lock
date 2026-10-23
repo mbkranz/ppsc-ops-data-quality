@@ -1,10 +1,10 @@
 schema: '2.0'
 stages:
   requirements:
-    cmd: python -c 'import sys; assert sys.version_info[:3] == (3, 11, 17)' &&
-      test "$(uv --version | cut -d " " -f 2)" = 0.12.23 && mkdir -p
-      build/release/requirements && uv export --locked --no-default-groups
-      --no-dev --no-emit-project --format requirements-txt --output-file
+    cmd: python -c 'import sys; assert sys.version_info[:3] == (3, 11, 17)' && 
+      test "$(uv --version | cut -d " " -f 2)" = 0.12.23 && mkdir -p 
+      build/release/requirements && uv export --locked --no-default-groups 
+      --no-dev --no-emit-project --format requirements-txt --output-file 
       build/release/requirements/requirements.txt
     deps:
     - path: .python-version
@@ -13,12 +13,12 @@ stages:
       size: 8
     - path: pyproject.toml
       hash: md5
-      md5: ec1b611e40721e1e2c0480059be391eb
-      size: 1278
+      md5: 0b91cb39c420c4090bd453ab5cc39204
+      size: 1453
     - path: uv.lock
       hash: md5
-      md5: 0828fe82a7e7ba71c5b9002d70873f60
-      size: 449083
+      md5: ece9ba5abbd049d952351cd7a85d543c
+      size: 456181
     outs:
     - path: build/release/requirements/requirements.txt
       hash: md5
@@ -48,7 +48,7 @@ stages:
   wheel:
     cmd:
     - rm -rf build/release/project
-    - SOURCE_DATE_EPOCH=315532800 uv build --wheel --no-sources
+    - SOURCE_DATE_EPOCH=315532800 uv build --wheel --no-sources 
       --no-build-isolation --no-create-gitignore --out-dir build/release/project
     deps:
     - path: .dvcignore
@@ -61,12 +61,12 @@ stages:
       size: 8
     - path: README.md
       hash: md5
-      md5: a67b16c58aad68066bf1b424e44ecb50
-      size: 14269
+      md5: 15939abaa1345e63d8ed869d8f7674d9
+      size: 14473
     - path: pyproject.toml
       hash: md5
-      md5: ec1b611e40721e1e2c0480059be391eb
-      size: 1278
+      md5: 0b91cb39c420c4090bd453ab5cc39204
+      size: 1453
     - path: src
       hash: md5
       md5: 63ed2f79ddeee31db6f20374a9fb3cef.dir
@@ -74,13 +74,13 @@ stages:
       nfiles: 35
     - path: uv.lock
       hash: md5
-      md5: 0828fe82a7e7ba71c5b9002d70873f60
-      size: 449083
+      md5: ece9ba5abbd049d952351cd7a85d543c
+      size: 456181
     outs:
     - path: build/release/project
       hash: md5
-      md5: ce1badc69df8bcd71e259979242993ba.dir
-      size: 68489
+      md5: 44e07291d382240585b380725d67db3a.dir
+      size: 68573
       nfiles: 1
   bundle:
     cmd: python -m scripts.package_release
@@ -92,8 +92,8 @@ stages:
       nfiles: 57
     - path: build/release/project
       hash: md5
-      md5: ce1badc69df8bcd71e259979242993ba.dir
-      size: 68489
+      md5: 44e07291d382240585b380725d67db3a.dir
+      size: 68573
       nfiles: 1
     - path: scripts/glue_wheels.py
       hash: md5
@@ -106,5 +106,5 @@ stages:
     outs:
     - path: build/release/bundle/dependencies.gluewheels.zip
       hash: md5
-      md5: 6476b6afbb0849fcc9849de799658046
-      size: 182857847
+      md5: 1462ab4abb7b533db264e8fa77ab2929
+      size: 182857934

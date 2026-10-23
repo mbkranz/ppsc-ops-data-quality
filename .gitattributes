@@ -1,0 +1,2 @@
+# Preserve native DVC command serialization in the generated lock.
+dvc.lock whitespace=-blank-at-eol

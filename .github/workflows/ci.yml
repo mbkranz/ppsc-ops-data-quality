@@ -31,6 +31,7 @@ jobs:
   windows-automation:
     runs-on: windows-latest
     env:
+      DVC_NO_ANALYTICS: "1"
       UV_PROJECT_ENVIRONMENT: .venv-release
       PYTHONUTF8: "1"
     steps:

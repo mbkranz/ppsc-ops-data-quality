@@ -20,7 +20,8 @@ def git(root, *args):
 
 
 @pytest.fixture
-def checkout(tmp_path):
+def checkout(tmp_path, monkeypatch):
+    monkeypatch.setenv("DVC_NO_ANALYTICS", "1")
     root = tmp_path / "checkout with spaces"
     root.mkdir()
     git(root, "init", "-b", "main")

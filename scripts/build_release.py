@@ -159,13 +159,22 @@ def restore_build(
                 shutil.copy2(source, destination / ".dvc" / name)
         shutil.copy2(root / "dvc.yaml", destination / "dvc.yaml")
         (destination / "dvc.lock").write_bytes(lock)
-        subprocess.run(["dvc", "config", "core.no_scm", "true"], cwd=destination, check=True)
+        transfer_env = {**os.environ, "DVC_NO_ANALYTICS": "1"}
+        subprocess.run(
+            ["dvc", "config", "core.no_scm", "true"], cwd=destination, check=True, env=transfer_env
+        )
         subprocess.run(
             ["dvc", "remote", "modify", "--local", remote, "verify", "true"],
             cwd=destination,
             check=True,
+            env=transfer_env,
         )
-        subprocess.run(["dvc", "pull", FINAL_STAGE, "-r", remote], cwd=destination, check=True)
+        subprocess.run(
+            ["dvc", "pull", FINAL_STAGE, "-r", remote],
+            cwd=destination,
+            check=True,
+            env=transfer_env,
+        )
         verify_checkout(revision, root=root)
         if path.read_bytes() != original_lock:
             raise ValueError("Local lock changed during artifact retrieval")

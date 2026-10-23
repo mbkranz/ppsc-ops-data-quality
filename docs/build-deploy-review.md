@@ -153,3 +153,8 @@ Windows CI exercises portable tooling/SDK behavior and real local DVC handoff.
 The preparation workflow must reach the default branch and use the approved
 release environment's DVC/OIDC bindings before canonical remote dispatch can run.
 Canonical S3 and managed Glue/Athena acceptance remain separate pending live gates.
+
+Hosted Windows execution also exposed a background DVC analytics process holding
+the temporary checkout open during cleanup. Temporary transfer subprocesses and
+the portable CI fixtures explicitly disable analytics; the original transfer
+error remains observable and cleanup no longer depends on an unrelated process.

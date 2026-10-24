@@ -1,6 +1,7 @@
 """The provisional pinned QA2 evidence and explicit compatibility bindings."""
 
 from functools import cache
+from hashlib import sha256
 from importlib.metadata import version
 from importlib.resources import files
 from pathlib import Path
@@ -8,6 +9,7 @@ from pathlib import Path
 from ppsc_metadata.artifacts import MetadataBundle, MetadataReceipt, load_metadata_bundle
 from ppsc_metadata.contracts import internal_reference, property_references
 from ppsc_metadata.sources.salesforce_flow import FlowRequest
+from pydantic import Field
 
 FLOW_FIELDS = (
     "Age_at_Time_of_Consent__pc",
@@ -72,20 +74,47 @@ def _read_inputs() -> MetadataBundle:
     return bundle
 
 
+class CompilationReceipt(MetadataReceipt):
+    """Producer receipt plus the consumer configuration actually used to compile."""
+
+    flow_request_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
 @cache
+def _compilation_inputs() -> tuple[str, str, str]:
+    # Strings cannot be changed through a returned nested dict or ODCS model.
+    return (
+        _read_inputs().model_dump_json(by_alias=True, exclude_unset=True),
+        FLOW_REQUEST.model_dump_json(),
+        version("ppsc-metadata"),
+    )
+
+
 def metadata_inputs() -> MetadataBundle:
-    return _read_inputs()
+    """Return a fresh parse of the verified compilation snapshot."""
+    return MetadataBundle.model_validate_json(_compilation_inputs()[0])
 
 
-def metadata_receipt() -> MetadataReceipt:
+def metadata_request() -> FlowRequest:
+    """Return the same request used by lineage and every compilation stage."""
+    return FlowRequest.model_validate_json(_compilation_inputs()[1])
+
+
+def metadata_receipt() -> CompilationReceipt:
     """Reverify installed artifacts before a run, including the compiled snapshot."""
     current = _read_inputs()
-    if current.manifest_sha256 != metadata_inputs().manifest_sha256:
+    _, request_json, compiler_version = _compilation_inputs()
+    if (
+        current.manifest_sha256 != metadata_inputs().manifest_sha256
+        or FLOW_REQUEST.model_dump_json() != request_json
+        or version("ppsc-metadata") != compiler_version
+    ):
         raise ValueError("Metadata inputs changed after query construction")
-    return MetadataReceipt(
+    return CompilationReceipt(
         manifest=current.manifest,
         manifest_sha256=current.manifest_sha256,
-        compiler_version=version("ppsc-metadata"),
+        compiler_version=compiler_version,
         contract_id=current.contract.id,
         contract_version=current.contract.version,
+        flow_request_sha256=sha256(request_json.encode("utf-8")).hexdigest(),
     )

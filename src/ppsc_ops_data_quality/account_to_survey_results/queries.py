@@ -40,7 +40,7 @@ from ppsc_metadata.sources.salesforce_flow import flow_assignments, flow_context
 from ppsc_ops_data_quality.core.queries.snapshot import snapshot
 
 from .lineage import ROLLUP_FIELD_LINEAGE
-from .metadata import FLOW_FIELDS, FLOW_REQUEST, metadata_inputs
+from .metadata import FLOW_FIELDS, metadata_inputs, metadata_request
 
 ACCOUNT_FIELDS_ASSIGNED_BY_FLOW = FLOW_FIELDS
 
@@ -94,7 +94,7 @@ def add_flow_context(
         Record,
         {"Survey_Result__c": Survey_Result__c},
         metadata_inputs().flow["Metadata"],
-        FLOW_REQUEST,
+        metadata_request(),
         flow_run_date=flow_run_date,
         eligibility=_eligible,
     )
@@ -106,7 +106,7 @@ def derived_account_expressions(Record: ir.Table) -> tuple[ir.Value, ...]:
         flow_assignments(
             Record,
             metadata_inputs().flow["Metadata"],
-            FLOW_REQUEST,
+            metadata_request(),
             eligibility=_eligible,
         ).expressions.values()
     )
@@ -349,7 +349,7 @@ def cabor_lookup_is_deterministic(Record: ir.Table) -> ir.BooleanValue:
     return flow_assignments(
         Record,
         metadata_inputs().flow["Metadata"],
-        FLOW_REQUEST,
+        metadata_request(),
         eligibility=_eligible,
     ).deterministic["CABOR_Completion_Date__c"]
 

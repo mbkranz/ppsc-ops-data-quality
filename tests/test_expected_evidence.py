@@ -257,7 +257,16 @@ def test_selected_rollup_handoff_is_loaded_and_executed(
         {"parent": ["p1", "p1"], "amount": [Decimal("0.10"), Decimal("0.20")]},
         schema={"parent": "string", "amount": "decimal(12,2)"},
     )
-    observed = parent.mutate(NativeValue=ibis.literal(Decimal("0.30")))
+    observed = parent.mutate(
+        NativeValue=ibis.literal(Decimal("0.30")).cast(
+            {
+                "count": "int64",
+                "sum": "decimal(38,2)",
+                "min": "decimal(12,2)",
+                "max": "decimal(12,2)",
+            }[operation]
+        )
+    )
     result = queries.native_rollup_comparison(
         parent,
         child,

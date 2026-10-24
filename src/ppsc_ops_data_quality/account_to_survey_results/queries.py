@@ -38,12 +38,14 @@ from functools import reduce
 import ibis
 import ibis.expr.types as ir
 from ppsc_metadata.artifacts import MetadataBundle
-from ppsc_metadata.contracts import property_references
 from ppsc_metadata.projections import presence_requirements
 from ppsc_metadata.sources.salesforce_flow import flow_assignments, flow_context
-from ppsc_metadata.sources.salesforce_rollup import RollupRequest, rollup_values
+from ppsc_metadata.sources.salesforce_rollup import RollupRequest
 
 from ppsc_ops_data_quality.core.queries.snapshot import snapshot
+from ppsc_ops_data_quality.sources.salesforce import (
+    native_rollup_comparison as compare_native_rollup,
+)
 
 from .lineage import ROLLUP_FIELD_LINEAGE
 from .metadata import FLOW_FIELDS, metadata_inputs, metadata_request
@@ -607,37 +609,15 @@ def native_rollup_comparison(
     metadata. Missing selections fail rather than falling back to a handwritten
     definition. Duplicate/missing parents and observations remain detectable.
     """
-    object_name, separator, field = source_field.partition(".")
-    if not separator or field != request.output_field:
-        raise ValueError("Bind the selected native rollup to its declared output field")
-    bundle = inputs
-    if source_field not in property_references(bundle.contract):
-        raise ValueError(f"Unbound rollup source field: {source_field}")
-    if source_field not in bundle.rollups:
-        raise ValueError(f"No verified native rollup selected: {source_field}")
-    Expected = rollup_values(
-        Parent.select(request.parent_key), Child, bundle.rollups[source_field], request
+    Comparison = compare_native_rollup(
+        Parent, Child, Observed, request, source_field=source_field, inputs=inputs
     )
-    Observed = Observed.alias("Observed_Rollup")
-    joined = Expected.left_join(
-        Observed, Expected[request.parent_key] == Observed[request.parent_key]
-    )
-    comparison = joined.select(
-        Expected[request.parent_key].name("validation_record_id"),
-        Expected[request.parent_key].name("expected_account_id"),
-        Observed[request.parent_key].name("observed_account_id"),
-        Expected[field].name(f"expected__{field}"),
-        Observed[field].name(f"observed__{field}"),
-    )
-    return comparison.mutate(
-        comparison_keys_are_valid=(
-            comparison.expected_account_id.notnull()
-            & comparison.observed_account_id.notnull()
-            & (
-                comparison.expected_account_id.count().over(
-                    ibis.window(group_by=comparison.expected_account_id)
-                )
-                == 1
-            )
-        )
+    # Compatibility aliases belong to this Account workflow, not the shared
+    # Salesforce adapter. Other callers retain their explicit source key names.
+    return Comparison.mutate(
+        validation_record_id=ibis.coalesce(
+            Comparison.expected_key__parent, Comparison.observed_key__parent
+        ),
+        expected_account_id=Comparison.expected_key__parent,
+        observed_account_id=Comparison.observed_key__parent,
     )

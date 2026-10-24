@@ -125,20 +125,20 @@ class ExpectedValues(unittest.TestCase):
     def test_primary_branches_and_age(self):
         for index in ["1001", "1002"]:
             row = self.row(index)
-            self.assertEqual(row.Earliest_Primary_Consent_Date_for_Report__c, OLD)
+            self.assertEqual(row.Earliest_Primary_Consent_Date_for_Report__c, NEW)
             self.assertEqual(row.Latest_Primary_Consent_Date_for_Report__c, NEW)
             self.assertEqual(row.Age_at_Time_of_Consent__pc, 26)
             row = self.row(index, prior="1001")
-            self.assertEqual(row.Earliest_Primary_Consent_Date_for_Report__c, NEW)
+            self.assertEqual(row.Earliest_Primary_Consent_Date_for_Report__c, OLD)
 
     def test_ehr_branches_preserve_source_behavior(self):
         for index in ["1003", "1004"]:
             row = self.row(index)
-            self.assertEqual(row.EHR_Reconsent_Date_Time__c, NEW)
-            self.assertEqual(row.EHR_Consent_Date_Time__c, OLD)
-            row = self.row(index, prior="1003")
-            self.assertEqual(row.EHR_Consent_Date_Time__c, NEW)
             self.assertEqual(row.EHR_Reconsent_Date_Time__c, OLD)
+            self.assertEqual(row.EHR_Consent_Date_Time__c, NEW)
+            row = self.row(index, prior="1003")
+            self.assertEqual(row.EHR_Consent_Date_Time__c, OLD)
+            self.assertEqual(row.EHR_Reconsent_Date_Time__c, NEW)
 
     def test_assigned_null_not_coalesced(self):
         import pandas as pd
@@ -146,7 +146,7 @@ class ExpectedValues(unittest.TestCase):
         row = self.row(signature=None)
         self.assertTrue(pd.isna(row.CABOR_Completion_Date__c))
         row = self.row("1008", earliest=None)
-        self.assertTrue(pd.isna(row.Earliest_Primary_Consent_Date_for_Report__c))
+        self.assertEqual(row.Earliest_Primary_Consent_Date_for_Report__c, NEW)
         self.assertTrue(pd.isna(row.CABOR_Completion_Date__c))
         self.assertTrue(row.CABOR_Completion_Date__c_is_deterministic)
 
@@ -265,7 +265,7 @@ class ExpectedValues(unittest.TestCase):
             self.assertEqual(by_name[name].meta["ppsc"]["target_field"], "Account." + name)
         p = by_name["Basics_Date_Time__c"].meta["ppsc"]
         self.assertEqual(p["source_entities"], ["FlowRecordUpdate.updateAccount2001"])
-        self.assertEqual(p["branches"][0]["rule_id"], "set_basics_completion_timestamp")
+        self.assertEqual(p["branches"][0]["rule_id"], "updateAccount2001/Basics_Date_Time__c")
         self.assertEqual(p["workbook_rows"], [14506])
         self.assertFalse(any(name.startswith("FlowDecision_") for name in by_name))
 

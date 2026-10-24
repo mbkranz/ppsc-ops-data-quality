@@ -21,11 +21,7 @@ Fields are grouped by their Salesforce object, including expected and observed f
 | [Survey_Results_At_Execution](account_to_survey_results_flow_Survey_Results_At_Execution.svg) | `snapshot()` | `Survey_Result__c_History` |
 | [Trigger_Survey_Result](account_to_survey_results_flow_Trigger_Survey_Result.svg) | `flow_account_query()` | `Survey_Results_At_Execution` |
 | [Joined_Record](account_to_survey_results_flow_Joined_Record.svg) | `join_account()` | `Account_Before`, `Contact_At_Execution`, `Trigger_Survey_Result` |
-| [Record_With_Primary_Consent](account_to_survey_results_flow_Record_With_Primary_Consent.svg) | `FlowRecordLookup_Earliest_Other_Yes_Primary_Consent()` | `Joined_Record`, `Survey_Results_At_Execution` |
-| [Record_With_EHR_Consent](account_to_survey_results_flow_Record_With_EHR_Consent.svg) | `FlowRecordLookup_Earliest_Other_Yes_EHR_Consent()` | `Record_With_Primary_Consent`, `Survey_Results_At_Execution` |
-| [Record_With_Physical_Measurement](account_to_survey_results_flow_Record_With_Physical_Measurement.svg) | `FlowRecordLookup_First_Remote_Physical_Measurement()` | `Record_With_EHR_Consent`, `Survey_Results_At_Execution` |
-| [Record_With_Pediatric_Permission](account_to_survey_results_flow_Record_With_Pediatric_Permission.svg) | `FlowRecordLookup_Pediatric_Permission_For_Assent()` | `Record_With_Physical_Measurement`, `Survey_Results_At_Execution` |
-| [Flow_Context](account_to_survey_results_flow_Flow_Context.svg) | `add_flow_context()` | `Record_With_Pediatric_Permission` |
+| [Flow_Context](account_to_survey_results_flow_Flow_Context.svg) | `add_flow_context()` | `Joined_Record`, `Survey_Results_At_Execution` |
 | [Expected_Account](account_to_survey_results_flow_Expected_Account.svg) | `expected_account_values()` | `Flow_Context` |
 | [Account_After](account_to_survey_results_flow_Account_After.svg) | `snapshot()` | `Account_History` |
 | [Account_After_By_Survey_Event](account_to_survey_results_flow_Account_After_By_Survey_Event.svg) | `flow_account_query()` | `Account_After` |
@@ -70,38 +66,6 @@ Builder: `join_account()`
 ![Native Ibis table graph: Joined_Record](account_to_survey_results_flow_Joined_Record.svg)
 
 [SVG](account_to_survey_results_flow_Joined_Record.svg) | [DOT](account_to_survey_results_flow_Joined_Record.dot)
-
-## Record_With_Primary_Consent
-
-Builder: `FlowRecordLookup_Earliest_Other_Yes_Primary_Consent()`
-
-![Native Ibis table graph: Record_With_Primary_Consent](account_to_survey_results_flow_Record_With_Primary_Consent.svg)
-
-[SVG](account_to_survey_results_flow_Record_With_Primary_Consent.svg) | [DOT](account_to_survey_results_flow_Record_With_Primary_Consent.dot)
-
-## Record_With_EHR_Consent
-
-Builder: `FlowRecordLookup_Earliest_Other_Yes_EHR_Consent()`
-
-![Native Ibis table graph: Record_With_EHR_Consent](account_to_survey_results_flow_Record_With_EHR_Consent.svg)
-
-[SVG](account_to_survey_results_flow_Record_With_EHR_Consent.svg) | [DOT](account_to_survey_results_flow_Record_With_EHR_Consent.dot)
-
-## Record_With_Physical_Measurement
-
-Builder: `FlowRecordLookup_First_Remote_Physical_Measurement()`
-
-![Native Ibis table graph: Record_With_Physical_Measurement](account_to_survey_results_flow_Record_With_Physical_Measurement.svg)
-
-[SVG](account_to_survey_results_flow_Record_With_Physical_Measurement.svg) | [DOT](account_to_survey_results_flow_Record_With_Physical_Measurement.dot)
-
-## Record_With_Pediatric_Permission
-
-Builder: `FlowRecordLookup_Pediatric_Permission_For_Assent()`
-
-![Native Ibis table graph: Record_With_Pediatric_Permission](account_to_survey_results_flow_Record_With_Pediatric_Permission.svg)
-
-[SVG](account_to_survey_results_flow_Record_With_Pediatric_Permission.svg) | [DOT](account_to_survey_results_flow_Record_With_Pediatric_Permission.dot)
 
 ## Flow_Context
 

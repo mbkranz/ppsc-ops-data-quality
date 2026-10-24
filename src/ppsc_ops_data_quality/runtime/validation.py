@@ -15,6 +15,7 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
     rollup_account_suite,
 )
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
+from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     flow_account_query,
     rollup_account_query,
@@ -57,6 +58,15 @@ def run_validation(
     The caller supplies validated configuration and a fresh workspace. Both local
     and Glue hosts use this function; the runner retains native partial results.
     """
+    compiled_inputs = metadata_receipt()
+    if (
+        request.metadata.org != compiled_inputs.manifest.org
+        or request.metadata.flow_version_id != compiled_inputs.manifest.flow_version_id
+        or request.metadata.manifest_sha256 != compiled_inputs.manifest_sha256
+    ):
+        raise ValueError(
+            "Configured metadata org/version/hash does not match the compiled input set"
+        )
     athena = request.athena
     reporting = request.reports
     event = request.event
@@ -134,6 +144,7 @@ def run_validation(
             },
             run_metadata={
                 **(run_metadata or {}),
+                "metadata_inputs": compiled_inputs.model_dump(mode="json"),
                 "event": event.model_dump(mode="json"),
                 "rollups_as_of": request.rollups.as_of.isoformat(),
             },

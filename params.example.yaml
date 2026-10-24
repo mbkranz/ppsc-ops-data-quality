@@ -1,3 +1,7 @@
+metadata:
+  org: qa2
+  flow_version_id: 301SL00000dpJqKYAU
+  manifest_sha256: eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908
 # Illustrative bindings only. Copy to the ignored .local.yaml counterpart.
 # Quote account IDs. Dates and datetimes below are typed YAML scalars.
 athena:

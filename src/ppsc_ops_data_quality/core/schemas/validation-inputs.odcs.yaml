@@ -1,0 +1,235 @@
+apiVersion: v3.2.0
+description:
+  purpose: Synthetic validation profile migrated from the existing ops input schemas.
+    Requires local catalog and authored-contract review; this is not an approved QA2
+    or production contract.
+id: ppsc-ops-provisional-validation-inputs
+kind: DataContract
+name: Provisional ops validation inputs
+schema:
+- id: Account
+  logicalType: object
+  name: Account
+  properties:
+  - id: Id
+    logicalType: string
+    name: Id
+  - id: PersonContactId
+    logicalType: string
+    name: PersonContactId
+    relationships:
+    - to: Contact.Id
+      type: foreignKey
+  - id: IsPersonAccount
+    logicalType: boolean
+    name: IsPersonAccount
+  - customProperties:
+    - property: decimal
+      value:
+        precision: 3
+        scale: 0
+      vendor: ppsc
+    id: Age_at_Time_of_Consent__pc
+    logicalType: number
+    name: Age_at_Time_of_Consent__pc
+  - id: CABOR_Completion_Date__c
+    logicalType: timestamp
+    name: CABOR_Completion_Date__c
+  - id: Earliest_Primary_Consent_Date_for_Report__c
+    logicalType: timestamp
+    name: Earliest_Primary_Consent_Date_for_Report__c
+  - id: Latest_Primary_Consent_Date_for_Report__c
+    logicalType: timestamp
+    name: Latest_Primary_Consent_Date_for_Report__c
+  - id: EHR_Consent_Date_Time__c
+    logicalType: timestamp
+    name: EHR_Consent_Date_Time__c
+  - id: EHR_Reconsent_Date_Time__c
+    logicalType: timestamp
+    name: EHR_Reconsent_Date_Time__c
+  - id: Update_to_Primary_Consent_Completed__c
+    logicalType: timestamp
+    name: Update_to_Primary_Consent_Completed__c
+  - id: Basics_Date_Time__c
+    logicalType: timestamp
+    name: Basics_Date_Time__c
+  - id: Overall_Health_Date_Time__c
+    logicalType: timestamp
+    name: Overall_Health_Date_Time__c
+  - id: Lifestyle_Date_Time__c
+    logicalType: timestamp
+    name: Lifestyle_Date_Time__c
+  - id: Personal_and_Family_History_Complete__c
+    logicalType: timestamp
+    name: Personal_and_Family_History_Complete__c
+  - id: HC_Access_Date_Time__c
+    logicalType: timestamp
+    name: HC_Access_Date_Time__c
+  - id: Life_Functioning_Date_Time__c
+    logicalType: timestamp
+    name: Life_Functioning_Date_Time__c
+  - id: First_Physical_Measurement_Date_Time__c
+    logicalType: timestamp
+    name: First_Physical_Measurement_Date_Time__c
+  - id: Last_Physical_Measurement_Date_Time__c
+    logicalType: timestamp
+    name: Last_Physical_Measurement_Date_Time__c
+  - id: EH_Date_Time__c
+    logicalType: timestamp
+    name: EH_Date_Time__c
+  - id: Behavioral_Health_Completion__c
+    logicalType: timestamp
+    name: Behavioral_Health_Completion__c
+  - id: Environmental_Exposures_Date_Time__c
+    logicalType: timestamp
+    name: Environmental_Exposures_Date_Time__c
+  - id: Social_Determinants_of_Health_Completion__c
+    logicalType: timestamp
+    name: Social_Determinants_of_Health_Completion__c
+  - id: EHR_Authorized__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: EHR_Authorized__pc
+  - id: Count_of_Completed_EHR_Auth__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: Count_of_Completed_EHR_Auth__pc
+  - id: Count_of_Completed_Primary_Consent__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: Count_of_Completed_Primary_Consent__pc
+  - id: Count_of_Completed_Reconsent__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: Count_of_Completed_Reconsent__pc
+  - id: PPI_2_Completion_Count__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: PPI_2_Completion_Count__pc
+  - id: PPI_3_Completion_Count__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: PPI_3_Completion_Count__pc
+  - id: EHR_Consent_Active__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: EHR_Consent_Active__pc
+  - id: EHR_Consent_Declined__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: EHR_Consent_Declined__pc
+  - id: PP1_Basics_Survey_Complete__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: PP1_Basics_Survey_Complete__pc
+  - id: Re_Consent_Declined__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: Re_Consent_Declined__pc
+  - id: Re_consent_Active__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: Re_consent_Active__pc
+  - id: Primary_Consent_Declined__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: Primary_Consent_Declined__pc
+  - id: EHR_Consent_Ever__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: EHR_Consent_Ever__pc
+  - id: Assent_Completion_Count__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: Assent_Completion_Count__pc
+  - id: Pediatric_Permission_Completion_Count__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: Pediatric_Permission_Completion_Count__pc
+  - id: X0_6_Peds_Permission_Count__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: X0_6_Peds_Permission_Count__pc
+  - id: X0_6_Peds_Permission_Declined_Count__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: X0_6_Peds_Permission_Declined_Count__pc
+  - id: X0_6_Peds_Permission_Revoked_Count__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: X0_6_Peds_Permission_Revoked_Count__pc
+  - id: EHR_Pediatric_Complete__pc
+    logicalType: integer
+    logicalTypeOptions:
+      format: i64
+    name: EHR_Pediatric_Complete__pc
+- id: Contact
+  logicalType: object
+  name: Contact
+  properties:
+  - id: Id
+    logicalType: string
+    name: Id
+  - id: AccountId
+    logicalType: string
+    name: AccountId
+    relationships:
+    - to: Account.Id
+      type: foreignKey
+  - id: Birthdate
+    logicalType: date
+    name: Birthdate
+- id: Survey_Result__c
+  logicalType: object
+  name: Survey_Result__c
+  properties:
+  - id: Id
+    logicalType: string
+    name: Id
+  - id: Participant__c
+    logicalType: string
+    name: Participant__c
+    relationships:
+    - to: Contact.Id
+      type: foreignKey
+  - id: Survey_Index_Number__c
+    logicalType: string
+    name: Survey_Index_Number__c
+  - id: Completion_Status__c
+    logicalType: string
+    name: Completion_Status__c
+  - id: Consent_Status__c
+    logicalType: string
+    name: Consent_Status__c
+  - id: Consent_Revoked__c
+    logicalType: boolean
+    name: Consent_Revoked__c
+  - id: Completion_Status_Timestamp__c
+    logicalType: timestamp
+    name: Completion_Status_Timestamp__c
+  - id: Consent_Status_Timestamp__c
+    logicalType: timestamp
+    name: Consent_Status_Timestamp__c
+  - id: California_Signature__c
+    logicalType: timestamp
+    name: California_Signature__c
+status: draft
+version: 0.1.0

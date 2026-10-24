@@ -27,8 +27,8 @@ compiles expressions locally; it does not execute SQL or contact AWS.
 | `runtime/data_access.py` | Backend catalog binding |
 | `core/queries/snapshot.py` | Composable SCD2 snapshot expression |
 | `gx_queries.py` | Compile Athena SELECT and register a native GX Query Asset |
-| `account_to_survey_results/queries.py` | Existing named Ibis Flow decisions, formulas, derived fields and rollups |
-| `account_to_survey_results/lineage.py` | Original metadata IDs, workbook rows, branch lineage and output-alias mappings |
+| `account_to_survey_results/queries.py` | Shared metadata compiler calls, application joins/history and existing rollups |
+| `account_to_survey_results/lineage.py` | Generated native Flow pointers, retained rollup evidence and output aliases |
 | `account_to_survey_results/gx.py` | Native GX suite builders, independent of dataset construction |
 | `views.py` | Optional publishing of a final query as an Athena view |
 | `account_to_survey_results.sql` | Two illustrative expected-value SELECTs over history |
@@ -95,7 +95,9 @@ result = batch.validate(flow_account_suite(expected_row_count=1))
 
 The query selects one triggering survey record, uses all survey records at
 execution for FlowRecordLookups, and joins Contact at execution to Account BEFORE.
-Expected values follow the existing Flow decisions and CASE expressions. Observed
+Expected values follow the pinned native Flow decisions and assignments through
+the shared compiler. See [metadata compilation](metadata-compiler.md) for the
+provisional profile and semantic changes. Observed
 values come from the independently supplied Account AFTER time and are explicitly
 associated with the selected survey event. The final LEFT JOIN uses both Account
 and survey event identity; missing observations and duplicates remain visible.
@@ -297,7 +299,7 @@ uv sync --locked
 uv run poe check
 ```
 
-Verified with GX Core 1.24.0, Ibis 12.0.0 and SQLAlchemy 2.1.6. The 64 tests cover
+Verified with GX Core 1.24.0, Ibis 12.0.0 and SQLAlchemy 2.1.6. The offline tests cover
 source schema types and conversions, catalog overrides, SCD2 boundaries/types,
 duplicate preservation, direct history-to-comparison
 execution on DuckDB, missing relationships, NULL semantics, ambiguous lookups,

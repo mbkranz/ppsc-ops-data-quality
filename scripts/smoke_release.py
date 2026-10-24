@@ -60,6 +60,16 @@ def smoke_release(*, root: Path) -> SmokeResult:
         "-c",
         "from pathlib import Path; import sys, ppsc_ops_data_quality; assert Path(ppsc_ops_data_quality.__file__).is_relative_to(Path(sys.prefix))",
     )
+    run(
+        str(python),
+        "-I",
+        "-c",
+        "from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt; "
+        "import sys; receipt = metadata_receipt(); "
+        "assert receipt.compiler_version == '0.2.0'; "
+        "assert receipt.manifest.flow_version_id == '301SL00000dpJqKYAU'; "
+        "assert receipt.manifest.provisional; assert 'salesforce' not in sys.modules",
+    )
     run(str(cli), "--help")
     invalid = root / "build/release/invalid.yaml"
     invalid.write_text("unexpected: true\n", encoding="utf-8")

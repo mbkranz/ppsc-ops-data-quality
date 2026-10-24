@@ -169,6 +169,10 @@ def test_bindings_reject_collisions_and_implicit_key_casts():
     expected, observed = migration_inputs()
     with pytest.raises(ValueError, match="key types must match"):
         compare_values(expected, observed.mutate(response_id=ibis.literal(1)), migration_spec())
+    with pytest.raises(ValueError, match="value types must match"):
+        compare_values(expected, observed.mutate(QID42=ibis.literal(False)), migration_spec())
+    with pytest.raises(ValueError, match="value types must match"):
+        compare_values(expected, observed.mutate(QID42=ibis.literal("0")), migration_spec())
     with pytest.raises(ValueError, match="must be boolean"):
         compare_values(expected.mutate(known=ibis.literal(1)), observed, migration_spec())
     with pytest.raises(ValidationError, match="output names collide"):
@@ -283,7 +287,7 @@ def test_independent_verified_flows_have_no_account_defaults(
     assert all(item.success for item in validate(backend, comparison, spec).values())
     retained = flow_comparison(
         record.mutate(eligible=False),
-        observed.mutate(destination=4),
+        observed.mutate(destination=ibis.literal(4, type="int64")),
         request,
         spec,
         inputs=inputs,

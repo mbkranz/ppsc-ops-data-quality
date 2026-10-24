@@ -81,6 +81,13 @@ def compare_values(Expected: ir.Table, Observed: ir.Table, spec: ComparisonSpec)
             nullable=True
         ):
             raise ValueError(f"Comparison key types must match: {key.name}")
+    for value in spec.values:
+        if Expected[value.expected].type().copy(nullable=True) != Observed[
+            value.observed
+        ].type().copy(nullable=True):
+            raise ValueError(
+                f"Comparison value types must match; supply an explicit approved cast: {value.name}"
+            )
     evidence = {
         column
         for value in spec.values

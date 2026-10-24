@@ -51,7 +51,10 @@ do not deduplicate rows. Invalid grain blocks equality and fails the independent
 structural check. An unexpected target row stays in scope and fails reconciliation.
 Select the intended observed cohort upstream; unrelated records are not silently
 excluded by this API. Scope false excludes value checks, while scope NULL fails
-completeness. Select approved key types upstream; implicit key casts are rejected.
+completeness. Select approved key and value types upstream; implicit casts are rejected.
+This prevents typed false and numeric zero, or text and numeric answers, from
+passing through backend coercion. Explicitly cast both sides to the reviewed
+comparison type, including decimal precision/scale and temporal timezone.
 
 Value equality, requiredness and must-be-null are distinct native GX checks.
 Assignment false still compares a retained BEFORE value. Determinism false,

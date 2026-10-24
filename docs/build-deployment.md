@@ -10,7 +10,9 @@ submission and catalog operations are uncached.
 
 The common CLI/Glue runner, Ibis queries, native GX suites, inclusive
 `Completion_Status_Timestamp__c >= 2024-12-16` Flow conditions, missing/prelaunch
-profiling, rollup definitions and report formats are unchanged. Glue 5.0 uses a
+profiling, rollup definitions and report formats retain their interfaces. Flow
+expectations now come from pinned native metadata; see [metadata compilation](metadata-compiler.md).
+Glue 5.0 uses a
 CPython 3.11/Linux x86_64 driver; Athena executes SQL without initializing Spark.
 Exit codes remain 0 for success, 1 for quality failure and 2 for execution or
 publication errors. Every invocation creates fresh run evidence.
@@ -40,6 +42,11 @@ The release graph has four exclusive outputs:
 | `dependencies` | `build/release/dependencies/` | Binary-only, hash-checked CPython 3.11 Linux wheels |
 | `wheel` | `build/release/project/` | Application wheel |
 | `bundle` | `build/release/bundle/dependencies.gluewheels.zip` | Deterministic ZIP containing the application once and its complete wheel closure |
+
+The requirements and dependency stages also track `vendor/`, which carries the
+independent compiler wheel until it has a separate distribution channel. The
+application declares `ppsc-metadata[ibis]==0.2.0`; uv binds that requirement to the
+checked-in wheel and records its actual hash. No Salesforce application is bundled.
 
 The archive producer validates metadata, target tags and dependency closure,
 rejects duplicates/source archives and tolerates an existing output parent.

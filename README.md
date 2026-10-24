@@ -3,13 +3,18 @@
 Compute expected Account values from Survey Result history with Ibis, then compare
 them with independently observed Account values using native Great Expectations
 (GX) suites. Run the same query builders against Athena or bounded local DuckDB
-data. Python expressions and suite builders are the authored source; SQL and suite
-JSON are generated review and run-audit artifacts.
+data. A pinned ODCS input profile and native Flow metadata drive the Flow
+projections; Python owns bindings, history, rollups and native GX suite builders.
+SQL and suite JSON are generated review and run-audit artifacts.
 
 The first implementation covers the Survey Result completion Flow and 19 Account
 survey rollups. It preserves the relationship
 `Survey_Result__c.Participant__c -> Contact.Id -> Contact.AccountId -> Account.Id`,
 missing parents, duplicate matches, assigned NULLs and unchanged prior values.
+
+The compiler integration is provisional and pins QA2 Flow version
+`301SL00000dpJqKYAU`. See [metadata compilation](docs/metadata-compiler.md) for the
+artifact boundary, native behavior changes and remaining local acceptance work.
 
 ## Development workflow
 
@@ -56,12 +61,14 @@ These are development scripts and are excluded from the installed package.
 ```text
 src/ppsc_ops_data_quality/
     account_to_survey_results/
-        queries.py              # Ibis derivations and history comparisons
+        metadata.py             # Verified version selection and explicit bindings
+        metadata/               # Pinned native Flow, catalog and manifest
+        queries.py              # Ibis history/comparisons and existing rollups
         gx.py                   # Authoritative native GX suite builders
         lineage.py              # Field, branch and original-source provenance
         schemas.py              # Schemas inferred from actual queries
     core/
-        schemas/                # Account, Contact, Survey Result and history inputs
+        schemas/                # ODCS-derived inputs and native history composition
         queries/                # Pure snapshots, unbound history, optional SQL lineage
         configuration.py        # Shared YAML loader; rejects duplicate keys
     runtime/
@@ -129,7 +136,9 @@ including zero-child Accounts.
 `ppsc-dq validate` provides the packaged GX/SQLAlchemy runtime; the example script delegates to it:
 
 1. Copy `params.example.yaml` to ignored `params.local.yaml`.
-2. Bind the actual databases and verify the physical columns/types, validity
+2. Confirm the metadata org, exact Flow version and manifest SHA256 match the
+   reviewed installed inputs. The runtime rejects a mismatched selection before
+   connecting. Bind the actual databases and verify the physical columns/types, validity
    intervals, deletion semantics and completed delivery/event timing.
 3. Set standard AWS credentials/profile outside the configuration file.
 4. Run with a new output directory:

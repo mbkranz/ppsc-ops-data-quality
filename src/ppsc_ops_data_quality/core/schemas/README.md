@@ -1,6 +1,8 @@
 # Schemas for the Account / Survey Result queries
 
-Schemas are ordinary `ibis.Schema` objects. Each source declaration contains all
+Schemas are ordinary `ibis.Schema` objects, derived from the packaged provisional
+`validation-inputs.odcs.yaml` through `ppsc_metadata.schemas.ibis_schema()`. Each
+source declaration contains all
 columns required by this validation workflow. `VALIDATION_INPUT` explicitly scopes
 the relation: these are not full exports of every Salesforce object field and are
 not catalog-discovered physical Athena schemas.
@@ -17,15 +19,20 @@ not catalog-discovered physical Athena schemas.
 | | `SURVEY_RESULT_HISTORY_VALIDATION_INPUT`, `SURVEY_RESULT_SNAPSHOT_VALIDATION_INPUT` | 13 |
 | `history.py` | `HISTORY_METADATA` | 4 |
 
-Field types are traced to `salesforce_schemas_combined_latest.xlsx`,
-`datamodel-Fields`, with row numbers beside each declaration. In particular:
+The ODCS profile migrates the existing ops input types, formerly documented from
+`salesforce_schemas_combined_latest.xlsx`, into one structured schema authority.
+It is a draft compatibility profile, not an approved QA2 or production contract.
+The bundled source catalog supplies identity/relationship evidence, not verified
+physical types. Catalog acceptance remains local work.
 
-- Account consent age is Salesforce `Number(3,0)`, represented as `decimal(3,0)`.
-- COUNT rollups are represented as `int64`; this is a logical count mapping.
-- Survey index is text, preserving its source definition and string comparisons.
-- Contact birthdate is a date; completion/signature fields are timestamps.
+- Account consent age is `decimal(3,0)`.
+- COUNT rollups use the explicit logical count type `int64`.
+- Survey index is text; Contact birthdate is a date; completion fields are timestamps.
 - Every raw field is nullable, including source-required IDs. Requiredness remains
-  a data validation rule and does not remove invalid records from the input.
+  a validation rule so invalid records are retained.
+- Three explicit property relationships bind Survey Participant to Contact,
+  Contact Account to Account, and Account PersonContact to Contact. The domain
+  checks these against its join bindings.
 
 History metadata comes from the earlier Athena sample: `valid_from`, `valid_to`,
 `is_current`, and `loaded_at`. This module provides a timestamp-grain history
@@ -93,11 +100,11 @@ reconstruct BEFORE/execution/AFTER states within a single day.
 | Constant | Columns |
 |---|---:|
 | `JOINED_SURVEY_ACCOUNT_RECORD` | 29 |
-| `FLOW_EXECUTION_RECORD` | 43 |
-| `EXPECTED_ACCOUNT_BY_SURVEY_EVENT` | 29 |
+| `FLOW_EXECUTION_RECORD` | 47 |
+| `EXPECTED_ACCOUNT_BY_SURVEY_EVENT` | 26 |
 | `OBSERVED_ACCOUNT_AFTER_BY_SURVEY_EVENT` | 46 |
 | `EXPECTED_ACCOUNT_SURVEY_ROLLUPS` | 21 |
-| `FLOW_ACCOUNT_COMPARISON` | 44 |
+| `FLOW_ACCOUNT_COMPARISON` | 46 |
 | `ROLLUP_ACCOUNT_COMPARISON` | 41 |
 
 Symbolic Ibis parameters supply the DATE and event ID types needed for inference;
@@ -132,7 +139,7 @@ The schema-level `to_sqlglot()` method is deprecated.
 Arrow can make previously unspecified timestamp precision concrete during
 conversion. Arbitrary Arrow metadata is not carried through Ibis schema round
 trips. Field/branch provenance remains in the independent lineage mapping and
-schema declaration docstrings/comments, not in custom Ibis attributes. SQLGlot
+the packaged contract and native metadata receipt, not in custom Ibis attributes. SQLGlot
 column `.meta` also does not survive a SQLGlot -> Ibis -> SQLGlot schema
 conversion, or rendering/reparsing ordinary SQL text. Keeping the original
 metadata-bearing schema AST is possible, but still requires reattaching that

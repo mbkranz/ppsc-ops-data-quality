@@ -38,6 +38,7 @@ import great_expectations.expectations as gxe
 from great_expectations.expectations.row_conditions import Column
 
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
+from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ACCOUNT_FIELDS_ASSIGNED_BY_FLOW,
     ROLLUP_ACCOUNT_FIELDS,
@@ -155,6 +156,7 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
     return gx.ExpectationSuite(
         name="account_to_survey_results_flow",
         meta={
+            "metadata_inputs": metadata_receipt().model_dump(mode="json"),
             "grain": "survey_event",
             "expected_state": "Account BEFORE plus one Flow event",
             "observed_state": "independent Account AFTER the same event",

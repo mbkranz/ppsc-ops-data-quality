@@ -1,0 +1,26 @@
+{
+  "version": "projection-inputs/v1",
+  "org": "qa2",
+  "flow_name": "Survey_Result_Survey_Completion_Updates",
+  "flow_version_id": "301SL00000dpJqKYAU",
+  "source_revision": "d769cb047a80d5ff22a011ece2d6671b71fb0646",
+  "provisional": true,
+  "coverage": "Pinned active QA2 Flow and matching source identity/relationship catalog. Input types are the existing ops validation profile; production contracts, event eligibility and deployed lake bindings remain unverified.",
+  "artifacts": [
+    {
+      "path": "core/schemas/validation-inputs.odcs.yaml",
+      "role": "contract",
+      "sha256": "b52d7e9cd420c6e5d259ba42819a41b9436b1f80f0bf55c0ebc8969e9fbcef1f"
+    },
+    {
+      "path": "account_to_survey_results/metadata/flow.json",
+      "role": "flow",
+      "sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794"
+    },
+    {
+      "path": "account_to_survey_results/metadata/source_catalog.json",
+      "role": "source",
+      "sha256": "537f3d43f5df58671b2ed0d9bca685c9bde1f5b5d5e5ddf34d9b9988570fcd13"
+    }
+  ]
+}

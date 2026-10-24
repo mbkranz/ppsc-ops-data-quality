@@ -18,6 +18,7 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
     rollup_account_suite,
 )
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
+from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ROLLUP_ACCOUNT_FIELDS,
     add_flow_context,
@@ -247,6 +248,7 @@ def validate_synthetic(run_directory: Path, *, s3_uri: str | None = None):
                 for name, query in queries.items()
             },
             run_metadata={
+                "metadata_inputs": metadata_receipt().model_dump(mode="json"),
                 "source": "synthetic_history",
                 "survey_result_id": EVENT_ID,
                 "account_before_at": BEFORE_AT.isoformat(),

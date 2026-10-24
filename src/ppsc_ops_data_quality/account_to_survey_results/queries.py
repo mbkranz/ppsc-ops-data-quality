@@ -1,4 +1,4 @@
-"""Expected Account values authored in Ibis, with lineage added after compilation.
+"""Expected Account values compiled from pinned native metadata into Ibis.
 
     Record = join_account(Survey_Result__c, Contact, Account)
     Record = add_flow_context(Record, Survey_Result__c, flow_run_date=run_date)
@@ -6,10 +6,10 @@
     query = to_sqlglot(ExpectedAccount, projection_lineage=PROJECTION_LINEAGE)
     sql = query.sql(dialect="athena", pretty=True)
 
-Definitions are ordinary named Ibis conditions and CASE expressions, bound to the
-supplied Record relation. Builders collect expressions; there are no per-rule
-factories, custom rule classes, applicability fields or GX adapters. To select a
-subset, pass ordinary named Ibis values to expected_account_values(fields=...).
+The shared metadata compiler owns Flow decisions, assignments, lookups and the
+age formula. This application binds history/relationships and comparison scope.
+The pinned QA2 metadata is provisional; live trigger eligibility and production
+Flow/version selection require local verification.
 
 Complete Ibis composition before compiling with core.queries.sql.to_sqlglot().
 Supply this domain's PROJECTION_LINEAGE mapping explicitly for annotations. The
@@ -35,32 +35,14 @@ from datetime import date, datetime
 
 import ibis
 import ibis.expr.types as ir
+from ppsc_metadata.sources.salesforce_flow import flow_assignments, flow_context
 
 from ppsc_ops_data_quality.core.queries.snapshot import snapshot
 
 from .lineage import ROLLUP_FIELD_LINEAGE
+from .metadata import FLOW_FIELDS, FLOW_REQUEST, metadata_inputs
 
-ACCOUNT_FIELDS_ASSIGNED_BY_FLOW = (
-    "Age_at_Time_of_Consent__pc",
-    "CABOR_Completion_Date__c",
-    "Earliest_Primary_Consent_Date_for_Report__c",
-    "Latest_Primary_Consent_Date_for_Report__c",
-    "EHR_Consent_Date_Time__c",
-    "EHR_Reconsent_Date_Time__c",
-    "Update_to_Primary_Consent_Completed__c",
-    "Basics_Date_Time__c",
-    "Overall_Health_Date_Time__c",
-    "Lifestyle_Date_Time__c",
-    "Personal_and_Family_History_Complete__c",
-    "HC_Access_Date_Time__c",
-    "Life_Functioning_Date_Time__c",
-    "First_Physical_Measurement_Date_Time__c",
-    "Last_Physical_Measurement_Date_Time__c",
-    "EH_Date_Time__c",
-    "Behavioral_Health_Completion__c",
-    "Environmental_Exposures_Date_Time__c",
-    "Social_Determinants_of_Health_Completion__c",
-)
+ACCOUNT_FIELDS_ASSIGNED_BY_FLOW = FLOW_FIELDS
 
 
 def join_account(Survey_Result__c: ir.Table, Contact: ir.Table, Account: ir.Table) -> ir.Table:
@@ -99,359 +81,34 @@ def join_account(Survey_Result__c: ir.Table, Contact: ir.Table, Account: ir.Tabl
     )
 
 
-def _append_first_FlowRecordLookup(Record, Candidate, resource, sort_field, *, exclude_Record):
-    """Implement per-Record lookup join + ASC/LIMIT 1 without changing row grain.
-
-    This helper implements mechanics only; the public lookup functions own their
-    source filters. Lookup fields retain resource.<field> names. ASC uses NULLS
-    FIRST. Equal sort keys may pick any tied row, as in the source lookup. Only
-    existence (consent) or the equal sort value (physical) is consumed downstream.
-    """
-    Candidate = Candidate.alias(resource.replace(".", "_"))
-    conditions = [Record.Participant__c == Candidate.Participant__c]
-    if exclude_Record:
-        conditions.append(Record.Id != Candidate.Id)
-    joined = Record.left_join(Candidate, conditions).select(
-        Record,
-        **{f"{resource}.{field}": Candidate[field] for field in ("Id", sort_field)},
-    )
-    window = ibis.window(
-        group_by=joined.Id,
-        order_by=joined[f"{resource}.{sort_field}"].asc(nulls_first=True),
-    )
-    ranked = joined.mutate(_lookup_rank=ibis.row_number().over(window)).alias(
-        resource.replace(".", "_") + "_Ranked"
-    )
-    return ranked.filter(ranked._lookup_rank == 0).drop("_lookup_rank")
-
-
-def FlowRecordLookup_Earliest_Other_Yes_Primary_Consent(
-    Record: ir.Table, Survey_Result__c: ir.Table
-) -> ir.Table:
-    """Source: FlowRecordLookup.getEarliestPrimaryConsent; workbook row 14485.
-
-    Append the earliest other Yes primary consent for each Record.
-
-    Lineage: FlowRecordLookup getEarliestPrimaryConsent, workbook row 14485.
-    Filters: index IN (1001,1002), same Participant__c, Consent_Status__c = Yes,
-    Id <> Record.Id. Sort: Consent_Status_Timestamp__c ASC, first record only.
-    The lookup does NOT filter Completion_Status__c. Raw attributes are used;
-    generated SQL in the workbook is explanatory, not authoritative.
-    """
-    Candidate = Survey_Result__c.filter(
-        Survey_Result__c.Survey_Index_Number__c.isin(["1001", "1002"])
-        & (Survey_Result__c.Consent_Status__c == "Yes")
-    ).select("Id", "Participant__c", "Consent_Status_Timestamp__c")
-    return _append_first_FlowRecordLookup(
-        Record,
-        Candidate,
-        "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent",
-        "Consent_Status_Timestamp__c",
-        exclude_Record=True,
-    )
-
-
-def FlowRecordLookup_Earliest_Other_Yes_EHR_Consent(
-    Record: ir.Table, Survey_Result__c: ir.Table
-) -> ir.Table:
-    """Source: FlowRecordLookup.getEarliestEgetEarliestEHRConsentHRConsent; workbook row 14492.
-
-    Append the earliest other Yes EHR consent; retain the source ID in provenance.
-
-    Lineage: FlowRecordLookup getEarliestEgetEarliestEHRConsentHRConsent, row 14492.
-    Filters: index IN (1003,1004), same participant, Yes, Id <> Record.Id.
-    Sort: Consent_Status_Timestamp__c ASC. No Completion_Status__c filter.
-    The rendered Expression cell is corrupted; these filters come from raw attrs.
-    """
-    Candidate = Survey_Result__c.filter(
-        Survey_Result__c.Survey_Index_Number__c.isin(["1003", "1004"])
-        & (Survey_Result__c.Consent_Status__c == "Yes")
-    ).select("Id", "Participant__c", "Consent_Status_Timestamp__c")
-    return _append_first_FlowRecordLookup(
-        Record,
-        Candidate,
-        "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent",
-        "Consent_Status_Timestamp__c",
-        exclude_Record=True,
-    )
-
-
-def FlowRecordLookup_First_Remote_Physical_Measurement(
-    Record: ir.Table, Survey_Result__c: ir.Table
-) -> ir.Table:
-    """Source: FlowRecordLookup.getFirstPhysicalMeasurement; workbook row 14518.
-
-    Append the first 2009 completion timestamp for each Record's participant.
-
-    Lineage: FlowRecordLookup getFirstPhysicalMeasurement, workbook row 14518.
-    Filters: index = 2009 and same participant. Includes Record itself and does NOT
-    require candidate Complete. Sort: Completion_Status_Timestamp__c ASC, first only.
-    The rendered Expression is corrupted; the raw attributes supply these filters.
-    """
-    Candidate = Survey_Result__c.filter(Survey_Result__c.Survey_Index_Number__c == "2009").select(
-        "Id", "Participant__c", "Completion_Status_Timestamp__c"
-    )
-    return _append_first_FlowRecordLookup(
-        Record,
-        Candidate,
-        "FlowRecordLookup.First_Remote_Physical_Measurement",
-        "Completion_Status_Timestamp__c",
-        exclude_Record=False,
-    )
-
-
-def FlowRecordLookup_Pediatric_Permission_For_Assent(
-    Record: ir.Table, Survey_Result__c: ir.Table
-) -> ir.Table:
-    """Source: FlowRecordLookup.Get_Permission_1007; workbook row 14500.
-
-    Append permission existence and its unambiguous California signature.
-
-    Lineage: FlowRecordLookup Get_Permission_1007, workbook row 14500. Filters:
-    index = 1007, Yes, same participant, Id <> Record.Id; there is NO sort field.
-    This resource is used only by the 1008 branch, so a 1007 cannot be Record itself.
-    The join below gates this lookup to the 1008 connector, even when Record contains other indexes.
-
-    With >1 match, this conservative translation marks CABOR unresolved. Id is a
-    representative source ID used ONLY to test existence; it is not a claim about
-    which row Salesforce selected. California_Signature__c is NULL when ambiguous.
-    match_count exposes this condition; the expected projection includes a
-    CABOR_Completion_Date__c_is_deterministic flag. Zero matches means a known NULL.
-    """
-    Permission = Survey_Result__c.filter(
-        (Survey_Result__c.Survey_Index_Number__c == "1007")
-        & (Survey_Result__c.Consent_Status__c == "Yes")
-    )
-    Permission = (
-        Permission.group_by("Participant__c")
-        .aggregate(
-            Id=Permission.Id.min(),
-            match_count=Permission.count(),
-            California_Signature__c=ibis.cases(
-                (Permission.count() == 1, Permission.California_Signature__c.min()),
-                else_=ibis.null().cast("timestamp"),
-            ),
-        )
-        .alias("Pediatric_Permission")
-    )
-    # Restrict the lookup to its actual 1008 route. It is not a generic 1007 self-lookup.
-    return Record.left_join(
-        Permission,
-        [
-            Record.Participant__c == Permission.Participant__c,
-            Record.Completion_Status__c == "Complete",
-            Record.Survey_Index_Number__c == "1008",
-            Record.Consent_Status__c.isin(["Yes", "N/A"]),
-        ],
-    ).select(
-        Record,
-        Permission.Id.name("FlowRecordLookup.Pediatric_Permission_For_Assent.Id"),
-        Permission.match_count.fill_null(0).name(
-            "FlowRecordLookup.Pediatric_Permission_For_Assent.match_count"
-        ),
-        Permission.California_Signature__c.name(
-            "FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c"
-        ),
-    )
-
-
-def FlowFormula_Age_At_Execution(Record: ir.Table, flow_run_date: ir.DateValue) -> ir.IntegerValue:
-    """Source: FlowFormula.formAgeCalculation; workbook row 14573.
-
-    Translated FlowFormula formAgeCalculation: numeric execution-date age.
-
-    Lineage: processing-Flow-elements row 14573.
-
-    FLOOR((TODAY() - $Record.Participant__r.Birthdate) / 365.25). flow_run_date is
-    the explicit org-local execution DATE replacing TODAY(), not consent date.
-    Lineage: Contact.Birthdate -> Participant__r.Birthdate -> age calculation.
-    The separate migration anniversary-age formula is not substituted here.
-    """
-    return (
-        (flow_run_date.delta(Record["Participant__r.Birthdate"], unit="day") / 365.25)
-        .floor()
-        .cast("int64")
-    )
+def _eligible(Record: ir.Table) -> ir.BooleanValue:
+    """Observable completion guard; full trigger eligibility remains caller policy."""
+    return Record.Completion_Status__c == "Complete"
 
 
 def add_flow_context(
     Record: ir.Table, Survey_Result__c: ir.Table, *, flow_run_date: ir.DateValue
 ) -> ir.Table:
-    """Append only lookup values and execution-date age needed by final expressions.
-
-    Flow routing is represented directly in derived_account_expressions(). It is
-    not materialized as intermediate target strings and then decoded again. The
-    four lookups preserve event grain, including missing or ambiguous results.
-    """
-    Record = FlowRecordLookup_Earliest_Other_Yes_Primary_Consent(Record, Survey_Result__c)
-    Record = FlowRecordLookup_Earliest_Other_Yes_EHR_Consent(Record, Survey_Result__c)
-    Record = FlowRecordLookup_First_Remote_Physical_Measurement(Record, Survey_Result__c)
-    Record = FlowRecordLookup_Pediatric_Permission_For_Assent(Record, Survey_Result__c)
-    return Record.mutate(
-        FlowFormula_Age_At_Execution=FlowFormula_Age_At_Execution(Record, flow_run_date)
-    ).alias("Flow_Context")
+    """Compile native lookup filters, first-row semantics and referenced formulas."""
+    return flow_context(
+        Record,
+        {"Survey_Result__c": Survey_Result__c},
+        metadata_inputs().flow["Metadata"],
+        FLOW_REQUEST,
+        flow_run_date=flow_run_date,
+        eligibility=_eligible,
+    )
 
 
 def derived_account_expressions(Record: ir.Table) -> tuple[ir.Value, ...]:
-    """Define the 19 expected Account fields as ordinary named Ibis CASE values.
-
-    Input is add_flow_context() output. Each condition selects an authored Flow
-    assignment. Each ELSE explicitly retains the Account BEFORE value. A selected
-    NULL value stays NULL. No query executes here. Bind again when changing the
-    Record relation. Provenance is independent in ACCOUNT_FIELD_LINEAGE.
-    """
-    Index = Record.Survey_Index_Number__c
-    Complete = Record.Completion_Status__c == "Complete"
-    primary_consent = Complete & Index.isin(["1001", "1002"]) & (Record.Consent_Status__c == "Yes")
-    ehr_consent = Complete & Index.isin(["1003", "1004"]) & (Record.Consent_Status__c == "Yes")
-    assent = Complete & (Index == "1008") & Record.Consent_Status__c.isin(["Yes", "N/A"])
-    primary_consent_with_prior_yes = (
-        primary_consent & Record["FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id"].notnull()
-    )
-    ehr_consent_with_prior_yes = (
-        ehr_consent & Record["FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id"].notnull()
-    )
-    assent_with_permission_or_primary_date = assent & ~(
-        Record["FlowRecordLookup.Pediatric_Permission_For_Assent.Id"].isnull()
-        & Record["Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"].isnull()
-    )
-
-    age_at_flow_execution = ibis.cases(
-        (primary_consent | assent, Record.FlowFormula_Age_At_Execution),
-        else_=Record["Participant__r.Account.Age_at_Time_of_Consent__pc"],
-    ).name("Age_at_Time_of_Consent__pc")
-
-    california_signature_timestamp = ibis.cases(
-        (primary_consent, Record.California_Signature__c),
-        (
-            assent,
-            Record["FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c"],
-        ),
-        else_=Record["Participant__r.Account.CABOR_Completion_Date__c"],
-    ).name("CABOR_Completion_Date__c")
-
-    earliest_primary_consent_report_timestamp = ibis.cases(
-        (
-            primary_consent_with_prior_yes | assent_with_permission_or_primary_date,
-            Record.Completion_Status_Timestamp__c,
-        ),
-        else_=Record["Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"],
-    ).name("Earliest_Primary_Consent_Date_for_Report__c")
-
-    latest_primary_consent_report_timestamp = ibis.cases(
-        (primary_consent | assent, Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c"],
-    ).name("Latest_Primary_Consent_Date_for_Report__c")
-
-    ehr_consent_timestamp = ibis.cases(
-        (ehr_consent_with_prior_yes, Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.EHR_Consent_Date_Time__c"],
-    ).name("EHR_Consent_Date_Time__c")
-
-    ehr_reconsent_timestamp = ibis.cases(
-        (
-            ehr_consent & Record["FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id"].isnull(),
-            Record.Completion_Status_Timestamp__c,
-        ),
-        else_=Record["Participant__r.Account.EHR_Reconsent_Date_Time__c"],
-    ).name("EHR_Reconsent_Date_Time__c")
-
-    primary_consent_update_timestamp = ibis.cases(
-        (Complete & (Index == "1005"), Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.Update_to_Primary_Consent_Completed__c"],
-    ).name("Update_to_Primary_Consent_Completed__c")
-
-    basics_completion_timestamp = ibis.cases(
-        (Complete & Index.isin(["2001", "2002"]), Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.Basics_Date_Time__c"],
-    ).name("Basics_Date_Time__c")
-
-    overall_health_completion_timestamp = ibis.cases(
-        (Complete & Index.isin(["2003", "2004"]), Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.Overall_Health_Date_Time__c"],
-    ).name("Overall_Health_Date_Time__c")
-
-    lifestyle_completion_timestamp = ibis.cases(
-        (Complete & (Index == "2005"), Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.Lifestyle_Date_Time__c"],
-    ).name("Lifestyle_Date_Time__c")
-
-    personal_and_family_history_completion_timestamp = ibis.cases(
-        (
-            Complete & (Index == "2006"),
-            Record.Completion_Status_Timestamp__c,
-        ),
-        else_=Record["Participant__r.Account.Personal_and_Family_History_Complete__c"],
-    ).name("Personal_and_Family_History_Complete__c")
-
-    healthcare_access_completion_timestamp = ibis.cases(
-        (Complete & (Index == "2007"), Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.HC_Access_Date_Time__c"],
-    ).name("HC_Access_Date_Time__c")
-
-    life_functioning_completion_timestamp = ibis.cases(
-        (Complete & (Index == "2008"), Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.Life_Functioning_Date_Time__c"],
-    ).name("Life_Functioning_Date_Time__c")
-
-    first_remote_physical_measurement_timestamp = ibis.cases(
-        (
-            Complete & (Index == "2009"),
-            Record[
-                "FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c"
-            ],
-        ),
-        else_=Record["Participant__r.Account.First_Physical_Measurement_Date_Time__c"],
-    ).name("First_Physical_Measurement_Date_Time__c")
-
-    latest_processed_remote_physical_measurement_timestamp = ibis.cases(
-        (
-            Complete & (Index == "2009"),
-            Record.Completion_Status_Timestamp__c,
-        ),
-        else_=Record["Participant__r.Account.Last_Physical_Measurement_Date_Time__c"],
-    ).name("Last_Physical_Measurement_Date_Time__c")
-
-    emotional_health_completion_timestamp = ibis.cases(
-        (Complete & (Index == "2010"), Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.EH_Date_Time__c"],
-    ).name("EH_Date_Time__c")
-
-    behavioral_health_completion_timestamp = ibis.cases(
-        (Complete & (Index == "2011"), Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.Behavioral_Health_Completion__c"],
-    ).name("Behavioral_Health_Completion__c")
-
-    environmental_exposures_completion_timestamp = ibis.cases(
-        (Complete & (Index == "2012"), Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.Environmental_Exposures_Date_Time__c"],
-    ).name("Environmental_Exposures_Date_Time__c")
-
-    social_determinants_completion_timestamp = ibis.cases(
-        (Complete & (Index == "2013"), Record.Completion_Status_Timestamp__c),
-        else_=Record["Participant__r.Account.Social_Determinants_of_Health_Completion__c"],
-    ).name("Social_Determinants_of_Health_Completion__c")
-
-    return (
-        age_at_flow_execution,
-        california_signature_timestamp,
-        earliest_primary_consent_report_timestamp,
-        latest_primary_consent_report_timestamp,
-        ehr_consent_timestamp,
-        ehr_reconsent_timestamp,
-        primary_consent_update_timestamp,
-        basics_completion_timestamp,
-        overall_health_completion_timestamp,
-        lifestyle_completion_timestamp,
-        personal_and_family_history_completion_timestamp,
-        healthcare_access_completion_timestamp,
-        life_functioning_completion_timestamp,
-        first_remote_physical_measurement_timestamp,
-        latest_processed_remote_physical_measurement_timestamp,
-        emotional_health_completion_timestamp,
-        behavioral_health_completion_timestamp,
-        environmental_exposures_completion_timestamp,
-        social_determinants_completion_timestamp,
+    """The selected native QA2 assignments; SQL display text is never executed."""
+    return tuple(
+        flow_assignments(
+            Record,
+            metadata_inputs().flow["Metadata"],
+            FLOW_REQUEST,
+            eligibility=_eligible,
+        ).expressions.values()
     )
 
 
@@ -689,14 +346,12 @@ SURVEY_COMPLETION_FLOW_LAUNCH_DATE = date(2024, 12, 16)
 
 def cabor_lookup_is_deterministic(Record: ir.Table) -> ir.BooleanValue:
     """Keep unsorted permission ambiguity separate from the authored assignment."""
-    permission_route = (
-        (Record.Completion_Status__c == "Complete")
-        & (Record.Survey_Index_Number__c == "1008")
-        & Record.Consent_Status__c.isin(["Yes", "N/A"])
-    )
-    return ~permission_route.fill_null(False) | (
-        Record["FlowRecordLookup.Pediatric_Permission_For_Assent.match_count"] <= 1
-    )
+    return flow_assignments(
+        Record,
+        metadata_inputs().flow["Metadata"],
+        FLOW_REQUEST,
+        eligibility=_eligible,
+    ).deterministic["CABOR_Completion_Date__c"]
 
 
 def flow_account_comparison(

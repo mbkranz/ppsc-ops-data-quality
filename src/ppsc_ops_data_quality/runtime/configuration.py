@@ -95,7 +95,14 @@ class SchemaOverrides(Configuration):
     survey_result: dict[str, str] = Field(default_factory=dict)
 
 
+class MetadataSelection(Configuration):
+    org: Name
+    flow_version_id: Name
+    manifest_sha256: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+
+
 class ValidationConfiguration(Configuration):
+    metadata: MetadataSelection
     athena: AthenaConfiguration
     reports: ReportConfiguration
     databases: HistoryDatabases

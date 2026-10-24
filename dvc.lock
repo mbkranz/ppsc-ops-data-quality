@@ -79,8 +79,8 @@ stages:
       size: 1577
     - path: src
       hash: md5
-      md5: 2406f73700877eec80e505d204df0e46.dir
-      size: 299755
+      md5: 207f708b851a8231c4e668b1d70ba6b2.dir
+      size: 300923
       nfiles: 41
     - path: uv.lock
       hash: md5
@@ -89,8 +89,8 @@ stages:
     outs:
     - path: build/release/project
       hash: md5
-      md5: 7179e843002a9258536d9ab033360c8c.dir
-      size: 74118
+      md5: b8353f40e463fd3815534df155bc27f8.dir
+      size: 74494
       nfiles: 1
   bundle:
     cmd: python -m scripts.package_release
@@ -102,8 +102,8 @@ stages:
       nfiles: 59
     - path: build/release/project
       hash: md5
-      md5: 7179e843002a9258536d9ab033360c8c.dir
-      size: 74118
+      md5: b8353f40e463fd3815534df155bc27f8.dir
+      size: 74494
       nfiles: 1
     - path: scripts/glue_wheels.py
       hash: md5
@@ -116,5 +116,5 @@ stages:
     outs:
     - path: build/release/bundle/dependencies.gluewheels.zip
       hash: md5
-      md5: 2937b2000e153416be7186d4a448f002
-      size: 182931965
+      md5: f1d6a1c05367118b3cc82592198a20bc
+      size: 182932346

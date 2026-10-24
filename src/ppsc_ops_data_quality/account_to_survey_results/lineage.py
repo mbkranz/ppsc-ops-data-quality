@@ -7,7 +7,7 @@ Rollup rules remain unchanged pending verified native rollup metadata.
 
 from ppsc_metadata.sources.salesforce_flow import flow_lineage
 
-from .metadata import FLOW_REQUEST, metadata_inputs
+from .metadata import metadata_inputs, metadata_request
 
 ROLLUP_FIELD_LINEAGE = {
     "Account.EHR_Authorized__pc": {
@@ -330,7 +330,8 @@ _WORKBOOK_ROWS = {
 _bundle = metadata_inputs()
 _native = _bundle.flow["Metadata"]
 _flow_artifact = next(item for item in _bundle.manifest.artifacts if item.role == "flow")
-_evidence = flow_lineage(_native, FLOW_REQUEST)
+_request = metadata_request()
+_evidence = flow_lineage(_native, _request)
 ACCOUNT_FIELD_LINEAGE = {}
 PROJECTION_LINEAGE = {}
 for _field, _record in _evidence.items():
@@ -376,7 +377,7 @@ for _kind, _prefix in (
 ):
     for _index, _node in enumerate(_native.get(_kind) or []):
         _source = f"{_prefix}.{_node['name']}"
-        _alias = FLOW_REQUEST.resource_aliases.get(_node["name"], _source)
+        _alias = _request.resource_aliases.get(_node["name"], _source)
         FLOW_ENTITY_LINEAGE[_alias] = {
             "source_entity": _source,
             "source_flow": _bundle.manifest.flow_name,

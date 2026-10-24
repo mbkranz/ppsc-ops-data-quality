@@ -7,9 +7,10 @@ from importlib.resources import files
 from pathlib import Path
 
 from ppsc_metadata.artifacts import MetadataBundle, MetadataReceipt, load_metadata_bundle
-from ppsc_metadata.contracts import internal_reference, property_references
 from ppsc_metadata.sources.salesforce_flow import FlowRequest
 from pydantic import Field
+
+from ppsc_ops_data_quality.core.schemas.contracts import normalize_foreign_keys
 
 FLOW_FIELDS = (
     "Age_at_Time_of_Consent__pc",
@@ -53,19 +54,17 @@ FLOW_REQUEST = FlowRequest(
 def _read_inputs() -> MetadataBundle:
     root = Path(str(files("ppsc_ops_data_quality")))
     bundle = load_metadata_bundle(root, root / "account_to_survey_results/metadata/manifest.json")
-    references = property_references(bundle.contract)
+    relationships = normalize_foreign_keys(bundle.contract)
     # These are the application's explicit join bindings, checked against ODCS.
     for source, field, target in (
         ("Survey_Result__c", "Participant__c", "Contact.Id"),
         ("Contact", "AccountId", "Account.Id"),
         ("Account", "PersonContactId", "Contact.Id"),
     ):
-        obj = next(obj for obj in bundle.contract.schema_ if obj.name == source)
-        prop = next(prop for prop in obj.properties if prop.name == field)
         selected = [
-            references.get(internal_reference(relationship.to))
-            for relationship in prop.relationships or []
-            if isinstance(relationship.to, str)
+            f"{key.target_object}.{key.target_fields[0]}"
+            for key in relationships
+            if key.source_object == source and key.source_fields == (field,)
         ]
         if selected != [target]:
             raise ValueError(

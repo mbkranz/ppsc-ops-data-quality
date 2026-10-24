@@ -14,7 +14,8 @@ producer fixture at revision `d769cb047a80d5ff22a011ece2d6671b71fb0646`. Native 
 and source catalog bytes are copied unchanged. SHA256 verification covers those
 artifacts and `core/schemas/validation-inputs.odcs.yaml`; exact Flow identity is
 checked before compilation. Source schemas are derived from that ODCS profile.
-Three explicit relationship bindings are checked against its property references.
+Three explicit relationship bindings are checked against normalized object/property
+foreign keys. Composite keys retain ordered source/target pairs.
 
 The contract is a **provisional draft compatibility profile** migrated from the
 existing ops schema declarations. The saved catalog supplies identities and
@@ -27,7 +28,7 @@ A mismatch fails before creating connections or a GX context. At each run the
 installed artifacts are reverified against the compiled snapshot. Native suite
 metadata and run/report metadata carry the receipt: manifest hash, all input
 hashes, org, Flow/version, source revision, contract identity/version, compiler
-version and provisional coverage. Report Parquet rows retain it in
+version, source revision, wheel hash, Flow-request hash and provisional coverage. Report Parquet rows retain it in
 `run_metadata_json`. A receipt proves the selected input bytes, not live fitness.
 
 The independently built compiler wheel is pinned under `vendor/` so CI and Glue
@@ -92,3 +93,43 @@ workbook SQL nor the existing Python implementation is relabeled as native sourc
 No live query, deployment, source refresh, publication or validation run is added
 to the DVC cache. Poe remains the operational entry point and DVC retains its four
 release producers.
+
+
+## Expected-value consumer evidence
+
+The consumer uses producer revision `1eedb2abcf5cac6471fb6cc45e5a40c007982854`.
+Verified metadata is cached as immutable serialized content; public reads return
+fresh models. Per-field `__assigned` and `__deterministic` columns
+retain native evidence. Missing scope or computation is an incomplete result.
+Native equality checks run only where identity/grain and computation are valid.
+The native pair denominator excludes both-NULL values; their count remains in
+`missing_count`. One-sided NULLs fail. Runtime findings retain `validation_record_id`.
+
+`flow_account_comparison(..., required={...}, must_be_null={...})` accepts independent
+source-bound presence predicates. Bind the corresponding field names in
+`flow_account_suite(required_fields=(...), must_be_null_fields=(...))`. No new org
+presence policy is invented. Unknown authored predicates remain NULL and fail
+completeness. Predicates depending on an unrelated observation are rejected by Ibis.
+
+Native suite metadata includes the derived ODCS comparison contract. Original
+objects retain authored metadata; `AccountBefore` and `AccountExpected` declare
+explicit roles with stable property pointers. Source definitions identify verified
+artifact content by SHA256 URN and JSON pointer; resolve that URN through the
+manifest's artifact hashes. These provenance links do not execute joins.
+
+`native_rollup_comparison(parent, child, observed, request, source_field=..., inputs=...)`
+accepts a verified native handoff explicitly; load it with the existing artifact loader. The validated request
+requires an explicit empty/all-null policy. COUNT, SUM, MIN and MAX have synthetic
+handoff execution coverage. Missing selections fail; the existing 19 workbook
+rollups stay in place until native org definitions and aggregate policy are reviewed.
+
+The renderer keeps shared CTEs inside a SELECT-first input relation instead of
+repeating their bodies. Native GX conditions inspect assignment non-nullness
+without treating assigned=false as exclusion. Compact runtime SQL retains lineage
+comments and is checked against Athena's UTF-8 query limit before asset creation.
+The source-parent uniqueness check runs before rollup aggregation; invalid source
+or observed join keys block rollup equality without hiding the structural findings.
+
+The release smoke installer bypasses uv's wheel cache. A repeated build with the
+same package version had installed old bytes despite the rebuilt bundle containing
+the new wheel. Native bundle smoke now tests the supplied artifact directly.

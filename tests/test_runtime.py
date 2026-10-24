@@ -103,7 +103,7 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(saved, flow.suite.to_json_dict())
             loaded = gx.ExpectationSuite(**saved)
             self.assertEqual(loaded.to_json_dict(), flow.suite.to_json_dict())
-            self.assertEqual(len(saved["expectations"]), 28)
+            self.assertEqual(len(saved["expectations"]), 30)
             self.assertTrue(any(e.get("meta", {}).get("ppsc") for e in saved["expectations"]))
             self.assertEqual(
                 json.loads((self.suite_directory / "001_rollups.suite.json").read_text()),
@@ -111,8 +111,8 @@ class RuntimeTests(unittest.TestCase):
             )
             self.assertEqual(set(results), {"flow", "rollups"})
             self.assertEqual(results["flow"].meta["run_id"], results["rollups"].meta["run_id"])
-            self.assertEqual(results["flow"].statistics["evaluated_expectations"], 28)
-            self.assertEqual(results["rollups"].statistics["evaluated_expectations"], 25)
+            self.assertEqual(results["flow"].statistics["evaluated_expectations"], 30)
+            self.assertEqual(results["rollups"].statistics["evaluated_expectations"], 26)
         backend.disconnect()
 
     def test_failed_expectation_does_not_skip_later_definition(self):

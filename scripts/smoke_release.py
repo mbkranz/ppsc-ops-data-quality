@@ -49,6 +49,7 @@ def smoke_release(*, root: Path) -> SmokeResult:
         "--python",
         str(python),
         "--no-index",
+        "--no-cache",
         "--find-links",
         str(wheels),
         "ppsc-ops-data-quality",

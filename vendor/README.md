@@ -1,9 +1,9 @@
 # Pinned shared compiler distribution
 
-`ppsc_metadata-0.2.0-py3-none-any.whl` is built from
-[`projects/metadata` at producer commit 36c9c9c078e1b065d8c217c56ab90a09bad52d47](https://github.com/mbkranz/ppsc-salesforce/tree/36c9c9c078e1b065d8c217c56ab90a09bad52d47/projects/metadata).
+`1eedb2ab/ppsc_metadata-0.2.0-py3-none-any.whl` is built from
+[`projects/metadata` at producer commit 1eedb2abcf5cac6471fb6cc45e5a40c007982854](https://github.com/mbkranz/ppsc-salesforce/tree/1eedb2abcf5cac6471fb6cc45e5a40c007982854/projects/metadata).
 
-SHA256: `c098612aad3c66fe9938ba7b2b98f4d4d8108af5208c79f9dca4e7073a91a111`.
+SHA256: `fd0934ef5b8234554446358aa4471c8be1257d9e0fb8b6f9ae3ec408e4d502b8`.
 
 The source is independently installable; the Salesforce application is not a
 runtime dependency. The small wheel is a temporary transport while independent
@@ -16,3 +16,7 @@ To update, review and build the selected producer revision, copy the resulting
 wheel, update version/source bindings and this provenance, refresh the uv lock,
 and reproduce the release graph to obtain actual DVC output hashes. The compiler
 version is distinct from the Flow/native-metadata input revision in its manifest.
+
+The source-revision directory prevents reusing a stale path hash when an unreleased
+compiler version is rebuilt. The package includes assignment and determinism evidence,
+presence predicates, general rollups and ODCS source/field definitions.

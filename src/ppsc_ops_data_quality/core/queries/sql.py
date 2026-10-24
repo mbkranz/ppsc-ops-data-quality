@@ -61,26 +61,49 @@ def _resolve_final_projection(query: exp.Query) -> exp.Query:
     return inner
 
 
-def _inline_ctes(query: exp.Query) -> exp.Query:
-    """Keep a SELECT-first query without adding an otherwise redundant GX wrapper."""
+def _select_first(query: exp.Query) -> exp.Query:
+    """Retain shared CTEs inside one explicit SELECT-first GX input relation."""
     with_clause = query.args.get("with_")
     if with_clause is None:
         return query
     if with_clause.args.get("recursive"):
         raise ValueError("Recursive CTEs cannot be rendered as a SELECT-first Query Asset")
-    # Resolve references by scope, not by spelling: a CTE may share a physical
-    # table's name, including inside its own non-recursive definition.
-    for scope in traverse_scope(query):
+    scopes = list(traverse_scope(query))
+    physical_names = {
+        node.name.casefold()
+        for scope in scopes
+        for node, source in scope.selected_sources.values()
+        if isinstance(node, exp.Table) and not isinstance(source, Scope)
+    }
+    reserved = physical_names | {cte.alias_or_name.casefold() for cte in with_clause.expressions}
+    renamed = {}
+    for cte in with_clause.expressions:
+        if cte.alias_or_name.casefold() not in physical_names:
+            continue
+        candidate = cte.alias_or_name + "_Input"
+        while candidate.casefold() in reserved:
+            candidate += "_2"
+        reserved.add(candidate.casefold())
+        renamed[id(cte.this)] = candidate
+        cte.set("alias", exp.TableAlias(this=exp.to_identifier(candidate, quoted=True)))
+    # Rename only references resolved to that CTE, preserving physical tables
+    # with the same spelling and all existing column/table aliases.
+    for scope in scopes:
         for alias, (node, source) in scope.selected_sources.items():
-            if isinstance(node, exp.Table) and isinstance(source, Scope) and source.is_cte:
-                node.replace(
-                    exp.Subquery(
-                        this=source.expression.copy(),
-                        alias=exp.TableAlias(this=exp.to_identifier(alias, quoted=True)),
-                    )
-                )
-    query.set("with_", None)
-    return query
+            if (
+                isinstance(node, exp.Table)
+                and isinstance(source, Scope)
+                and id(source.expression) in renamed
+            ):
+                if not node.alias:
+                    node.set("alias", exp.TableAlias(this=exp.to_identifier(alias, quoted=True)))
+                node.set("this", exp.to_identifier(renamed[id(source.expression)], quoted=True))
+    return exp.select(
+        *[
+            exp.column(projection.alias_or_name, table="Comparison_Rows", quoted=True)
+            for projection in query.selects
+        ]
+    ).from_(query.subquery("Comparison_Rows"))
 
 
 def _name_relation_aliases(query: exp.Query) -> None:
@@ -116,8 +139,8 @@ def to_sqlglot(
 ) -> exp.Query:
     """Compile the completed Ibis query to Athena's AST, then annotate projections.
 
-    All Ibis composition happens first. Query-local CTEs become derived tables,
-    so the result starts with SELECT without a SELECT-* wrapper. A column-only
+    All Ibis composition happens first. Query-local CTEs stay shared inside an explicit derived relation,
+    so the result starts with SELECT and never uses a SELECT-* wrapper. A column-only
     projection over an aggregate is folded into its original grouping, exposing
     the conditional aggregate expressions without merging or deduplicating groups.
     Named Ibis relations supply readable SQL
@@ -142,7 +165,7 @@ def to_sqlglot(
                 node.set(key, list(value))
     _name_relation_aliases(query)
     query = _resolve_final_projection(query)
-    query = _inline_ctes(query)
+    query = _select_first(query)
     if projection_lineage is None:
         return query
     annotated = []

@@ -40,7 +40,7 @@ release = [
 packages = ["src/ppsc_ops_data_quality"]
 
 [tool.uv.sources]
-ppsc-metadata = { path = "vendor/ppsc_metadata-0.2.0-py3-none-any.whl" }
+ppsc-metadata = { path = "vendor/1eedb2ab/ppsc_metadata-0.2.0-py3-none-any.whl" }
 
 [tool.poe]
 executor = {type = "simple"}

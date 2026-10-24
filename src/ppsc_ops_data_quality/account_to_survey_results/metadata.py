@@ -6,11 +6,17 @@ from importlib.metadata import version
 from importlib.resources import files
 from pathlib import Path
 
+from open_data_contract_standard.model import OpenDataContractStandard
 from ppsc_metadata.artifacts import MetadataBundle, MetadataReceipt, load_metadata_bundle
-from ppsc_metadata.sources.salesforce_flow import FlowRequest
+from ppsc_metadata.contracts import validate_contract
+from ppsc_metadata.definitions import ProjectionDefinitionsRequest, add_projection_definitions
+from ppsc_metadata.sources.salesforce_flow import FlowRequest, flow_lineage
 from pydantic import Field
 
 from ppsc_ops_data_quality.core.schemas.contracts import normalize_foreign_keys
+
+COMPILER_SOURCE_REVISION = "1eedb2abcf5cac6471fb6cc45e5a40c007982854"
+COMPILER_WHEEL_SHA256 = "fd0934ef5b8234554446358aa4471c8be1257d9e0fb8b6f9ae3ec408e4d502b8"
 
 FLOW_FIELDS = (
     "Age_at_Time_of_Consent__pc",
@@ -77,6 +83,8 @@ class CompilationReceipt(MetadataReceipt):
     """Producer receipt plus the consumer configuration actually used to compile."""
 
     flow_request_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    compiler_source_revision: str = Field(pattern=r"^[0-9a-f]{40}$")
+    compiler_wheel_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
 @cache
@@ -116,4 +124,53 @@ def metadata_receipt() -> CompilationReceipt:
         contract_id=current.contract.id,
         contract_version=current.contract.version,
         flow_request_sha256=sha256(request_json.encode("utf-8")).hexdigest(),
+        compiler_source_revision=COMPILER_SOURCE_REVISION,
+        compiler_wheel_sha256=COMPILER_WHEEL_SHA256,
+    )
+
+
+def expected_value_contract() -> OpenDataContractStandard:
+    """Attach native source definitions with separate BEFORE and expected identities.
+
+    The supplied authored profile stays intact. Derived object copies describe
+    roles in this comparison; they do not certify org policy or physical bindings.
+    Content-addressed source definitions resolve through the verified manifest.
+    """
+    bundle = metadata_inputs()
+    request = metadata_request()
+    document = bundle.contract.model_dump(mode="json", by_alias=True, exclude_unset=True)
+    account = next(obj for obj in bundle.contract.schema_ if obj.name == "Account")
+    for name in ("AccountBefore", "AccountExpected"):
+        if any(obj["name"] == name for obj in document["schema"]):
+            raise ValueError(f"Derived contract object already exists: {name}")
+        obj = account.model_dump(mode="json", by_alias=True, exclude_unset=True)
+        obj.update(id=name, name=name)
+        if name == "AccountExpected":
+            obj["properties"] = [
+                prop for prop in obj["properties"] if prop["name"] in request.fields
+            ]
+            for prop in obj["properties"]:
+                prop["physicalName"] = f"expected__{prop['name']}"
+            obj.pop("relationships", None)
+        document["schema"].append(obj)
+    contract = validate_contract(document)
+    artifact = next(item for item in bundle.manifest.artifacts if item.role == "flow")
+    bindings = {f"Account.{field}": f"AccountBefore.{field}" for field in request.fields}
+    bindings.update(
+        {
+            "Survey_Result__c.Participant__r.AccountId": "Contact.AccountId",
+            "Survey_Result__c.Participant__r.Birthdate": "Contact.Birthdate",
+            "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c": "AccountBefore.Earliest_Primary_Consent_Date_for_Report__c",
+        }
+    )
+    return add_projection_definitions(
+        contract,
+        ProjectionDefinitionsRequest(
+            source_url=f"urn:sha256:{artifact.sha256}",
+            field_bindings=bindings,
+            target_bindings={
+                f"Account.{field}": f"AccountExpected.{field}" for field in request.fields
+            },
+        ),
+        lineage=flow_lineage(bundle.flow["Metadata"], request),
     )

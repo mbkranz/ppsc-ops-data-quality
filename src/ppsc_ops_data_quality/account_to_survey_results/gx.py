@@ -26,7 +26,9 @@ value comparison alone is limited to rows with a deterministic expected value.
 All row-scoped Flow checks, including the optional count, apply only to completion
 dates on/after 2024-12-16. The query projects this business scope without filtering
 the batch. Pre-launch and unknown-date rows remain available for profiling but
-are not validated by these Flow checks. Structural checks remain batch-wide.
+are retained. Unknown scope fails a separate completeness check. Known pre-launch
+rows stay outside value checks. Invalid keys block equality; native identity and
+uniqueness checks retain the structural failures.
 
 Documentation and reviewed skill references are listed in the accompanying README.
 """
@@ -38,7 +40,10 @@ import great_expectations.expectations as gxe
 from great_expectations.expectations.row_conditions import Column
 
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
-from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt
+from ppsc_ops_data_quality.account_to_survey_results.metadata import (
+    expected_value_contract,
+    metadata_receipt,
+)
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ACCOUNT_FIELDS_ASSIGNED_BY_FLOW,
     ROLLUP_ACCOUNT_FIELDS,
@@ -61,10 +66,15 @@ ROLLUP_IDENTITY_COLUMNS = (
 POST_LAUNCH_COMPLETION = Column("survey_completion_occurred_on_or_after_launch") == True
 
 
-def flow_account_suite(*, expected_row_count: int | None = None) -> gx.ExpectationSuite:
+def flow_account_suite(
+    *,
+    expected_row_count: int | None = None,
+    required_fields: tuple[str, ...] = (),
+    must_be_null_fields: tuple[str, ...] = (),
+) -> gx.ExpectationSuite:
     """Return built-in expectations for the survey-event comparison dataset.
 
-    The base suite has 27 expectations: required columns; four non-null identity
+    The base suite has 29 expectations, including scope/computation completeness: required columns; four non-null identity
     columns; unique survey event Id; two lookup-resolution checks; and 19 value
     comparisons. Optional expected_row_count adds an independent source-count
     check for post-launch completions. Empty eligible cohorts are allowed when
@@ -75,16 +85,39 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
         gxe.ExpectTableColumnsToMatchSet(
             column_set=[
                 *FLOW_IDENTITY_COLUMNS,
+                "validation_record_id",
+                "comparison_keys_are_valid",
+                "flow_evidence_is_complete",
                 "cabor_lookup_is_deterministic",
                 "survey_completion_timestamp",
                 "survey_completion_occurred_on_or_after_launch",
                 *[f"expected__{field}" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
                 *[f"observed__{field}" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
+                *[f"expected__{field}__deterministic" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
+                *[f"expected__{field}__assigned" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
+                *[f"expected__{field}_required" for field in required_fields],
+                *[f"expected__{field}_must_be_null" for field in must_be_null_fields],
             ],
             exact_match=False,
             description="The joined comparison contains all identity, evidence and value columns.",
             meta={"check_id": "flow_comparison_required_columns"},
         )
+    )
+    expectations.extend(
+        [
+            gxe.ExpectColumnValuesToNotBeNull(
+                column="survey_completion_occurred_on_or_after_launch",
+                description="Unknown business scope is incomplete evidence, not a passed comparison.",
+                meta={"check_id": "flow_scope_is_known", "failure_status": "incomplete"},
+            ),
+            gxe.ExpectColumnValuesToBeInSet(
+                column="flow_evidence_is_complete",
+                value_set=[True],
+                row_condition=POST_LAUNCH_COMPLETION,
+                description="All expected fields have known routing, assignment and authored presence evidence.",
+                meta={"check_id": "flow_computation_is_complete", "failure_status": "incomplete"},
+            ),
+        ]
     )
     for column in FLOW_IDENTITY_COLUMNS:
         expectations.append(
@@ -127,7 +160,12 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
         )
     )
     for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW:
-        row_condition = POST_LAUNCH_COMPLETION
+        row_condition = (
+            POST_LAUNCH_COMPLETION
+            & (Column("comparison_keys_are_valid") == True)
+            & (Column(f"expected__{field}__deterministic") == True)
+            & Column(f"expected__{field}__assigned").is_not_null()
+        )
         if field == "CABOR_Completion_Date__c":
             row_condition = row_condition & (Column("cabor_lookup_is_deterministic") == True)
         expectations.append(
@@ -140,10 +178,32 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
                 meta={
                     "check_id": f"observed_{field}_equals_expected",
                     "ppsc": deepcopy(PROJECTION_LINEAGE[field]),
+                    "both_null_policy": "accepted; native missing_count reports these excluded pairs",
+                    "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs",
                 },
                 row_condition=row_condition,
             )
         )
+    for fields, suffix, expectation_type in (
+        (required_fields, "required", gxe.ExpectColumnValuesToNotBeNull),
+        (must_be_null_fields, "must_be_null", gxe.ExpectColumnValuesToBeNull),
+    ):
+        if len(set(fields)) != len(fields) or not set(fields) <= set(
+            ACCOUNT_FIELDS_ASSIGNED_BY_FLOW
+        ):
+            raise ValueError("Presence checks must bind unique selected expected fields")
+        for field in fields:
+            expectations.append(
+                expectation_type(
+                    column=f"observed__{field}",
+                    row_condition=(
+                        POST_LAUNCH_COMPLETION
+                        & (Column("comparison_keys_are_valid") == True)
+                        & (Column(f"expected__{field}_{suffix}") == True)
+                    ),
+                    meta={"check_id": f"observed_{field}_{suffix}", "presence_role": suffix},
+                )
+            )
     if expected_row_count is not None:
         expectations.append(
             gxe.ExpectTableRowCountToEqual(
@@ -157,6 +217,9 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
         name="account_to_survey_results_flow",
         meta={
             "metadata_inputs": metadata_receipt().model_dump(mode="json"),
+            "expected_value_contract": expected_value_contract().model_dump(
+                mode="json", by_alias=True, exclude_unset=True
+            ),
             "grain": "survey_event",
             "expected_state": "Account BEFORE plus one Flow event",
             "observed_state": "independent Account AFTER the same event",
@@ -169,7 +232,7 @@ def flow_account_suite(*, expected_row_count: int | None = None) -> gx.Expectati
 
 
 def rollup_account_suite(*, expected_row_count: int | None = None) -> gx.ExpectationSuite:
-    """Return 24 built-in expectations for current-snapshot Account rollups.
+    """Return 25 built-in expectations for current-snapshot Account rollups.
 
     Required columns, three non-null identities, unique person Account Id, and
     19 observed/expected count comparisons. Optional source row count adds one
@@ -180,6 +243,9 @@ def rollup_account_suite(*, expected_row_count: int | None = None) -> gx.Expecta
         gxe.ExpectTableColumnsToMatchSet(
             column_set=[
                 *ROLLUP_IDENTITY_COLUMNS,
+                "validation_record_id",
+                "source_parent_keys_are_valid",
+                "comparison_keys_are_valid",
                 *[f"expected__{field}" for field in ROLLUP_ACCOUNT_FIELDS],
                 *[f"observed__{field}" for field in ROLLUP_ACCOUNT_FIELDS],
             ],
@@ -203,11 +269,20 @@ def rollup_account_suite(*, expected_row_count: int | None = None) -> gx.Expecta
             meta={"check_id": "one_rollup_comparison_row_per_person_account"},
         )
     )
+    expectations.append(
+        gxe.ExpectColumnValuesToBeInSet(
+            column="source_parent_keys_are_valid",
+            value_set=[True],
+            description="Source parent IDs are unique before any child aggregation.",
+            meta={"check_id": "rollup_source_parent_keys_are_valid"},
+        )
+    )
     for field in ROLLUP_ACCOUNT_FIELDS:
         expectations.append(
             gxe.ExpectColumnPairValuesToBeEqual(
                 column_A=f"observed__{field}",
                 column_B=f"expected__{field}",
+                row_condition=Column("comparison_keys_are_valid") == True,
                 ignore_row_if="both_values_are_missing",
                 mostly=1,
                 description=f"Observed Account.{field} equals its expected survey rollup count.",

@@ -10,8 +10,8 @@ example, `Account`, `Contact`, `Flow_Context`, and `Account_Snapshot`) using nat
 Ibis aliases. The shared Athena renderer replaces compiler-generated `tN` source
 references with those relation names, adding numeric suffixes where necessary.
 Renaming is SQL-scope-aware and does not change physical table bindings, output
-column names, lineage, or literal values. The shared renderer inlines named
-relations as derived tables; they do not publish database views.
+column names, lineage, or literal values. The shared renderer preserves shared named CTEs inside one input subquery with
+an explicit SELECT list. It does not publish database views.
 
 Regenerate both illustrative SQL files with `uv run poe render-queries`. This only
 compiles expressions locally; it does not execute SQL or contact AWS.
@@ -213,10 +213,10 @@ Observed fields do not inherit expected calculation branches.
 
 Each comparison is one executable SELECT statement with an explicit final
 projection, not an additional `SELECT *` wrapper. GX 1.24 requires SELECT followed
-by whitespace at the start of query text; the renderer satisfies this by inlining
-Ibis CTEs as derived tables. Internal SELECTs remain necessary for history
-snapshots, lookup ranking, and observation row identities. The final `expected__*`
-projections contain the resolved CASE expressions (SUM of CASE for rollups).
+by whitespace at the start of query text; the renderer satisfies this by keeping
+shared Ibis CTEs inside a SELECT-first input relation. Internal SELECTs remain necessary for history
+snapshots, lookup ranking, and observation row identities. Stable `expected__*` projections name the native CASE outputs (SUM of CASE for
+rollups); their definitions can remain in the defining input subquery.
 Rollup grouping includes an internal observed-row identity so even identical
 duplicate observations survive; this identity is not an output column.
 SQL text contains readable comments; structured SQLGlot meta remains in the AST/canonical mapping.

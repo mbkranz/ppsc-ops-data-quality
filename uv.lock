@@ -1677,7 +1677,7 @@ wheels = [
 [[package]]
 name = "ppsc-metadata"
 version = "0.2.0"
-source = { path = "vendor/ppsc_metadata-0.2.0-py3-none-any.whl" }
+source = { path = "vendor/1eedb2ab/ppsc_metadata-0.2.0-py3-none-any.whl" }
 dependencies = [
     { name = "jsonschema" },
     { name = "open-data-contract-standard" },
@@ -1685,7 +1685,7 @@ dependencies = [
     { name = "pyyaml" },
 ]
 wheels = [
-    { filename = "ppsc_metadata-0.2.0-py3-none-any.whl", hash = "sha256:c098612aad3c66fe9938ba7b2b98f4d4d8108af5208c79f9dca4e7073a91a111" },
+    { filename = "ppsc_metadata-0.2.0-py3-none-any.whl", hash = "sha256:fd0934ef5b8234554446358aa4471c8be1257d9e0fb8b6f9ae3ec408e4d502b8" },
 ]
 
 [package.optional-dependencies]
@@ -1758,7 +1758,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.35,<2" },
     { name = "great-expectations", specifier = "==1.24.0" },
     { name = "ibis-framework", extras = ["duckdb"], specifier = "==12.0.0" },
-    { name = "ppsc-metadata", extras = ["ibis"], path = "vendor/ppsc_metadata-0.2.0-py3-none-any.whl" },
+    { name = "ppsc-metadata", extras = ["ibis"], path = "vendor/1eedb2ab/ppsc_metadata-0.2.0-py3-none-any.whl" },
     { name = "pyarrow", specifier = ">=16,<27" },
     { name = "pyathena", extras = ["sqlalchemy"], specifier = ">=3,<4" },
     { name = "pydantic", specifier = ">=2.12,<3" },

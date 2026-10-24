@@ -260,6 +260,7 @@ be byte-identical. CI verifies Ibis structure, parent ownership and boundary sch
 - [Rollup table graph](docs/suites/account_to_survey_results_rollups.md)
 
 - [Query composition and original sources](docs/query-design.md)
+- [Reusable comparison boundaries for other objects, mappings and surveys](docs/reusable-comparisons.md)
 - [Schema contracts and conversions](src/ppsc_ops_data_quality/core/schemas/README.md)
 - [Runtime setup and native definitions](src/ppsc_ops_data_quality/runtime/README.md)
 - [Authored SQL-file execution and metadata/comment standards TODO](src/ppsc_ops_data_quality/runtime/TODO.md)

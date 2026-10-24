@@ -30,12 +30,18 @@ This module builds native Ibis expressions and executes no data. Athena compiler
 integration is isolated in core/queries/sql.py.
 """
 
+import operator
 from collections.abc import Mapping, Sequence
 from datetime import date, datetime
+from functools import reduce
 
 import ibis
 import ibis.expr.types as ir
+from ppsc_metadata.artifacts import MetadataBundle
+from ppsc_metadata.contracts import property_references
+from ppsc_metadata.projections import presence_requirements
 from ppsc_metadata.sources.salesforce_flow import flow_assignments, flow_context
+from ppsc_metadata.sources.salesforce_rollup import RollupRequest, rollup_values
 
 from ppsc_ops_data_quality.core.queries.snapshot import snapshot
 
@@ -307,6 +313,11 @@ def _survey_rollup_record(Account: ir.Table, Survey_Result__c: ir.Table) -> ir.T
         .select("Id", "PersonContactId")
         .alias("Person_Account")
     )
+    Account = Account.mutate(
+        _source_parent_key_is_unique=(
+            Account.Id.count().over(ibis.window(group_by=Account.Id)) == 1
+        )
+    )
     Survey_Result__c = Survey_Result__c.select(
         "Participant__c",
         "Completion_Status__c",
@@ -320,6 +331,7 @@ def _survey_rollup_record(Account: ir.Table, Survey_Result__c: ir.Table) -> ir.T
     ).select(
         Account.Id.name("Account.Id"),
         Account.PersonContactId,
+        Account._source_parent_key_is_unique,
         Survey_Result__c.Completion_Status__c,
         Survey_Result__c.Survey_Index_Number__c,
         Survey_Result__c.Consent_Status__c,
@@ -359,6 +371,8 @@ def flow_account_comparison(
     AccountAfter: ir.Table,
     *,
     event_id_column: str = "survey_result_id",
+    required: Mapping[str, ir.BooleanValue] | None = None,
+    must_be_null: Mapping[str, ir.BooleanValue] | None = None,
 ) -> ir.Table:
     """Project resolved per-event assignments beside independent AFTER values.
 
@@ -379,6 +393,24 @@ def flow_account_comparison(
     retain an unknown predicate. This is a business scope, not a FlowDecision.
     Pre-launch events remain available for profiling and migration reconciliation.
     """
+    presence_fields = set(required or {}) | set(must_be_null or {})
+    if not presence_fields <= set(ACCOUNT_FIELDS_ASSIGNED_BY_FLOW):
+        raise ValueError("Presence rules must bind selected expected fields")
+    presence = presence_requirements(required=required, must_be_null=must_be_null)
+    # Bind presence to source state before the observation is introduced. Ibis
+    # rejects predicates depending on an unrelated observed target relation.
+    Record = Record.mutate(**presence)
+    projection = flow_assignments(
+        Record, metadata_inputs().flow["Metadata"], metadata_request(), eligibility=_eligible
+    )
+    complete = reduce(
+        operator.and_,
+        [
+            *projection.deterministic.values(),
+            *[value.notnull() for value in projection.assigned.values()],
+            *[Record[name].notnull() for name in presence],
+        ],
+    ).fill_null(False)
     survey_completion_occurred_on_or_after_launch = (
         Record.Completion_Status_Timestamp__c.date()
         >= ibis.literal(SURVEY_COMPLETION_FLOW_LAUNCH_DATE, type="date")
@@ -391,18 +423,43 @@ def flow_account_comparison(
             Record.Id == AccountAfter[event_id_column],
         ],
     )
-    return Joined.select(
+    Comparison = Joined.select(
         Record.Id.name("survey_result_id"),
+        Record.Id.name("validation_record_id"),
         Record.Participant__c.name("participant_contact_id"),
         Record["Participant__r.Account.Id"].name("expected_account_id"),
         AccountAfter.Id.name("observed_account_id"),
         Record.Survey_Index_Number__c.name("survey_index_number"),
         Record.Completion_Status_Timestamp__c.name("survey_completion_timestamp"),
         survey_completion_occurred_on_or_after_launch,
-        cabor_lookup_is_deterministic(Record).name("cabor_lookup_is_deterministic"),
-        **{f"expected__{field.get_name()}": field for field in derived_account_expressions(Record)},
+        projection.deterministic["CABOR_Completion_Date__c"].name("cabor_lookup_is_deterministic"),
+        complete.name("flow_evidence_is_complete"),
+        *[Record[name] for name in presence],
+        **{f"expected__{name}": value for name, value in projection.expressions.items()},
+        **{
+            f"expected__{name}__deterministic": value
+            for name, value in projection.deterministic.items()
+        },
+        **{f"expected__{name}__assigned": value for name, value in projection.assigned.items()},
         **{f"observed__{field}": AccountAfter[field] for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW},
     )
+    keys_present = reduce(
+        operator.and_,
+        [
+            Comparison[name].notnull()
+            for name in (
+                "survey_result_id",
+                "participant_contact_id",
+                "expected_account_id",
+                "observed_account_id",
+            )
+        ],
+    )
+    unique_event = (
+        Comparison.survey_result_id.count().over(ibis.window(group_by=Comparison.survey_result_id))
+        == 1
+    )
+    return Comparison.mutate(comparison_keys_are_valid=keys_present & unique_event)
 
 
 def rollup_account_comparison(
@@ -433,17 +490,34 @@ def rollup_account_comparison(
         Joined._comparison_observation_row,
         *[Joined[field] for field in observed_fields],
     ).aggregate(
+        source_parent_keys_are_valid=Joined._source_parent_key_is_unique.all(),
         **{
             f"expected__{field}": expression
             for field, expression in survey_rollup_expressions(Joined).items()
-        }
+        },
     )
-    return Comparison.select(
+    Comparison = Comparison.select(
+        Comparison.expected_account_id.name("validation_record_id"),
         "expected_account_id",
         "person_contact_id",
         "observed_account_id",
+        "source_parent_keys_are_valid",
         *[f"expected__{field}" for field in ROLLUP_ACCOUNT_FIELDS],
         *observed_fields,
+    )
+    return Comparison.mutate(
+        comparison_keys_are_valid=(
+            Comparison.expected_account_id.notnull()
+            & Comparison.person_contact_id.notnull()
+            & Comparison.observed_account_id.notnull()
+            & Comparison.source_parent_keys_are_valid
+            & (
+                Comparison.expected_account_id.count().over(
+                    ibis.window(group_by=Comparison.expected_account_id)
+                )
+                == 1
+            )
+        )
     )
 
 
@@ -516,3 +590,54 @@ def rollup_account_query(
         "Survey_Results_At_Snapshot"
     )
     return rollup_account_comparison(AccountSnapshot, SurveyResultSnapshot, AccountSnapshot)
+
+
+def native_rollup_comparison(
+    Parent: ir.Table,
+    Child: ir.Table,
+    Observed: ir.Table,
+    request: RollupRequest,
+    *,
+    source_field: str,
+    inputs: MetadataBundle,
+) -> ir.Table:
+    """Compare one selected verified rollup; callers own snapshots and empty policy.
+
+    This opt-in path does not replace workbook rollups without reviewed native
+    metadata. Missing selections fail rather than falling back to a handwritten
+    definition. Duplicate/missing parents and observations remain detectable.
+    """
+    object_name, separator, field = source_field.partition(".")
+    if not separator or field != request.output_field:
+        raise ValueError("Bind the selected native rollup to its declared output field")
+    bundle = inputs
+    if source_field not in property_references(bundle.contract):
+        raise ValueError(f"Unbound rollup source field: {source_field}")
+    if source_field not in bundle.rollups:
+        raise ValueError(f"No verified native rollup selected: {source_field}")
+    Expected = rollup_values(
+        Parent.select(request.parent_key), Child, bundle.rollups[source_field], request
+    )
+    Observed = Observed.alias("Observed_Rollup")
+    joined = Expected.left_join(
+        Observed, Expected[request.parent_key] == Observed[request.parent_key]
+    )
+    comparison = joined.select(
+        Expected[request.parent_key].name("validation_record_id"),
+        Expected[request.parent_key].name("expected_account_id"),
+        Observed[request.parent_key].name("observed_account_id"),
+        Expected[field].name(f"expected__{field}"),
+        Observed[field].name(f"observed__{field}"),
+    )
+    return comparison.mutate(
+        comparison_keys_are_valid=(
+            comparison.expected_account_id.notnull()
+            & comparison.observed_account_id.notnull()
+            & (
+                comparison.expected_account_id.count().over(
+                    ibis.window(group_by=comparison.expected_account_id)
+                )
+                == 1
+            )
+        )
+    )

@@ -21,12 +21,17 @@ def query_asset_sql(
     """Return one Athena SELECT, with lineage comments and no terminal semicolon.
 
     Compose Ibis first. to_sqlglot() resolves and annotates the final projections.
-    No additional SELECT or SQL string substitution is performed.
+    Shared CTEs remain inside a named input relation with an explicit SELECT list.
+    No SQL string substitution is performed.
     The SQL text carries comments; structured meta remains in the annotated AST
     and canonical lineage mapping rather than being serialized into SQL.
     """
     query = to_sqlglot(comparison, projection_lineage=projection_lineage)
-    return query.sql(dialect="athena", pretty=True)
+    sql = query.sql(dialect="athena", pretty=False)
+    # https://docs.aws.amazon.com/athena/latest/ug/service-limits.html
+    if len(sql.encode("utf-8")) > 262_144:
+        raise ValueError("Comparison SQL exceeds Athena's 262144-byte query limit")
+    return sql
 
 
 def query_batch_definition(

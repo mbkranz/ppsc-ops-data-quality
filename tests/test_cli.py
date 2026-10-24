@@ -15,7 +15,7 @@ def test_compilation_exports_native_suites_and_athena_selects(tmp_path, capsys):
     output = tmp_path / "preview"
     summary = compile_comparisons(output)
     assert summary["live_queries"] is False
-    for name, count in [("flow", 27), ("rollups", 24)]:
+    for name, count in [("flow", 29), ("rollups", 25)]:
         suite = gx.ExpectationSuite(**json.loads((output / f"{name}.suite.json").read_text()))
         assert len(suite.expectations) == count
         sql = (output / f"{name}.sql").read_text()
@@ -36,7 +36,7 @@ def test_synthetic_validates_both_suites_and_retains_run_evidence(tmp_path, caps
     assert (reports / "data_docs" / "index.html").exists()
     assert len(list((reports / "analytics").glob("*.parquet"))) == 2
     expectation_rows = pq.read_table(reports / "analytics" / "expectations.parquet").to_pylist()
-    assert len(expectation_rows) == 53
+    assert len(expectation_rows) == 56
     assert (
         len(
             {
@@ -44,12 +44,12 @@ def test_synthetic_validates_both_suites_and_retains_run_evidence(tmp_path, caps
                 for row in expectation_rows
             }
         )
-        == 53
+        == 56
     )
-    assert sum(row["validation_definition_name"] == "flow" for row in expectation_rows) == 28
-    assert sum(row["validation_definition_name"] == "rollups" for row in expectation_rows) == 25
+    assert sum(row["validation_definition_name"] == "flow" for row in expectation_rows) == 30
+    assert sum(row["validation_definition_name"] == "rollups" for row in expectation_rows) == 26
     assert pq.read_table(reports / "analytics" / "validations.parquet").num_rows == 2
-    for stem, count in [("000_flow", 28), ("001_rollups", 25)]:
+    for stem, count in [("000_flow", 30), ("001_rollups", 26)]:
         result = json.loads(gzip.decompress((reports / "results" / f"{stem}.json.gz").read_bytes()))
         assert result["success"] is True
         assert result["statistics"]["evaluated_expectations"] == count

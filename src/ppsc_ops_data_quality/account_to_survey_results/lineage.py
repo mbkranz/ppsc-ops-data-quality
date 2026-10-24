@@ -478,3 +478,44 @@ PROJECTION_LINEAGE["survey_completion_occurred_on_or_after_launch"] = {
     "timestamp_semantics": "Completion timestamp calendar date; normalize business timezone upstream",
     "null_policy": "Unknown completion timestamps retain NULL scope and are not Flow-validated",
 }
+
+# Expected-value evidence describes native routing/assignment separately from
+# validation applicability. Presence rules remain caller-authored policy.
+for _target in ACCOUNT_FIELD_LINEAGE:
+    _field = _target.removeprefix("Account.")
+    for _suffix in ("assigned", "deterministic"):
+        _alias = f"expected__{_field}__{_suffix}"
+        PROJECTION_LINEAGE[_alias] = {
+            **PROJECTION_LINEAGE[_field],
+            "rule_id": _alias,
+            "comparison_role": "evidence",
+            "description": f"Native Flow {_suffix} evidence for Account.{_field}",
+        }
+for _alias, _description in (
+    (
+        "flow_evidence_is_complete",
+        "Known native routing, assignment and authored presence evidence",
+    ),
+    (
+        "comparison_keys_are_valid",
+        "Present comparison identities with one joined row per declared key",
+    ),
+    (
+        "validation_record_id",
+        "Survey event identity for Flow; Account identity for snapshot rollups",
+    ),
+):
+    PROJECTION_LINEAGE[_alias] = {
+        "rule_id": _alias,
+        "entity_type": "ValidationEvidence",
+        "comparison_role": "evidence" if _alias != "validation_record_id" else "identity",
+        "description": _description,
+    }
+
+PROJECTION_LINEAGE["source_parent_keys_are_valid"] = {
+    "rule_id": "source_parent_keys_are_valid",
+    "entity_type": "ValidationEvidence",
+    "comparison_role": "evidence",
+    "source_entities": ["Account.Id"],
+    "description": "Unique source parent identities before child aggregation",
+}

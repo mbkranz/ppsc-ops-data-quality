@@ -149,6 +149,10 @@ def run_validation(
                 "rollups_as_of": request.rollups.as_of.isoformat(),
             },
             batch_parameters={definition.name: parameters for definition, parameters in prepared},
+            result_format={
+                "result_format": "SUMMARY",
+                "unexpected_index_column_names": ["validation_record_id"],
+            },
             run_id=RunIdentifier(run_name=run_directory.name),
         )
         manifest = json.loads((run_directory / "reports" / "manifest.json").read_text())

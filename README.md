@@ -48,9 +48,9 @@ uv run poe suite-diagrams
 ```
 
 `check-queries` compiles illustrative Athena comparisons and serializes the native
-27/24-expectation baseline suites. `check-synthetic` validates independently authored
-DuckDB history, checks all 53 expectations (28 Flow + 25 rollup), and verifies
-53 uniquely identified expectation rows, two validation summaries, native results,
+29/25-expectation baseline suites. `check-synthetic` validates independently authored
+DuckDB history, checks all 56 expectations (30 Flow + 26 rollup), and verifies
+56 uniquely identified expectation rows, two validation summaries, native results,
 registered suites, exact SQL, Data Docs and the manifest. Outputs use fresh paths
 under `build/checks/`; existing destinations are rejected. To choose a destination,
 run `python -m scripts.check_validation compile|synthetic --output PATH`.
@@ -175,10 +175,10 @@ the Glue driver does not initialize Spark.
 
 ## Rules, schemas and lineage
 
-The Flow suite has 27 built-in expectations and the rollup suite has 24, each with
+The Flow suite has 29 built-in expectations and the rollup suite has 25, each with
 an optional independent row-count check. They cover required columns, identity,
 unique grain, permission-lookup resolution and 19 expected/observed field pairs.
-The synthetic check supplies counts of one, yielding 28 and 25 expectations respectively.
+The synthetic check supplies counts of one, yielding 30 and 26 expectations respectively.
 
 Flow row checks use the named Ibis predicate
 `survey_completion_occurred_on_or_after_launch`, consumed by the GX
@@ -188,18 +188,20 @@ Flow row checks use the named Ibis predicate
 the query does not infer or convert it. The completion timestamp and predicate
 remain in the comparison, and no launch filter removes rows from the query.
 All Flow row checks, including the optional count, validate only that cohort;
-the required-columns check remains batch-wide. CABOR also requires a deterministic
+the required-columns and scope-completeness checks remain batch-wide. CABOR also requires a deterministic
 lookup. Rollup checks retain their separate snapshot contract.
 
 Pre-launch records and NULL completion timestamps remain available for profiling
-but are excluded from Flow row checks. A NULL timestamp gives a NULL predicate;
+but stay outside value equality. A NULL timestamp gives a NULL predicate and fails
+the completeness check;
 it is not classified as migrated. Migration reconciliation and independent
 timestamp/population coverage checks remain separate work. When supplied, the
 Flow `expected_row_count` must count post-launch source events independently.
 
 Two NULLs are excluded together by the pair equality policy; a one-sided NULL
 fails. Unresolved pediatric-permission lookups fail their determinism check; only
-CABOR equality is conditioned on resolution. Empty batches require an explicit
+each field comparison requires its own complete computation evidence. Assignment
+is provenance: unassigned fields still compare against retained BEFORE values. Empty batches require an explicit
 source count if they must fail. Duplicate observations and missing parents survive
 LEFT JOINs so the suites can detect them.
 

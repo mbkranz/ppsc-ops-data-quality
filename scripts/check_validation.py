@@ -135,7 +135,7 @@ def compile_comparisons(output: Path):
             query_asset_sql(query, projection_lineage=PROJECTION_LINEAGE) + ";\n", encoding="utf-8"
         )
         suite = flow_account_suite() if name == "flow" else rollup_account_suite()
-        assert len(suite.expectations) == (27 if name == "flow" else 24)
+        assert len(suite.expectations) == (29 if name == "flow" else 25)
         save_suite(suite, output / f"{name}.suite.json")
     return {"mode": "compile", "output": str(output), "live_queries": False}
 
@@ -300,15 +300,15 @@ def verify_synthetic_evidence(directory: Path) -> None:
     """Check the complete evidence contract, also when using an installed wheel."""
     reports = directory / "reports"
     rows = pq.read_table(reports / "analytics/expectations.parquet").to_pylist()
-    assert len(rows) == 53
+    assert len(rows) == 56
     assert (
         len({(r["run_id"], r["validation_definition_name"], r["expectation_index"]) for r in rows})
-        == 53
+        == 56
     )
     assert pq.read_table(reports / "analytics/validations.parquet").num_rows == 2
     assert (reports / "data_docs/index.html").is_file()
     assert (reports / "manifest.json").is_file()
-    for stem, count in (("000_flow", 28), ("001_rollups", 25)):
+    for stem, count in (("000_flow", 30), ("001_rollups", 26)):
         result = json.loads(gzip.decompress((reports / "results" / f"{stem}.json.gz").read_bytes()))
         assert result["success"] is True
         assert result["statistics"]["evaluated_expectations"] == count

@@ -67,9 +67,9 @@ def smoke_release(*, root: Path) -> SmokeResult:
         "-c",
         "from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt; "
         "import sys; receipt = metadata_receipt(); "
-        "assert receipt.compiler_version == '0.3.0'; "
-        "assert receipt.manifest.flow_version_id == '301SL00000dpJqKYAU'; "
-        "assert receipt.manifest.provisional; assert 'salesforce' not in sys.modules",
+        "assert receipt['compiler_version'] == '0.1.0'; "
+        "assert receipt['flow_version_id'] == '301SL00000dpJqKYAU'; "
+        "assert receipt['provisional']; assert not {'simple_salesforce', 'zeep', 'open_data_contract_standard', 'apmp_data_lake'} & set(sys.modules)",
     )
     run(str(cli), "--help")
     invalid = root / "build/release/invalid.yaml"

@@ -62,7 +62,7 @@ These are development scripts and are excluded from the installed package.
 src/ppsc_ops_data_quality/
     account_to_survey_results/
         metadata.py             # Verified version selection and explicit bindings
-        metadata/               # Pinned native Flow, catalog and manifest
+        metadata/               # Generated tables and saved native inputs
         queries.py              # Ibis history/comparisons and existing rollups
         gx.py                   # Authoritative native GX suite builders
         lineage.py              # Field, branch and original-source provenance
@@ -130,7 +130,7 @@ including zero-child Accounts.
 `ppsc-dq validate` provides the packaged GX/SQLAlchemy runtime; the example script delegates to it:
 
 1. Copy `params.example.yaml` to ignored `params.local.yaml`.
-2. Confirm the metadata org, exact Flow version and manifest SHA256 match the
+2. Confirm the metadata org, exact Flow version and generated input selection match the
    reviewed installed inputs. The runtime rejects a mismatched selection before
    connecting. Bind the actual databases and verify the physical columns/types, validity
    intervals, deletion semantics and completed delivery/event timing.

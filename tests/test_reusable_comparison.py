@@ -1,16 +1,12 @@
 """Cross-source and independent-Flow acceptance of the shared consumer boundary."""
 
-import json
-from hashlib import sha256
-
 import great_expectations as gx
 import ibis
 import pandas as pd
 import pytest
-from ppsc_metadata.artifacts import MetadataArtifact, definition_identity, load_metadata_bundle
-from ppsc_metadata.sources.salesforce_flow import FlowRequest
-from ppsc_metadata.sources.salesforce_rollup import RollupRequest
 from pydantic import ValidationError
+from salesforce.entities.field_definitions.rollups import RollupRequest
+from salesforce.entities.flows.queries import FlowRequest
 
 from ppsc_ops_data_quality.core.comparison import (
     ComparisonSpec,
@@ -185,7 +181,7 @@ def test_bindings_reject_collisions_and_implicit_key_casts():
         )
 
 
-def verified_inputs(tmp_path, object_name, field, literal):
+def native_inputs(tmp_path, object_name, field, literal):
     # Different native objects, target fields, Flow names/versions and values;
     # these do not copy the deployed Account/survey fixture.
     flow = {
@@ -213,64 +209,30 @@ def verified_inputs(tmp_path, object_name, field, literal):
             ],
         },
     }
-    bindings = {
-        "datasets": {
+    return {
+        "flow": flow,
+        "tables": {
             "selected": {
                 "native_object": object_name,
-                "catalog": "fixture",
-                "database": "other",
-                "relation": "unrelated_target",
-                "ddl_path": "table.sql",
                 "columns": {"physical_key": "Key", "physical_value": field},
-                "keys": ["Key"],
-                "grain": "parent",
+                "history_fields": [],
             }
         },
-        "relationships": [],
+        "rollups": {
+            f"{object_name}.{field}": {
+                "summaryOperation": "count",
+                "summaryForeignKey": "Line.owner",
+            }
+        },
+        "source_catalog": {
+            "fields": [
+                {
+                    "EntityDefinition.QualifiedApiName": object_name,
+                    "FieldDefinition.QualifiedApiName": field,
+                }
+            ]
+        },
     }
-    rollups = {
-        f"{object_name}.{field}": {"summaryOperation": "count", "summaryForeignKey": "Line.owner"}
-    }
-    artifacts = []
-    for filename, role, payload in (
-        ("bindings.json", "bindings", bindings),
-        ("catalog.json", "catalog", {"fixture": True}),
-        (
-            "source_catalog.json",
-            "source",
-            {
-                "fields": [
-                    {
-                        "EntityDefinition.QualifiedApiName": object_name,
-                        "FieldDefinition.QualifiedApiName": field,
-                    }
-                ]
-            },
-        ),
-        ("flow.json", "flow", flow),
-        ("rollups.json", "rollup", rollups),
-    ):
-        raw = json.dumps(payload).encode()
-        (tmp_path / filename).write_bytes(raw)
-        artifacts.append({"path": filename, "role": role, "sha256": sha256(raw).hexdigest()})
-    raw = b"CREATE TABLE unrelated_target (physical_key string, physical_value bigint)"
-    (tmp_path / "table.sql").write_bytes(raw)
-    artifacts.append({"path": "table.sql", "role": "ddl", "sha256": sha256(raw).hexdigest()})
-    manifest = {
-        "org": "synthetic",
-        "flow_name": flow["FullName"],
-        "flow_version_id": flow["Id"],
-        "source_revision": "a" * 40,
-        "definition_revision": "b" * 40,
-        "definition_id": definition_identity(
-            tuple(MetadataArtifact.model_validate(item) for item in artifacts)
-        ),
-        "provisional": True,
-        "coverage": "independent synthetic objects only",
-        "artifacts": artifacts,
-    }
-    (tmp_path / "manifest.json").write_text(json.dumps(manifest))
-    return load_metadata_bundle(tmp_path, tmp_path / "manifest.json")
 
 
 @pytest.mark.parametrize(
@@ -280,7 +242,7 @@ def verified_inputs(tmp_path, object_name, field, literal):
 def test_independent_verified_flows_have_no_account_defaults(
     tmp_path, backend, object_name, field, value
 ):
-    inputs = verified_inputs(tmp_path, object_name, field, {"numberValue": value})
+    inputs = native_inputs(tmp_path, object_name, field, {"numberValue": value})
     request = FlowRequest(
         object_name=object_name,
         fields=(field,),
@@ -338,7 +300,7 @@ def test_independent_verified_flows_have_no_account_defaults(
 
 
 def test_rollup_on_non_account_object_with_custom_parent_key(tmp_path, backend):
-    inputs = verified_inputs(tmp_path, "Invoice__c", "LineCount__c", {"numberValue": 0})
+    inputs = native_inputs(tmp_path, "Invoice__c", "LineCount__c", {"numberValue": 0})
     parent = ibis.memtable({"Key": ["i1", "i2"]})
     child = ibis.memtable({"owner": ["i1", "i1"]})
     observed = ibis.memtable({"Key": ["i1", "i2", "unexpected"], "LineCount__c": [2, 0, 0]})

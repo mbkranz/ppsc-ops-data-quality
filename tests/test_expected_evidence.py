@@ -1,18 +1,13 @@
 """Prepared evidence remains independent of observations and records NULL coverage."""
 
 import json
-import shutil
 from decimal import Decimal
-from hashlib import sha256
-from pathlib import Path
 
 import great_expectations as gx
 import ibis
 import pytest
-import yaml
 from ibis.common.exceptions import IntegrityError
-from ppsc_metadata.artifacts import load_metadata_bundle
-from ppsc_metadata.sources.salesforce_rollup import RollupRequest
+from salesforce.entities.field_definitions.rollups import RollupRequest
 from test_account_to_survey_results_expectations import NEW, OLD, flow_inputs
 
 from ppsc_ops_data_quality.account_to_survey_results import queries
@@ -170,18 +165,17 @@ def test_both_null_native_pair_coverage_is_recorded(backend):
 
 def test_expected_provenance_has_before_roles_and_native_source_paths():
     source = metadata_inputs()
-    before = source.model_dump_json()
+    before = json.dumps(source, sort_keys=True)
     provenance = expected_value_provenance()
-    assert source.model_dump_json() == before
-    assert provenance["definition_id"] == source.manifest.definition_id
-    assert provenance["version"] == "expected-values/v2"
+    assert json.dumps(source, sort_keys=True) == before
+    assert provenance["contract_id"] == source["contract_id"]
     for field, entry in provenance["fields"].items():
         assert entry["before"] == f"AccountBefore.{field}"
         assert entry["expected"] == f"expected__{field}"
         assert entry["observed"] == f"observed__{field}"
         assert entry["field_references"]
         for pointer in entry["source_paths"]:
-            value = source.flow
+            value = source["flow"]
             for token in pointer.strip("/").split("/"):
                 value = value[int(token)] if isinstance(value, list) else value[token]
             assert value is not None
@@ -199,46 +193,16 @@ def test_expected_provenance_has_before_roles_and_native_source_paths():
 def test_selected_rollup_handoff_is_loaded_and_executed(
     tmp_path, backend, operation, empty, expected
 ):
-    root = (
-        Path(__file__).resolve().parents[1]
-        / "src/ppsc_ops_data_quality/account_to_survey_results/metadata"
-    )
-    copied = tmp_path / "metadata"
-    shutil.copytree(root, copied)
-    bindings_path = copied / "lake/bindings.yaml"
-    document = yaml.safe_load(bindings_path.read_text())
-    document["datasets"]["account"]["columns"]["native_value"] = "NativeValue"
-    bindings_path.write_text(yaml.safe_dump(document))
-    ddl_path = copied / document["datasets"]["account"]["ddl_path"]
-    ddl_path.write_text(
-        ddl_path.read_text().replace("(\n", "(\n  `native_value` decimal(12,2),\n", 1)
-    )
-    path = copied / "rollups.json"
-    path.write_text(
-        json.dumps(
-            {
-                "Account.NativeValue": {
-                    "summaryOperation": operation,
-                    "summaryForeignKey": "Child.parent",
-                    "summarizedField": "Child.amount",
-                }
-            }
-        )
-    )
-    manifest_path = copied / "manifest.json"
-    manifest = json.loads(manifest_path.read_bytes())
-    for item in manifest["artifacts"]:
-        item["sha256"] = sha256((copied / item["path"]).read_bytes()).hexdigest()
-    manifest["artifacts"].append(
-        {"path": "rollups.json", "role": "rollup", "sha256": sha256(path.read_bytes()).hexdigest()}
-    )
-    from ppsc_metadata.artifacts import MetadataArtifact, definition_identity
-
-    manifest["definition_id"] = definition_identity(
-        tuple(MetadataArtifact.model_validate(item) for item in manifest["artifacts"])
-    )
-    manifest_path.write_text(json.dumps(manifest))
-    inputs = load_metadata_bundle(copied, manifest_path)
+    inputs = metadata_inputs()
+    inputs["tables"]["account"]["columns"]["native_value"] = "NativeValue"
+    inputs["tables"]["account"]["fields"].append(["native_value", "decimal(12, 2)"])
+    inputs["rollups"] = {
+        "Account.NativeValue": {
+            "summaryOperation": operation,
+            "summaryForeignKey": "Child.parent",
+            "summarizedField": "Child.amount",
+        }
+    }
     parent = ibis.memtable({"Id": ["p1", "p2"]})
     child = ibis.memtable(
         {"parent": ["p1", "p1"], "amount": [Decimal("0.10"), Decimal("0.20")]},

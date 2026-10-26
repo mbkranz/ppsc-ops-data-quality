@@ -3,9 +3,8 @@
 from collections.abc import Callable
 
 import ibis.expr.types as ir
-from ppsc_metadata.artifacts import MetadataBundle
-from ppsc_metadata.sources.salesforce_flow import FlowRequest, flow_assignments
-from ppsc_metadata.sources.salesforce_rollup import RollupRequest, rollup_values
+from salesforce.entities.field_definitions.rollups import RollupRequest, rollup_values
+from salesforce.entities.flows.queries import FlowRequest, flow_assignments
 
 from ppsc_ops_data_quality.core.comparison import (
     ComparisonSpec,
@@ -22,7 +21,7 @@ def flow_comparison(
     request: FlowRequest,
     spec: ComparisonSpec,
     *,
-    inputs: MetadataBundle,
+    inputs: dict,
     eligibility: Callable[[ir.Table], ir.BooleanValue],
 ) -> ir.Table:
     """Compare arbitrary selected Flow targets, without QA2/application defaults.
@@ -33,22 +32,24 @@ def flow_comparison(
     select source/observation snapshots and business scope. No implicit join,
     current-state fallback, trigger policy or metadata lookup is performed here.
     """
-    if inputs.flow is None:
+    if inputs["flow"] is None:
         raise ValueError("No verified Flow selected")
     if {value.name for value in spec.values} != set(request.fields):
         raise ValueError("Comparison fields must match the selected Flow fields")
     for field in request.fields:
         if f"{request.object_name}.{field}" not in source_fields(inputs):
             raise ValueError(f"Unbound Flow target: {request.object_name}.{field}")
-    projection = flow_assignments(Record, inputs.flow["Metadata"], request, eligibility=eligibility)
+    projection = flow_assignments(
+        Record, inputs["flow"]["Metadata"], request, eligibility=eligibility
+    )
     columns = {}
     for value in spec.values:
         if value.deterministic is None or value.assigned is None:
             raise ValueError("Flow comparisons require determinism and assignment evidence")
         for column, expression in (
-            (value.expected, projection.expressions[value.name]),
-            (value.deterministic, projection.deterministic[value.name]),
-            (value.assigned, projection.assigned[value.name]),
+            (value.expected, projection[f"expected__{value.name}"]),
+            (value.deterministic, projection[f"expected__{value.name}__deterministic"]),
+            (value.assigned, projection[f"expected__{value.name}__assigned"]),
         ):
             if column in columns or column in Record.columns:
                 raise ValueError(f"Flow projection column collides: {column}")
@@ -63,7 +64,7 @@ def native_rollup_comparison(
     request: RollupRequest,
     *,
     source_field: str,
-    inputs: MetadataBundle,
+    inputs: dict,
 ) -> ir.Table:
     """Compare a verified native rollup on any object; no workbook fallback.
 
@@ -74,12 +75,12 @@ def native_rollup_comparison(
     _, separator, field = source_field.partition(".")
     if not separator or field != request.output_field:
         raise ValueError("Bind the selected native rollup to its declared output field")
-    if source_field not in inputs.rollups:
+    if source_field not in inputs["rollups"]:
         raise ValueError(f"No verified native rollup selected: {source_field}")
     if source_field not in source_fields(inputs):
         raise ValueError(f"Unbound rollup source field: {source_field}")
     Expected = rollup_values(
-        Parent.select(request.parent_key), Child, inputs.rollups[source_field], request
+        Parent.select(request.parent_key), Child, inputs["rollups"][source_field], request
     )
     spec = ComparisonSpec(
         keys=(KeyBinding(name="parent", expected=request.parent_key, observed=request.parent_key),),

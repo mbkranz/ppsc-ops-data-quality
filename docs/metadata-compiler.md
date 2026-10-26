@@ -1,37 +1,33 @@
-# Native Salesforce compilation and APMP handoff
+# Native Salesforce compilation and APMP inputs
 
-Ops uses the offline `ppsc-metadata` compiler with a pinned `projection-inputs/v2`
-selection. Salesforce owns saved native fields, relationships, exact Flow versions
-and rollup evidence. APMP owns lake DDL and physical-to-native mappings. Ops owns
-event selection, eligibility, historical alignment, settlement, comparisons and GX.
+The existing `ppsc-salesforce[ibis]` distribution supplies Flow queries from
+`salesforce.entities.flows.queries` and rollups from
+`salesforce.entities.field_definitions.rollups`. APMP owns ODCS authoring, Athena
+schema parsing, physical aliases, keys and history definitions. Ops consumes
+APMP's generated `tables.json` and saved native JSON, then owns event selection,
+historical alignment, comparisons and native GX suites. ODCS is not an Ops dependency.
 
-The generated handoff lives in `account_to_survey_results/metadata`. Its manifest
-hashes native source artifacts, the captured lake catalog, schema-bearing Athena
-DDL and explicit bindings. APMP and Ops share the same pure DDL-to-Ibis reader.
-The installed wheel and generated inputs are one frozen selection; a rollback
-restores both together. Version 1 receipts are rejected with a migration message.
+The selected files live in `account_to_survey_results/metadata`. Native Ibis
+schemas are reconstructed from generated field/type pairs; explicit selections
+apply physical-to-logical aliases. Git, the vendored wheel and the locked release
+pin these files. No separate metadata package or handoff manifest is required.
 
-`metadata_inputs()` returns freshly parsed values from an immutable serialized
-compilation cache. Mutating a returned Flow, mapping or request cannot change
-subsequent compiled behavior. `metadata_receipt()` rereads installed selected
-bytes and rejects same-path replacements, manifest changes, compiler changes or
-request changes before runtime connections. The compiler source fingerprint is
-derived from the same frozen wheel and rechecked before native compilation and
-receipt creation, so a same-version installed-source replacement also fails.
+`metadata_inputs()` and `metadata_request()` return fresh values from an immutable
+serialized compilation cache. `metadata_receipt()` checks the selected bytes,
+request and compiler version before runtime connections. Its ordinary run metadata
+records source revision, exact Flow version/hash, ODCS identity and inputs digest.
 
-The packaged evidence is provisional. Its catalog is a synthetic migration
-fixture rather than observed AWS evidence. Native Salesforce facts remain saved
-with their identifiers and pointers; unmatched native/lake evidence remains
-unresolved rather than becoming a fabricated mapping.
+The packaged catalog remains a provisional synthetic fixture. Offline compilation
+does not establish real lake compatibility or Flow applicability.
 
 ## Native expression boundary
 
 The compiler preserves `flow_context`, `flow_assignments`, `rollup_values`,
-`expected_values` and independent `presence_requirements`. Native expressions
+plain named Ibis values and independent presence predicates. Native expressions
 remain Ibis tables/values. No ODCS model, expression serialization, query registry
 or acquisition dependency is needed.
 
-`sources.salesforce.flow_comparison` takes a supplied verified bundle, Flow
+`sources.salesforce.flow_comparison` takes explicitly supplied generated inputs, Flow
 request, prepared record, independently observed table and `ComparisonSpec`.
 Fields must occur in the selected APMP mapping and native source identities.
 Ordered relationship bindings remain separate from field provenance.
@@ -44,7 +40,7 @@ missing keys/parents, duplicate fanout and unmatched observations. Assigned NULL
 unassigned retained BEFORE values and unknown routing remain distinct. Required
 and must-be-null predicates are independent; one is not the inverse of the other.
 
-Suite metadata carries ordinary versioned provenance: native source pointers and
+Suite metadata carries ordinary provenance: native source pointers and
 hashes, APMP definition identity, BEFORE/expected/observed roles and output aliases.
 `expected_value_provenance()` does not construct a separate comparison contract.
 
@@ -82,16 +78,16 @@ resolution and network access.
 
 ## Refresh
 
-1. Capture/review actual native and lake evidence in the Salesforce/APMP producer.
-2. Build the selected APMP product offline and review unresolved/provisional items.
-3. Build the exact compiler revision; freeze its wheel and generated selected
-   handoff together. Copy only manifest-selected artifacts, preserving their paths.
-4. Update the consumer wheel reference, lockfile, compiler constants and configured
-   manifest hash. Regenerate suites, SQL and diagrams through existing Poe tasks.
-5. Run the installed-release smoke and real DVC producers; do not invent locks.
+1. Capture and review actual native and lake evidence in Salesforce/APMP.
+2. Build the selected APMP product through its DVC stage; review its dictionary,
+   unresolved coverage and provisional status.
+3. Build the existing Salesforce wheel from the reviewed source revision. Freeze
+   that wheel and copy `tables.json`, `flow.json`, `source_catalog.json` and
+   `observed.json` into the consumer selection.
+4. Update the wheel reference and lockfile. Regenerate suites, SQL and diagrams
+   through the existing Poe tasks.
+5. Run the installed-release smoke and real DVC producers.
 6. Use explicit online preflight and selected snapshots for a targeted Athena run.
-   Report catalog compatibility, data identities and semantic evidence separately.
 
-The source dictionary and offline checks do not establish real lake acceptance.
 Real physical definitions, historical observations, Flow applicability and rollup
 policies remain evidence gates for the checks that depend on them.

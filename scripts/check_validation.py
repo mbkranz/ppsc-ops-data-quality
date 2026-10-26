@@ -243,7 +243,7 @@ def validate_synthetic(run_directory: Path, *, s3_uri: str | None = None):
                 for name, query in queries.items()
             },
             run_metadata={
-                "metadata_inputs": metadata_receipt().model_dump(mode="json"),
+                "metadata_inputs": metadata_receipt(),
                 "source": "synthetic_history",
                 "survey_result_id": EVENT_ID,
                 "account_before_at": BEFORE_AT.isoformat(),

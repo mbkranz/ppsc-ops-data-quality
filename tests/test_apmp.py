@@ -1,13 +1,9 @@
 """Verified APMP aliases, catalog drift and applied snapshot identities."""
 
-import json
 from copy import deepcopy
-from hashlib import sha256
 
 import ibis
 import pytest
-import yaml
-from ppsc_metadata.artifacts import MetadataArtifact, definition_identity, load_metadata_bundle
 from sqlglot import exp
 
 from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
@@ -15,55 +11,36 @@ from ppsc_ops_data_quality.runtime.configuration import ValidationConfiguration
 from ppsc_ops_data_quality.runtime.preflight import DataVersionBinding, check_catalog
 from ppsc_ops_data_quality.sources.apmp import (
     RelationLocation,
-    lake_bindings,
     logical_schema,
     source_relation,
 )
 
 
 def bundle(tmp_path):
-    bindings = {
-        "datasets": {
+    return {
+        "tables": {
             "ledger": {
                 "native_object": "Invoice",
                 "catalog": "lake",
                 "database": "finance",
                 "relation": "delivery_42",
-                "ddl_path": "table.sql",
+                "kind": "table",
                 "columns": {"external_id": "Id", "posted_amount": "Amount"},
+                "fields": [["external_id", "string"], ["posted_amount", "decimal(12, 2)"]],
                 "keys": ["Id"],
                 "grain": "invoice",
+                "history_fields": [],
+                "history_boundaries": [],
                 "history_grain": "unestablished",
+                "partition_columns": [],
+                "provisional": True,
             }
         },
         "relationships": [],
+        "flow": {},
+        "source_catalog": {},
+        "rollups": {},
     }
-    contents = {
-        "bindings.yaml": ("bindings", yaml.safe_dump(bindings)),
-        "catalog.json": ("catalog", json.dumps({"fixture": True})),
-        "table.sql": (
-            "ddl",
-            "CREATE EXTERNAL TABLE delivery_42 (`external_id` string, `posted_amount` decimal(12,2))",
-        ),
-    }
-    artifacts = []
-    for name, (role, text) in contents.items():
-        (tmp_path / name).write_text(text)
-        artifacts.append(
-            MetadataArtifact(path=name, role=role, sha256=sha256(text.encode()).hexdigest())
-        )
-    manifest = {
-        "version": "projection-inputs/v2",
-        "org": "synthetic",
-        "source_revision": "a" * 40,
-        "definition_revision": "b" * 40,
-        "definition_id": definition_identity(tuple(artifacts)),
-        "provisional": True,
-        "coverage": "synthetic renamed ledger",
-        "artifacts": [item.model_dump() for item in artifacts],
-    }
-    (tmp_path / "manifest.json").write_text(json.dumps(manifest))
-    return load_metadata_bundle(tmp_path, tmp_path / "manifest.json")
 
 
 class Catalog:
@@ -191,13 +168,11 @@ def test_selected_snapshot_is_probed_and_applied_to_every_physical_read(tmp_path
     assert ast.sql(dialect="athena").count("FOR VERSION AS OF 123") == len(physical)
 
 
-def test_schema_and_mapping_changes_change_identity_or_reject(tmp_path):
+def test_generated_schema_and_mapping_disagreement_is_rejected(tmp_path):
     inputs = bundle(tmp_path)
-    assert lake_bindings(inputs).datasets["ledger"].columns["external_id"] == "Id"
-    path = tmp_path / "bindings.yaml"
-    path.write_text(path.read_text().replace("external_id: Id", "external_id: NewId"))
-    with pytest.raises(ValueError, match="hash mismatch"):
-        load_metadata_bundle(tmp_path, tmp_path / "manifest.json")
+    inputs["tables"]["ledger"]["columns"]["missing"] = "Missing"
+    with pytest.raises(ValueError, match="schema/mapping"):
+        source_relation(inputs, "ledger")
 
 
 def test_nonempty_legacy_runtime_type_override_has_migration_message():
@@ -255,7 +230,7 @@ def test_invalid_selection_never_constructs_an_online_client(tmp_path, monkeypat
             athena_client_factory=lambda: calls.append(True),
         )
     assert not calls and not (tmp_path / "never").exists()
-    assert metadata_receipt().manifest.provisional
+    assert metadata_receipt()["provisional"]
 
 
 def test_snapshot_column_info_precision_and_scale_are_preserved(tmp_path):
@@ -323,12 +298,11 @@ def test_date_validity_cannot_claim_timestamp_history_resolution(tmp_path, monke
     inputs = validation.metadata_inputs()
     # A declaration claiming timestamp grain is insufficient if the selected
     # physical state boundaries are actually DATE. loaded_at remains timestamp.
-    selected = lake_bindings(inputs).datasets["account"]
-    inputs.artifacts[selected.ddl_path] = (
-        inputs.artifacts[selected.ddl_path]
-        .replace("`valid_from` timestamp", "`valid_from` DATE")
-        .replace("`valid_to` timestamp", "`valid_to` DATE")
-    )
+    selected = inputs["tables"]["account"]
+    selected["fields"] = [
+        [name, "date" if name in {"valid_from", "valid_to"} else typ]
+        for name, typ in selected["fields"]
+    ]
     monkeypatch.setattr(validation, "metadata_inputs", lambda: inputs)
     calls = []
     with pytest.raises(ValueError, match="temporal resolution unestablished"):
@@ -340,56 +314,19 @@ def test_date_validity_cannot_claim_timestamp_history_resolution(tmp_path, monke
     assert not calls
 
 
-@pytest.mark.parametrize("sidecar_dataset", ["ledger", "different_dataset"])
-def test_view_schema_native_types_and_dataset_identity_are_bound_together(
-    tmp_path, sidecar_dataset
-):
+def test_generated_native_query_types_preserve_precision_timezone_and_order(tmp_path):
     from ppsc_ops_data_quality.sources.apmp import physical_schema
 
-    bundle(tmp_path)
-    bindings_path = tmp_path / "bindings.yaml"
-    bindings = yaml.safe_load(bindings_path.read_text())
-    binding = bindings["datasets"]["ledger"]
-    binding.update(kind="view", ddl_path="view.sql", schema_path="schema.json")
-    binding["columns"]["observed_at"] = "ObservedAt"
-    bindings_path.write_text(yaml.safe_dump(bindings))
-    (tmp_path / "view.sql").write_text(
-        "CREATE VIEW delivery_42 AS SELECT external_id, posted_amount, observed_at FROM source_delivery"
-    )
-    (tmp_path / "schema.json").write_text(
-        json.dumps(
-            {
-                "dataset_id": sidecar_dataset,
-                "fields": [
-                    ["external_id", "string"],
-                    ["posted_amount", "decimal(18,6)"],
-                    ["observed_at", "timestamp('UTC', 6)"],
-                ],
-            }
-        )
-    )
-    manifest_path = tmp_path / "manifest.json"
-    manifest = json.loads(manifest_path.read_text())
-    selected = [item for item in manifest["artifacts"] if item["role"] != "ddl"]
-    selected.extend(
-        [{"path": "view.sql", "role": "view"}, {"path": "schema.json", "role": "schema"}]
-    )
-    for artifact in selected:
-        artifact["sha256"] = sha256((tmp_path / artifact["path"]).read_bytes()).hexdigest()
-    manifest["artifacts"] = selected
-    manifest["definition_id"] = definition_identity(
-        tuple(MetadataArtifact.model_validate(item) for item in selected)
-    )
-    manifest_path.write_text(json.dumps(manifest))
-    inputs = load_metadata_bundle(tmp_path, manifest_path)
-    if sidecar_dataset != "ledger":
-        with pytest.raises(ValueError, match="dataset identity mismatch"):
-            physical_schema(inputs, "ledger")
-    else:
-        schema = physical_schema(inputs, "ledger")
-        assert schema.names == tuple(lake_bindings(inputs).datasets["ledger"].columns)
-        assert schema["posted_amount"] == ibis.dtype("decimal(18,6)")
-        assert schema["observed_at"] == ibis.dtype("timestamp('UTC', 6)")
+    inputs = bundle(tmp_path)
+    table = inputs["tables"]["ledger"]
+    table["columns"]["observed_at"] = "ObservedAt"
+    table["fields"].append(["observed_at", "timestamp('UTC', 6)"])
+    schema = physical_schema(inputs, "ledger")
+    assert schema.names == ("external_id", "posted_amount", "observed_at")
+    assert schema["posted_amount"] == ibis.dtype("decimal(12,2)")
+    assert schema["observed_at"] == ibis.dtype("timestamp('UTC',6)")
+    with pytest.raises(ValueError, match="Unknown APMP"):
+        physical_schema(inputs, "not_selected")
 
 
 def test_report_sources_follow_executed_sql_and_exclude_unused_locations():

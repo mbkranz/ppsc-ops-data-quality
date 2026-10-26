@@ -2,9 +2,9 @@
 
 The input schema authority is the generated, pinned APMP handoff under
 `account_to_survey_results/metadata`. Salesforce/APMP owns its source definitions.
-Ops verifies every selected byte through `projection-inputs/v2`, reads Athena DDL
-with `ppsc_metadata.schemas.athena_schema`, and builds native Ibis relations.
-There is no independently authored Ops schema copy.
+Ops builds native Ibis schemas from APMP-generated field/type pairs and uses
+explicit physical-to-native aliases. ODCS and Athena DDL interpretation stay in
+the data lake project. There is no independently authored Ops schema copy.
 
 The packaged Account, Contact and Survey Results selection is a **provisional
 fixture** migrated from the previous compatibility profile. Its catalog names,
@@ -13,7 +13,7 @@ against a real lake. Source metadata capture and data snapshots have separate
 identities.
 
 `account.py`, `contact.py`, `survey_results.py` and `history.py` retain public
-schema constants for offline examples. They derive from the same verified handoff;
+schema constants for offline examples. They derive from the same generated inputs;
 module imports acquire no Salesforce or AWS data. Derived comparison schemas come
 from the actual Ibis expressions in `account_to_survey_results.schemas`.
 
@@ -21,9 +21,9 @@ from the actual Ibis expressions in `account_to_survey_results.schemas`.
 from ppsc_ops_data_quality.core.queries import history_tables
 from ppsc_ops_data_quality.sources.apmp import RelationLocation
 
-# verified_inputs is an explicitly selected MetadataBundle.
+# selected_inputs is the plain APMP-generated input dictionary.
 history = history_tables(
-    inputs=verified_inputs,
+    inputs=selected_inputs,
     locations={
         dataset_id: RelationLocation(
             catalog=selected_catalog,

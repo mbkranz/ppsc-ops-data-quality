@@ -2,7 +2,6 @@
 metadata:
   org: qa2
   flow_version_id: 301SL00000dpJqKYAU
-  manifest_sha256: fa86c65c60ead5b220036b057eee70d909cb390eba6bba350edc2d9d524682c5
 athena:
   region: REPLACE_WITH_REGION
   database: REPLACE_WITH_DEFAULT_DATABASE

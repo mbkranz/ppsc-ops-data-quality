@@ -425,7 +425,12 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
             for definition in definitions
         }
 
-    catalog_tables = json.loads(job.metadata_inputs().artifacts["lake/catalog.json"])["tables"]
+    catalog_tables = json.loads(
+        (
+            Path(__file__).resolve().parents[1]
+            / "src/ppsc_ops_data_quality/account_to_survey_results/metadata/observed.json"
+        ).read_text()
+    )["tables"]
 
     class Athena:
         def get_table_metadata(self, **kwargs):
@@ -442,13 +447,13 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
 
         def get_query_results(self, **kwargs):
             # Query result columns retain the selected order, not catalog order.
-            from ppsc_ops_data_quality.sources.apmp import lake_bindings, physical_schema
+            from ppsc_ops_data_quality.sources.apmp import physical_schema
 
             inputs = job.metadata_inputs()
             dataset_id = next(
                 key
-                for key, binding in lake_bindings(inputs).datasets.items()
-                if binding.relation == self.selected["Name"]
+                for key, binding in inputs["tables"].items()
+                if binding["relation"] == self.selected["Name"]
             )
             by_name = {item["Name"]: item for item in self.selected["Columns"]}
             return {

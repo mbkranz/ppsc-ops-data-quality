@@ -28,33 +28,33 @@ def test_mutating_returned_metadata_cannot_change_receipted_compilation():
     expected_sql = comparison_sql(record, observed)
     receipt = metadata_receipt()
     bundle = metadata_inputs()
-    original = deepcopy(bundle.flow)
+    original = deepcopy(bundle["flow"])
     try:
         assignment = next(
             node
-            for node in bundle.flow["Metadata"]["recordUpdates"]
+            for node in bundle["flow"]["Metadata"]["recordUpdates"]
             if node["name"] == "updateAccount2001"
         )
         assignment["inputAssignments"][0]["value"] = {"dateTimeValue": None}
         assert metadata_receipt() == receipt
         assert comparison_sql(record, observed) == expected_sql
     finally:
-        bundle.flow.clear()
-        bundle.flow.update(original)
+        bundle["flow"].clear()
+        bundle["flow"].update(original)
 
 
 def test_repeated_loads_and_configuration_return_independent_objects():
     first, second = metadata_inputs(), metadata_inputs()
     assert first == second and first is not second
-    first.artifacts.clear()
-    first.flow["Metadata"]["decisions"].clear()
+    first["tables"].clear()
+    first["flow"]["Metadata"]["decisions"].clear()
     assert metadata_inputs() == second
     request = metadata_request()
     request.resource_aliases.clear()
     assert metadata_request().resource_aliases
     receipt = metadata_receipt()
     assert (
-        receipt.flow_request_sha256
+        receipt["flow_request_sha256"]
         == sha256(metadata_request().model_dump_json().encode()).hexdigest()
     )
 
@@ -66,50 +66,26 @@ def test_configuration_change_rejects_receipt_without_changing_compilation(monke
         metadata.FLOW_REQUEST.resource_aliases, "getFirstPhysicalMeasurement", "bad"
     )
     assert comparison_sql(record, observed) == expected_sql
-    with pytest.raises(ValueError, match="changed after query construction"):
+    with pytest.raises(ValueError, match="changed after compilation"):
         metadata_receipt()
 
 
-@pytest.mark.parametrize("replace_manifest", [False, True])
-def test_artifact_replacement_under_same_name_rejects_receipt(
-    tmp_path, monkeypatch, replace_manifest
-):
+def test_input_replacement_under_same_name_rejects_receipt(tmp_path, monkeypatch):
     root = Path(__file__).resolve().parents[1] / "src/ppsc_ops_data_quality"
     copied = tmp_path / "package"
     shutil.copytree(root, copied)
     monkeypatch.setattr(metadata, "files", lambda _: copied)
-    metadata_receipt()  # Unchanged verified bytes can be reused.
-    flow_path = copied / "account_to_survey_results/metadata/flow.json"
-    flow = json.loads(flow_path.read_bytes())
-    flow["Metadata"]["description"] = "same filename, different content"
-    flow_path.write_text(json.dumps(flow))
-    if replace_manifest:
-        path = copied / "account_to_survey_results/metadata/manifest.json"
-        manifest = json.loads(path.read_bytes())
-        artifact = next(a for a in manifest["artifacts"] if a["role"] == "flow")
-        artifact["sha256"] = sha256(flow_path.read_bytes()).hexdigest()
-        path.write_text(json.dumps(manifest))
-    with pytest.raises(ValueError, match="changed after query construction|hash mismatch"):
+    metadata_receipt()
+    path = copied / "account_to_survey_results/metadata/flow.json"
+    native = json.loads(path.read_text())
+    native["Metadata"]["description"] = "changed under the same name"
+    path.write_text(json.dumps(native))
+    with pytest.raises(ValueError, match="changed after compilation"):
         metadata_receipt()
 
 
 def test_changed_compiler_version_rejects_receipt(monkeypatch):
     metadata_receipt()
     monkeypatch.setattr(metadata, "version", lambda _: "different-compiler")
-    with pytest.raises(ValueError, match="changed after query construction"):
+    with pytest.raises(ValueError, match="changed after compilation"):
         metadata_receipt()
-
-
-def test_same_version_installed_compiler_source_replacement_rejects_receipt(tmp_path, monkeypatch):
-    root = metadata._compiler_root()
-    copied = tmp_path / "ppsc_metadata"
-    shutil.copytree(root, copied, ignore=shutil.ignore_patterns("__pycache__"))
-    monkeypatch.setattr(metadata, "_compiler_root", lambda: copied)
-    before = metadata_receipt()
-    assert before.compiler_source_sha256 == metadata.COMPILER_SOURCE_SHA256
-    path = copied / "schemas.py"
-    path.write_text(path.read_text() + "\n# same version, changed installed bytes\n")
-    with pytest.raises(ValueError, match="compiler source fingerprint"):
-        metadata_receipt()
-    with pytest.raises(ValueError, match="compiler source fingerprint"):
-        metadata_inputs()

@@ -27,7 +27,7 @@ from ppsc_ops_data_quality.account_to_survey_results.queries import (
 from ppsc_ops_data_quality.runtime import run_validations_with_reports
 from ppsc_ops_data_quality.runtime.athena import prepare_validation, query_source_tables
 from ppsc_ops_data_quality.runtime.preflight import check_catalog
-from ppsc_ops_data_quality.sources.apmp import lake_bindings, logical_schema, source_relation
+from ppsc_ops_data_quality.sources.apmp import logical_schema, source_relation
 
 from .configuration import ValidationConfiguration
 
@@ -64,38 +64,35 @@ def run_validation(
     """
     compiled_inputs = metadata_receipt()
     if (
-        request.metadata.org != compiled_inputs.manifest.org
-        or request.metadata.flow_version_id != compiled_inputs.manifest.flow_version_id
-        or request.metadata.manifest_sha256 != compiled_inputs.manifest_sha256
+        request.metadata.org != compiled_inputs["org"]
+        or request.metadata.flow_version_id != compiled_inputs["flow_version_id"]
     ):
-        raise ValueError(
-            "Configured metadata org/version/hash does not match the compiled input set"
-        )
+        raise ValueError("Configured metadata org/version does not match the compiled input set")
     athena = request.athena
     reporting = request.reports
     event = request.event
     inputs = metadata_inputs()
-    bindings = lake_bindings(inputs)
-    if set(request.locations) != set(bindings.datasets):
+    bindings = inputs["tables"]
+    if set(request.locations) != set(bindings):
         raise ValueError("Configured locations do not match the selected APMP dataset set")
-    for dataset_id, binding in bindings.datasets.items():
+    for dataset_id, binding in bindings.items():
         schema = logical_schema(inputs, dataset_id)
         if (
-            binding.history_boundaries != ("valid_from", "valid_to")
-            or binding.history_grain != "timestamp"
+            tuple(binding["history_boundaries"]) != ("valid_from", "valid_to")
+            or binding["history_grain"] != "timestamp"
             or any(
                 name not in schema or not schema[name].is_timestamp()
-                for name in binding.history_boundaries
+                for name in binding["history_boundaries"]
             )
         ):
             raise ValueError(
-                f"Flow temporal resolution unestablished for {dataset_id}: {binding.history_grain} history cannot establish arbitrary intra-day BEFORE/execution/AFTER states"
+                f"Flow temporal resolution unestablished for {dataset_id}: {binding['history_grain']} history cannot establish arbitrary intra-day BEFORE/execution/AFTER states"
             )
     history = {
-        binding.native_object: source_relation(
+        binding["native_object"]: source_relation(
             inputs, dataset_id, location=request.locations[dataset_id]
         )
-        for dataset_id, binding in bindings.datasets.items()
+        for dataset_id, binding in bindings.items()
     }
     queries = {
         "flow": flow_account_query(history, **event.model_dump()),
@@ -122,7 +119,7 @@ def run_validation(
         client = athena_client_factory()
     preflight = check_catalog(
         inputs,
-        dataset_ids=tuple(bindings.datasets),
+        dataset_ids=tuple(bindings),
         locations=request.locations,
         data_versions=request.data_versions,
         athena_client=client,
@@ -146,7 +143,7 @@ def run_validation(
     validation_mode = "stable_inputs" if request.require_repeatable_reads else "diagnostic"
     lake_acceptance = (
         "unestablished"
-        if compiled_inputs.manifest.provisional
+        if compiled_inputs["provisional"]
         or not request.require_repeatable_reads
         or not repeatability_established
         else "catalog_compatible_semantics_require_review"
@@ -196,8 +193,8 @@ def run_validation(
             },
             run_metadata={
                 **(run_metadata or {}),
-                "metadata_inputs": compiled_inputs.model_dump(mode="json"),
-                "provenance_version": "native-apmp/v2",
+                "metadata_inputs": compiled_inputs,
+                "provenance_version": "native-salesforce",
                 "configuration_sha256": run_configuration_sha256,
                 "catalog_preflight": [item.model_dump(mode="json") for item in preflight],
                 "repeatability_established": repeatability_established,

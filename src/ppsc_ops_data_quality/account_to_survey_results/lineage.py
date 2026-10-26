@@ -5,9 +5,9 @@ supplemental navigation only. No Flow conditions or assignments are authored her
 Rollup rules remain unchanged pending verified native rollup metadata.
 """
 
-from ppsc_metadata.sources.salesforce_flow import flow_lineage
+from salesforce.entities.flows.queries import flow_lineage
 
-from .metadata import metadata_inputs, metadata_request
+from .metadata import metadata_inputs, metadata_receipt, metadata_request
 
 ROLLUP_FIELD_LINEAGE = {
     "Account.EHR_Authorized__pc": {
@@ -328,32 +328,34 @@ _WORKBOOK_ROWS = {
 }
 
 _bundle = metadata_inputs()
-_native = _bundle.flow["Metadata"]
-_flow_artifact = next(item for item in _bundle.manifest.artifacts if item.role == "flow")
+_native = _bundle["flow"]["Metadata"]
+_provenance = metadata_receipt()
 _request = metadata_request()
 _evidence = flow_lineage(_native, _request)
 ACCOUNT_FIELD_LINEAGE = {}
 PROJECTION_LINEAGE = {}
 for _field, _record in _evidence.items():
     _entry = {
-        **_record.model_dump(mode="json"),
-        "rule_id": f"{_bundle.manifest.flow_version_id}/{_field}",
+        **_record,
+        "rule_id": f"{_provenance['flow_version_id']}/{_field}",
         "entity_type": "AccountField",
-        "source_flow": _bundle.manifest.flow_name,
-        "flow_version_id": _bundle.manifest.flow_version_id,
-        "source_file": _flow_artifact.path,
-        "source_sha256": _flow_artifact.sha256,
-        "metadata_manifest_sha256": _bundle.manifest_sha256,
-        "provenance_version": "native-apmp/v2",
-        "definition_id": _bundle.manifest.definition_id,
-        "definition_revision": _bundle.manifest.definition_revision,
-        "provisional": _bundle.manifest.provisional,
+        "source_flow": _provenance["flow_name"],
+        "flow_version_id": _provenance["flow_version_id"],
+        "source_file": "flow.json",
+        "source_sha256": _provenance["flow_sha256"],
+        "inputs_sha256": _provenance["inputs_sha256"],
+        "provenance_version": "native-salesforce",
+        "contract_id": _provenance["contract_id"],
+        "source_revision": _provenance["source_revision"],
+        "provisional": _provenance["provisional"],
         "workbook_rows": [
-            _WORKBOOK_ROWS[source] for source in _record.source_entities if source in _WORKBOOK_ROWS
+            _WORKBOOK_ROWS[source]
+            for source in _record["source_entities"]
+            if source in _WORKBOOK_ROWS
         ],
         "workbook_reference_role": "supplemental navigation; native metadata is authoritative",
     }
-    ACCOUNT_FIELD_LINEAGE[_record.target_field] = _entry
+    ACCOUNT_FIELD_LINEAGE[_record["target_field"]] = _entry
     PROJECTION_LINEAGE[_field] = _entry
     BRANCH_LINEAGE.update({branch["rule_id"]: branch for branch in _entry["branches"]})
 for _target, _entry in ROLLUP_FIELD_LINEAGE.items():
@@ -381,10 +383,10 @@ for _kind, _prefix in (
         _alias = _request.resource_aliases.get(_node["name"], _source)
         FLOW_ENTITY_LINEAGE[_alias] = {
             "source_entity": _source,
-            "source_flow": _bundle.manifest.flow_name,
+            "source_flow": _provenance["flow_name"],
             "entity_type": _prefix,
             "source_path": f"/Metadata/{_kind}/{_index}",
-            "flow_version_id": _bundle.manifest.flow_version_id,
+            "flow_version_id": _provenance["flow_version_id"],
         }
 for _alias, _source, _description in (
     (
@@ -408,9 +410,9 @@ for _alias, _source, _description in (
         "entity_type": _source.split(".", 1)[0],
         "description": _description,
         "source_entities": [_source],
-        "source_flow": _bundle.manifest.flow_name,
-        "flow_version_id": _bundle.manifest.flow_version_id,
-        "metadata_manifest_sha256": _bundle.manifest_sha256,
+        "source_flow": _provenance["flow_name"],
+        "flow_version_id": _provenance["flow_version_id"],
+        "inputs_sha256": _provenance["inputs_sha256"],
     }
 
 for _alias, _source in (

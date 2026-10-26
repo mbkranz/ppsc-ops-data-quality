@@ -37,10 +37,8 @@ from functools import reduce
 
 import ibis
 import ibis.expr.types as ir
-from ppsc_metadata.artifacts import MetadataBundle
-from ppsc_metadata.projections import presence_requirements
-from ppsc_metadata.sources.salesforce_flow import flow_assignments, flow_context
-from ppsc_metadata.sources.salesforce_rollup import RollupRequest
+from salesforce.entities.field_definitions.rollups import RollupRequest
+from salesforce.entities.flows.queries import flow_assignments, flow_context
 
 from ppsc_ops_data_quality.core.queries.snapshot import snapshot
 from ppsc_ops_data_quality.sources.salesforce import (
@@ -101,7 +99,7 @@ def add_flow_context(
     return flow_context(
         Record,
         {"Survey_Result__c": Survey_Result__c},
-        metadata_inputs().flow["Metadata"],
+        metadata_inputs()["flow"]["Metadata"],
         metadata_request(),
         flow_run_date=flow_run_date,
         eligibility=_eligible,
@@ -110,13 +108,11 @@ def add_flow_context(
 
 def derived_account_expressions(Record: ir.Table) -> tuple[ir.Value, ...]:
     """The selected native QA2 assignments; SQL display text is never executed."""
+    values = flow_assignments(
+        Record, metadata_inputs()["flow"]["Metadata"], metadata_request(), eligibility=_eligible
+    )
     return tuple(
-        flow_assignments(
-            Record,
-            metadata_inputs().flow["Metadata"],
-            metadata_request(),
-            eligibility=_eligible,
-        ).expressions.values()
+        values[f"expected__{field}"].name(field) for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW
     )
 
 
@@ -362,10 +358,10 @@ def cabor_lookup_is_deterministic(Record: ir.Table) -> ir.BooleanValue:
     """Keep unsorted permission ambiguity separate from the authored assignment."""
     return flow_assignments(
         Record,
-        metadata_inputs().flow["Metadata"],
+        metadata_inputs()["flow"]["Metadata"],
         metadata_request(),
         eligibility=_eligible,
-    ).deterministic["CABOR_Completion_Date__c"]
+    )["expected__CABOR_Completion_Date__c__deterministic"]
 
 
 def flow_account_comparison(
@@ -398,18 +394,29 @@ def flow_account_comparison(
     presence_fields = set(required or {}) | set(must_be_null or {})
     if not presence_fields <= set(ACCOUNT_FIELDS_ASSIGNED_BY_FLOW):
         raise ValueError("Presence rules must bind selected expected fields")
-    presence = presence_requirements(required=required, must_be_null=must_be_null)
+    presence = {}
+    for rules, suffix in ((required, "required"), (must_be_null, "must_be_null")):
+        for field, predicate in (rules or {}).items():
+            if not isinstance(predicate, ir.BooleanValue):
+                raise ValueError("Presence conditions require Boolean Ibis expressions")
+            presence[f"expected__{field}_{suffix}"] = predicate
     # Bind presence to source state before the observation is introduced. Ibis
     # rejects predicates depending on an unrelated observed target relation.
     Record = Record.mutate(**presence)
     projection = flow_assignments(
-        Record, metadata_inputs().flow["Metadata"], metadata_request(), eligibility=_eligible
+        Record, metadata_inputs()["flow"]["Metadata"], metadata_request(), eligibility=_eligible
     )
     complete = reduce(
         operator.and_,
         [
-            *projection.deterministic.values(),
-            *[value.notnull() for value in projection.assigned.values()],
+            *[
+                projection[f"expected__{field}__deterministic"]
+                for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW
+            ],
+            *[
+                projection[f"expected__{field}__assigned"].notnull()
+                for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW
+            ],
             *[Record[name].notnull() for name in presence],
         ],
     ).fill_null(False)
@@ -434,15 +441,12 @@ def flow_account_comparison(
         Record.Survey_Index_Number__c.name("survey_index_number"),
         Record.Completion_Status_Timestamp__c.name("survey_completion_timestamp"),
         survey_completion_occurred_on_or_after_launch,
-        projection.deterministic["CABOR_Completion_Date__c"].name("cabor_lookup_is_deterministic"),
+        projection["expected__CABOR_Completion_Date__c__deterministic"].name(
+            "cabor_lookup_is_deterministic"
+        ),
         complete.name("flow_evidence_is_complete"),
         *[Record[name] for name in presence],
-        **{f"expected__{name}": value for name, value in projection.expressions.items()},
-        **{
-            f"expected__{name}__deterministic": value
-            for name, value in projection.deterministic.items()
-        },
-        **{f"expected__{name}__assigned": value for name, value in projection.assigned.items()},
+        **projection,
         **{f"observed__{field}": AccountAfter[field] for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW},
     )
     keys_present = reduce(
@@ -601,7 +605,7 @@ def native_rollup_comparison(
     request: RollupRequest,
     *,
     source_field: str,
-    inputs: MetadataBundle,
+    inputs: dict,
 ) -> ir.Table:
     """Compare one selected verified rollup; callers own snapshots and empty policy.
 

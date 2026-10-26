@@ -292,20 +292,22 @@ class SnapshotTests(unittest.TestCase):
 
     def test_binds_real_history_tables(self):
         from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_inputs
-        from ppsc_ops_data_quality.sources.apmp import RelationLocation, lake_bindings
+        from ppsc_ops_data_quality.sources.apmp import RelationLocation
 
-        bindings = lake_bindings(metadata_inputs())
+        bindings = metadata_inputs()["tables"]
         locations = {
-            key: RelationLocation(catalog="catalog", database="database", relation=binding.relation)
-            for key, binding in bindings.datasets.items()
+            key: RelationLocation(
+                catalog="catalog", database="database", relation=binding["relation"]
+            )
+            for key, binding in bindings.items()
         }
         backend = Mock()
         backend.table.side_effect = lambda name, database: ibis.table(
             {
                 physical: "string"
                 for physical in next(
-                    item for item in bindings.datasets.values() if item.relation == name
-                ).columns
+                    item for item in bindings.values() if item["relation"] == name
+                )["columns"]
             },
             name=name,
         )
@@ -313,7 +315,7 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(set(result), {"Account", "Contact", "Survey_Result__c"})
         self.assertEqual(
             [call.args[0] for call in backend.table.call_args_list],
-            [binding.relation for binding in bindings.datasets.values()],
+            [binding["relation"] for binding in bindings.values()],
         )
         self.assertTrue(
             all(

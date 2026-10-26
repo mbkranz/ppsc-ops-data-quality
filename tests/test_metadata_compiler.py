@@ -1,26 +1,22 @@
 """Behavioral acceptance for metadata-driven construction, independent observations."""
 
 from copy import deepcopy
-from importlib.metadata import version
 from pathlib import Path
 
 import ibis
 import pytest
-from ppsc_metadata.artifacts import load_metadata_bundle
-from ppsc_metadata.projections import conditional_values
-from ppsc_metadata.sources.salesforce_flow import (
+from salesforce.entities.field_definitions.rollups import CountRollupRequest, count_rollup
+from salesforce.entities.flows.queries import (
     UnsupportedFlowError,
     flow_assignments,
     flow_context,
 )
-from ppsc_metadata.sources.salesforce_rollup import CountRollupRequest, count_rollup
 from test_flow_derivations import NEW, OLD, build, fixtures
 
 from ppsc_ops_data_quality.account_to_survey_results import queries as query
 from ppsc_ops_data_quality.account_to_survey_results.metadata import (
     FLOW_REQUEST,
     metadata_inputs,
-    metadata_receipt,
 )
 
 
@@ -39,11 +35,11 @@ def selected(metadata, *, field="Basics_Date_Time__c", index="2001", duplicate=F
         eligibility=query._eligible,
     )
     projection = flow_assignments(record, metadata, request, eligibility=query._eligible)
-    return record.select(projection.expressions[field])
+    return record.select(projection[f"expected__{field}"])
 
 
 def test_metadata_mutation_changes_predicates_assignments_and_preserves_null():
-    native = metadata_inputs().flow["Metadata"]
+    native = metadata_inputs()["flow"]["Metadata"]
     backend = ibis.duckdb.connect()
     try:
         assert backend.execute(selected(native)).iloc[0, 0] == NEW
@@ -65,7 +61,7 @@ def test_metadata_mutation_changes_predicates_assignments_and_preserves_null():
 
 
 def test_unrelated_unsupported_formula_does_not_block_a_requested_slice():
-    native = deepcopy(metadata_inputs().flow["Metadata"])
+    native = deepcopy(metadata_inputs()["flow"]["Metadata"])
     native["formulas"][0]["expression"] = "UNSUPPORTED()"
     selected(native)
     with pytest.raises(UnsupportedFlowError, match="Unsupported native formula"):
@@ -73,7 +69,7 @@ def test_unrelated_unsupported_formula_does_not_block_a_requested_slice():
 
 
 def test_duplicate_input_events_are_retained_through_lookups():
-    native = metadata_inputs().flow["Metadata"]
+    native = metadata_inputs()["flow"]["Metadata"]
     backend = ibis.duckdb.connect()
     try:
         rows = backend.execute(
@@ -125,38 +121,8 @@ def test_count_adapter_and_source_neutral_projection_execute_without_salesforce_
             ("p1", 2),
             ("p2", 0),
         ]
-        record = ibis.memtable(
-            {"old": [7, 7, 7], "first": [True, False, False], "second": [True, True, False]}
-        )
-        projection = conditional_values(
-            {"score": record.old},
-            [
-                (record.first, {"score": ibis.null().cast("int64")}),
-                (record.second, {"score": ibis.literal(0)}),
-            ],
-        )
-        values = backend.execute(record.select(projection["score"]))
-        assert values.iloc[0].isna().all() and values.iloc[1, 0] == 0 and values.iloc[2, 0] == 7
     finally:
         backend.disconnect()
-
-
-def test_pinned_input_hashes_and_flow_identity_are_enforced(tmp_path):
-    import shutil
-
-    root = Path(__file__).resolve().parents[1] / "src/ppsc_ops_data_quality"
-    copied = tmp_path / "package"
-    shutil.copytree(root, copied)
-    manifest = copied / "account_to_survey_results/metadata/manifest.json"
-    receipt = metadata_receipt()
-    assert receipt.compiler_version == version("ppsc-metadata") and receipt.manifest.provisional
-    assert (
-        load_metadata_bundle(copied / "account_to_survey_results/metadata", manifest).flow["Id"]
-        == "301SL00000dpJqKYAU"
-    )
-    (copied / "account_to_survey_results/metadata/flow.json").write_text("{}")
-    with pytest.raises(ValueError, match="hash mismatch"):
-        load_metadata_bundle(copied / "account_to_survey_results/metadata", manifest)
 
 
 def test_live_metadata_mismatch_fails_before_creating_a_gx_context(tmp_path, monkeypatch):
@@ -177,6 +143,6 @@ def test_live_metadata_mismatch_fails_before_creating_a_gx_context(tmp_path, mon
         raise AssertionError("No context or connection should be created")
 
     monkeypatch.setattr(validation.gx, "get_context", fail)
-    with pytest.raises(ValueError, match="org/version/hash"):
+    with pytest.raises(ValueError, match="org/version"):
         validation.run_validation(request, run_directory=tmp_path / "run")
     assert not (tmp_path / "run").exists()

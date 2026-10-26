@@ -89,7 +89,6 @@ class RollupConfiguration(Configuration):
 class MetadataSelection(Configuration):
     org: Name
     flow_version_id: Name
-    manifest_sha256: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 
 
 class ValidationConfiguration(Configuration):

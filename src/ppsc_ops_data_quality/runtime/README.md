@@ -5,7 +5,7 @@ Current Athena runs require `locations` keyed by selected APMP dataset ID and
 diagnostic inputs). Nonempty `schema_overrides` and database-only `history`
 bindings are retired. See [native/APMP compilation](../../../docs/metadata-compiler.md)
 and `params.example.yaml` for the active shape. Online preflight is separate from
-offline hash verification and occurs before GX queries. Library callers provide
+local selection verification and occurs before GX queries. Library callers provide
 an explicit Athena client or factory; imports and local validation create none.
 
 # Runtime adapters and native GX validation execution

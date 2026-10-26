@@ -8,8 +8,7 @@ from hashlib import sha256
 from time import monotonic, sleep
 from typing import Any, Literal
 
-from ppsc_metadata.artifacts import MetadataBundle
-from ppsc_metadata.schemas import athena_schema
+import ibis
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlglot import exp
 
@@ -70,10 +69,16 @@ def _column_type(column: dict[str, Any]) -> str:
 def _catalog_schema(columns: list[dict[str, Any]], *, fields: tuple[str, ...] | None = None):
     if fields is not None:
         columns = [column for column in columns if column["Name"] in fields]
-    declaration = ", ".join(
-        f"`{column['Name'].replace('`', '``')}` {_column_type(column)}" for column in columns
+    schema = exp.Schema(
+        expressions=[
+            exp.ColumnDef(
+                this=exp.to_identifier(column["Name"], quoted=True),
+                kind=exp.DataType.build(_column_type(column), dialect="athena"),
+            )
+            for column in columns
+        ]
     )
-    return athena_schema(f"CREATE EXTERNAL TABLE observed ({declaration})", fields=fields)
+    return ibis.Schema.from_sqlglot(schema, dialect="athena")
 
 
 def _qualified_table(location: RelationLocation) -> exp.Table:
@@ -124,7 +129,7 @@ def _query_schema(athena_client: Any, sql: str, *, query_options: dict, timeout_
 
 
 def check_catalog(
-    inputs: MetadataBundle,
+    inputs: dict,
     *,
     dataset_ids: tuple[str, ...],
     locations: dict[str, RelationLocation],
@@ -172,7 +177,7 @@ def check_catalog(
         }:
             raise ValueError(f"Catalog relation kind unavailable for {location.identity}")
         kind = "view" if observed["TableType"].upper() == "VIRTUAL_VIEW" else "table"
-        if kind != binding.kind:
+        if kind != binding["kind"]:
             raise ValueError(f"Catalog relation kind changed for {location.identity}")
         if kind == "view":
             # GetTableMetadata does not establish the deployed SQL/dependencies.
@@ -181,7 +186,7 @@ def check_catalog(
                 f"View definition/dependencies remain unverified for {location.identity}; capture and verify deployed view evidence"
             )
         partitions = tuple(column["Name"] for column in observed.get("PartitionKeys", []))
-        if partitions != binding.partition_columns:
+        if partitions != tuple(binding["partition_columns"]):
             raise ValueError(f"Catalog partition declarations changed for {location.identity}")
         # Permit the same exact partition declaration exposed in both API lists,
         # but never accept name collisions as harmless unreferenced additions.
@@ -255,7 +260,9 @@ def check_catalog(
                 raise ValueError(
                     f"Stable-input assertion unestablished for mutable relation {location.identity}; select an Iceberg snapshot or run explicitly diagnostic comparisons"
                 )
-        if binding.provisional or inputs.manifest.provisional:
+        if binding["provisional"] or any(
+            table["provisional"] for table in inputs["tables"].values()
+        ):
             limitations.append(
                 "Provisional source/mapping evidence; live semantic acceptance remains outstanding"
             )

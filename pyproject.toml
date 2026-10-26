@@ -9,7 +9,7 @@ description = "Composable Ibis comparisons and native GX validation for Salesfor
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
-  "ppsc-metadata[ibis]==0.3.0",
+  "ppsc-salesforce[ibis]==0.1.0",
   "pydantic>=2.12,<3",
   "PyYAML>=6,<7",
   "boto3>=1.35,<2",
@@ -40,7 +40,7 @@ release = [
 packages = ["src/ppsc_ops_data_quality"]
 
 [tool.uv.sources]
-ppsc-metadata = { path = "vendor/7f4f3108/ppsc_metadata-0.3.0-py3-none-any.whl" }
+ppsc-salesforce = { path = "vendor/1d59b5b8/ppsc_salesforce-0.1.0-py3-none-any.whl" }
 
 [tool.poe]
 executor = {type = "simple"}

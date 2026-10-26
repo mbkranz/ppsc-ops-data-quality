@@ -1662,33 +1662,6 @@ wheels = [
 ]
 
 [[package]]
-name = "ppsc-metadata"
-version = "0.3.0"
-source = { path = "vendor/7f4f3108/ppsc_metadata-0.3.0-py3-none-any.whl" }
-dependencies = [
-    { name = "pydantic" },
-    { name = "pyyaml" },
-]
-wheels = [
-    { filename = "ppsc_metadata-0.3.0-py3-none-any.whl", hash = "sha256:c26afb47820ecabc654f4f73b098af3e96062329815d09304e8f5c3686074ecf" },
-]
-
-[package.optional-dependencies]
-ibis = [
-    { name = "ibis-framework" },
-    { name = "sqlglot" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "ibis-framework", marker = "extra == 'ibis'", specifier = "==12.0.0" },
-    { name = "pydantic", specifier = ">=2.11,<3" },
-    { name = "pyyaml", specifier = ">=6,<7" },
-    { name = "sqlglot", marker = "extra == 'ibis'", specifier = "==30.24.0" },
-]
-provides-extras = ["ibis"]
-
-[[package]]
 name = "ppsc-ops-data-quality"
 version = "0.1.0"
 source = { editable = "." }
@@ -1696,7 +1669,7 @@ dependencies = [
     { name = "boto3" },
     { name = "great-expectations" },
     { name = "ibis-framework", extra = ["duckdb"] },
-    { name = "ppsc-metadata", extra = ["ibis"] },
+    { name = "ppsc-salesforce", extra = ["ibis"] },
     { name = "pyarrow" },
     { name = "pyathena", extra = ["sqlalchemy"] },
     { name = "pydantic" },
@@ -1742,7 +1715,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.35,<2" },
     { name = "great-expectations", specifier = "==1.24.0" },
     { name = "ibis-framework", extras = ["duckdb"], specifier = "==12.0.0" },
-    { name = "ppsc-metadata", extras = ["ibis"], path = "vendor/7f4f3108/ppsc_metadata-0.3.0-py3-none-any.whl" },
+    { name = "ppsc-salesforce", extras = ["ibis"], path = "vendor/1d59b5b8/ppsc_salesforce-0.1.0-py3-none-any.whl" },
     { name = "pyarrow", specifier = ">=16,<27" },
     { name = "pyathena", extras = ["sqlalchemy"], specifier = ">=3,<4" },
     { name = "pydantic", specifier = ">=2.12,<3" },
@@ -1782,6 +1755,52 @@ release = [
     { name = "pyyaml", specifier = ">=6" },
     { name = "requests", specifier = ">=2.32,<3" },
 ]
+
+[[package]]
+name = "ppsc-salesforce"
+version = "0.1.0"
+source = { path = "vendor/1d59b5b8/ppsc_salesforce-0.1.0-py3-none-any.whl" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "sqlglot" },
+]
+wheels = [
+    { filename = "ppsc_salesforce-0.1.0-py3-none-any.whl", hash = "sha256:7d588d32c56c1890a5b2988b3d7b4981042aa6ee1de5b829d58e936c93b240ec" },
+]
+
+[package.optional-dependencies]
+ibis = [
+    { name = "ibis-framework" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "black", marker = "extra == 'dev'" },
+    { name = "boto3", marker = "extra == 'aws'" },
+    { name = "google", marker = "extra == 'gc'", specifier = ">=3.0.0" },
+    { name = "google-auth-oauthlib", marker = "extra == 'gc'", specifier = ">=1.2.1" },
+    { name = "ibis-framework", marker = "extra == 'ibis'", specifier = "==12.0.0" },
+    { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29.5" },
+    { name = "jupyter", marker = "extra == 'dev'" },
+    { name = "networkx", marker = "extra == 'acquisition'", specifier = ">=3.4,<4" },
+    { name = "pandas", marker = "extra == 'acquisition'", specifier = ">=2.2,<3" },
+    { name = "pandas", extras = ["aws", "fss"], marker = "extra == 'aws'" },
+    { name = "pyarrow", marker = "extra == 'acquisition'", specifier = ">=18" },
+    { name = "pyarrow", marker = "extra == 'awsglue-pythonshell'" },
+    { name = "pydantic", specifier = ">=2.11,<3" },
+    { name = "pydantic", extras = ["email"], marker = "extra == 'acquisition'", specifier = ">=2.11,<3" },
+    { name = "pytest", marker = "extra == 'test'" },
+    { name = "pyyaml", specifier = ">=6" },
+    { name = "quarto-cli", marker = "extra == 'docs'" },
+    { name = "requests", marker = "extra == 'acquisition'", specifier = ">=2.32" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11.5" },
+    { name = "s3fs", marker = "extra == 'awsglue-pythonshell'" },
+    { name = "simple-salesforce", marker = "extra == 'acquisition'", specifier = ">=1.12.9,<2" },
+    { name = "sqlglot", specifier = "==30.24.0" },
+    { name = "zeep", marker = "extra == 'acquisition'", specifier = ">=4.3,<5" },
+]
+provides-extras = ["ibis", "acquisition", "dev", "docs", "test", "aws", "awsglue-pythonshell", "gc"]
 
 [[package]]
 name = "prompt-toolkit"

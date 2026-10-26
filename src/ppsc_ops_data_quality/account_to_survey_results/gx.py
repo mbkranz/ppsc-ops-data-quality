@@ -214,7 +214,7 @@ def flow_account_suite(
     return gx.ExpectationSuite(
         name="account_to_survey_results_flow",
         meta={
-            "metadata_inputs": metadata_receipt().model_dump(mode="json"),
+            "metadata_inputs": metadata_receipt(),
             "expected_value_provenance": expected_value_provenance(),
             "grain": "survey_event",
             "expected_state": "Account BEFORE plus one Flow event",

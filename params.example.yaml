@@ -1,9 +1,8 @@
+# Illustrative pinned APMP selection. Replace locations and actual Iceberg snapshot IDs.
 metadata:
   org: qa2
   flow_version_id: 301SL00000dpJqKYAU
-  manifest_sha256: eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908
-# Illustrative bindings only. Copy to the ignored .local.yaml counterpart.
-# Quote account IDs. Dates and datetimes below are typed YAML scalars.
+  manifest_sha256: fa86c65c60ead5b220036b057eee70d909cb390eba6bba350edc2d9d524682c5
 athena:
   region: REPLACE_WITH_REGION
   database: REPLACE_WITH_DEFAULT_DATABASE
@@ -12,10 +11,6 @@ athena:
   catalog_name: AwsDataCatalog
 reports:
   s3_uri: s3://REPLACE_WITH_REPORTS_BUCKET/ppsc-data-quality/
-databases:
-  account_database: REPLACE_WITH_ACCOUNT_DATABASE
-  contact_database: REPLACE_WITH_CONTACT_DATABASE
-  survey_result_database: REPLACE_WITH_SURVEY_RESULT_DATABASE
 event:
   survey_result_id: REPLACE_WITH_VERIFIED_EVENT_ID
   account_before_at: 2026-10-21 11:59:59
@@ -24,7 +19,27 @@ event:
   flow_run_date: 2026-10-21
 rollups:
   as_of: 2026-10-21 12:05:00
-schema_overrides:
-  account: {}
-  contact: {}
-  survey_result: {}
+locations:
+  account:
+    catalog: REPLACE_WITH_CATALOG
+    database: REPLACE_WITH_ACCOUNT_DATABASE
+    relation: account_history
+  contact:
+    catalog: REPLACE_WITH_CATALOG
+    database: REPLACE_WITH_CONTACT_DATABASE
+    relation: contact_history
+  survey_result:
+    catalog: REPLACE_WITH_CATALOG
+    database: REPLACE_WITH_SURVEY_RESULT_DATABASE
+    relation: survey_results_history
+data_versions:
+  account:
+    mode: iceberg_snapshot
+    snapshot_id: '123456789'
+  contact:
+    mode: iceberg_snapshot
+    snapshot_id: '123456789'
+  survey_result:
+    mode: iceberg_snapshot
+    snapshot_id: '123456789'
+require_repeatable_reads: true

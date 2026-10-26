@@ -1,3 +1,5 @@
+> Historical pre-migration review. The active v2 boundary is documented in [metadata-compiler.md](metadata-compiler.md).
+
 # Expected-value consumer implementation and PPSC review
 
 This completes the offline consumer work from the October 24 Spaces plan. Review

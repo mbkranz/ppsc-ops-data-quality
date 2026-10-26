@@ -291,17 +291,35 @@ class SnapshotTests(unittest.TestCase):
         con.disconnect()
 
     def test_binds_real_history_tables(self):
+        from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_inputs
+        from ppsc_ops_data_quality.sources.apmp import RelationLocation, lake_bindings
+
+        bindings = lake_bindings(metadata_inputs())
+        locations = {
+            key: RelationLocation(catalog="catalog", database="database", relation=binding.relation)
+            for key, binding in bindings.datasets.items()
+        }
         backend = Mock()
-        bind_history_tables(
-            backend,
-            account_database="a",
-            contact_database="c",
-            survey_result_database="s",
+        backend.table.side_effect = lambda name, database: ibis.table(
+            {
+                physical: "string"
+                for physical in next(
+                    item for item in bindings.datasets.values() if item.relation == name
+                ).columns
+            },
+            name=name,
         )
-        self.assertEqual([call.args for call in backend.table.call_args_list], [("history",)] * 3)
+        result = bind_history_tables(backend, bindings=bindings, locations=locations)
+        self.assertEqual(set(result), {"Account", "Contact", "Survey_Result__c"})
         self.assertEqual(
-            [call.kwargs["database"] for call in backend.table.call_args_list],
-            ["a", "c", "s"],
+            [call.args[0] for call in backend.table.call_args_list],
+            [binding.relation for binding in bindings.datasets.values()],
+        )
+        self.assertTrue(
+            all(
+                call.kwargs["database"] == ("catalog", "database")
+                for call in backend.table.call_args_list
+            )
         )
 
     def test_optional_publishing_executes_only_on_explicit_call(self):

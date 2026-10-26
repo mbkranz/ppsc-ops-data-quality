@@ -41,7 +41,7 @@ from great_expectations.expectations.row_conditions import Column
 
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
 from ppsc_ops_data_quality.account_to_survey_results.metadata import (
-    expected_value_contract,
+    expected_value_provenance,
     metadata_receipt,
 )
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
@@ -215,9 +215,7 @@ def flow_account_suite(
         name="account_to_survey_results_flow",
         meta={
             "metadata_inputs": metadata_receipt().model_dump(mode="json"),
-            "expected_value_contract": expected_value_contract().model_dump(
-                mode="json", by_alias=True, exclude_unset=True
-            ),
+            "expected_value_provenance": expected_value_provenance(),
             "grain": "survey_event",
             "expected_state": "Account BEFORE plus one Flow event",
             "observed_state": "independent Account AFTER the same event",

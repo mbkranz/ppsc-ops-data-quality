@@ -7,7 +7,7 @@ import great_expectations as gx
 import ibis
 import pandas as pd
 import pytest
-from ppsc_metadata.artifacts import load_metadata_bundle
+from ppsc_metadata.artifacts import MetadataArtifact, definition_identity, load_metadata_bundle
 from ppsc_metadata.sources.salesforce_flow import FlowRequest
 from ppsc_metadata.sources.salesforce_rollup import RollupRequest
 from pydantic import ValidationError
@@ -213,38 +213,58 @@ def verified_inputs(tmp_path, object_name, field, literal):
             ],
         },
     }
-    contract = {
-        "apiVersion": "v3.2.0",
-        "kind": "DataContract",
-        "id": object_name,
-        "version": "1",
-        "schema": [
-            {
-                "name": object_name,
-                "properties": [
-                    {"name": "Key", "logicalType": "string"},
-                    {"name": field, "logicalType": "integer"},
-                ],
+    bindings = {
+        "datasets": {
+            "selected": {
+                "native_object": object_name,
+                "catalog": "fixture",
+                "database": "other",
+                "relation": "unrelated_target",
+                "ddl_path": "table.sql",
+                "columns": {"physical_key": "Key", "physical_value": field},
+                "keys": ["Key"],
+                "grain": "parent",
             }
-        ],
+        },
+        "relationships": [],
     }
     rollups = {
         f"{object_name}.{field}": {"summaryOperation": "count", "summaryForeignKey": "Line.owner"}
     }
     artifacts = []
     for filename, role, payload in (
-        ("contract.json", "contract", contract),
+        ("bindings.json", "bindings", bindings),
+        ("catalog.json", "catalog", {"fixture": True}),
+        (
+            "source_catalog.json",
+            "source",
+            {
+                "fields": [
+                    {
+                        "EntityDefinition.QualifiedApiName": object_name,
+                        "FieldDefinition.QualifiedApiName": field,
+                    }
+                ]
+            },
+        ),
         ("flow.json", "flow", flow),
         ("rollups.json", "rollup", rollups),
     ):
         raw = json.dumps(payload).encode()
         (tmp_path / filename).write_bytes(raw)
         artifacts.append({"path": filename, "role": role, "sha256": sha256(raw).hexdigest()})
+    raw = b"CREATE TABLE unrelated_target (physical_key string, physical_value bigint)"
+    (tmp_path / "table.sql").write_bytes(raw)
+    artifacts.append({"path": "table.sql", "role": "ddl", "sha256": sha256(raw).hexdigest()})
     manifest = {
         "org": "synthetic",
         "flow_name": flow["FullName"],
         "flow_version_id": flow["Id"],
         "source_revision": "a" * 40,
+        "definition_revision": "b" * 40,
+        "definition_id": definition_identity(
+            tuple(MetadataArtifact.model_validate(item) for item in artifacts)
+        ),
         "provisional": True,
         "coverage": "independent synthetic objects only",
         "artifacts": artifacts,

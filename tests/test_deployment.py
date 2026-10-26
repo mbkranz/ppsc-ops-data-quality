@@ -260,7 +260,8 @@ def test_glue_calls_shared_runner_with_verified_config_and_provenance(monkeypatc
     ).encode()
     captured = {}
 
-    def validate(config, *, run_directory, run_metadata):
+    def validate(config, *, run_directory, run_metadata, athena_client_factory):
+        assert callable(athena_client_factory)
         captured.update(run_metadata)
         assert config.athena.region == "fixture"
         assert run_directory.name == "run"
@@ -336,11 +337,14 @@ reports:
     )
 
 
-@pytest.mark.parametrize("outcome,code", [(True, 0), (False, 1), ("error", None)])
+@pytest.mark.parametrize(
+    "outcome,code", [(True, 0), (False, 1), ("error", None), ("diagnostic", 0)]
+)
 def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypatch, outcome, code):
     import re
     from types import SimpleNamespace
 
+    from ppsc_ops_data_quality.gx_queries import query_asset_sql
     from ppsc_ops_data_quality.runtime import validation as job
     from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
 
@@ -348,6 +352,13 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
     config.write_text(
         re.sub(r"REPLACE_WITH_[A-Z_]+", "fixture", (ROOT / "params.example.yaml").read_text())
     )
+    if outcome == "diagnostic":
+        import yaml
+
+        values = yaml.safe_load(config.read_text())
+        values["require_repeatable_reads"] = False
+        values["data_versions"] = {key: {"mode": "mutable"} for key in values["locations"]}
+        config.write_text(yaml.safe_dump(values))
     closed = []
     engine = SimpleNamespace(close=lambda: closed.append(True))
     source = SimpleNamespace(get_execution_engine=lambda: engine)
@@ -358,16 +369,49 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
     monkeypatch.setattr(job.gx, "get_context", lambda **kwargs: context)
     prepared = []
 
-    def prepare(context, source, query, suite, *, name, metadata, sql_path, projection_lineage):
+    def prepare(
+        context,
+        source,
+        query,
+        suite,
+        *,
+        name,
+        metadata,
+        sql_path,
+        projection_lineage,
+        table_versions,
+    ):
         assert projection_lineage
+        assert len(table_versions) == (0 if outcome == "diagnostic" else 3)
         prepared.append((name, suite))
         return SimpleNamespace(
-            name=name, data=SimpleNamespace(data_asset=SimpleNamespace(query="SELECT 1"))
+            name=name,
+            data=SimpleNamespace(
+                data_asset=SimpleNamespace(
+                    query=query_asset_sql(
+                        query, projection_lineage=projection_lineage, table_versions=table_versions
+                    )
+                )
+            ),
         ), {}
 
     def execute(context, definitions, **kwargs):
         assert [definition.name for definition in definitions] == ["flow", "rollups"]
         assert kwargs["run_metadata"]["release_revision"] == "a" * 40
+        assert kwargs["run_metadata"]["configuration_sha256"]
+        assert len(kwargs["run_metadata"]["catalog_preflight"]) == 3
+        assert kwargs["run_metadata"]["repeatability_established"] is (outcome != "diagnostic")
+        assert kwargs["run_metadata"]["validation_mode"] == (
+            "diagnostic" if outcome == "diagnostic" else "stable_inputs"
+        )
+        if outcome == "diagnostic":
+            assert kwargs["run_metadata"]["stable_input_assertions"] == "unestablished"
+            assert kwargs["run_metadata"]["lake_acceptance"] == "unestablished"
+        assert kwargs["sources"]["flow"]["source_tables"] == [
+            "fixture.fixture.account_history",
+            "fixture.fixture.contact_history",
+            "fixture.fixture.survey_results_history",
+        ]
         assert len(kwargs["sources"]["flow"]["source_tables"]) == 3
         assert len(kwargs["sources"]["rollups"]["source_tables"]) == 2
         assert kwargs["s3_uri"] == "s3://fixture/ppsc-data-quality/"
@@ -381,6 +425,43 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
             for definition in definitions
         }
 
+    catalog_tables = json.loads(job.metadata_inputs().artifacts["lake/catalog.json"])["tables"]
+
+    class Athena:
+        def get_table_metadata(self, **kwargs):
+            table = next(item for item in catalog_tables if item["Name"] == kwargs["TableName"])
+            self.selected = {**table, "Parameters": {"table_type": "ICEBERG"}}
+            return {"TableMetadata": self.selected}
+
+        def start_query_execution(self, **kwargs):
+            assert "FOR VERSION AS OF 123456789" in kwargs["QueryString"]
+            return {"QueryExecutionId": "snapshot-schema"}
+
+        def get_query_execution(self, **kwargs):
+            return {"QueryExecution": {"Status": {"State": "SUCCEEDED"}}}
+
+        def get_query_results(self, **kwargs):
+            # Query result columns retain the selected order, not catalog order.
+            from ppsc_ops_data_quality.sources.apmp import lake_bindings, physical_schema
+
+            inputs = job.metadata_inputs()
+            dataset_id = next(
+                key
+                for key, binding in lake_bindings(inputs).datasets.items()
+                if binding.relation == self.selected["Name"]
+            )
+            by_name = {item["Name"]: item for item in self.selected["Columns"]}
+            return {
+                "ResultSet": {
+                    "ResultSetMetadata": {
+                        "ColumnInfo": [
+                            by_name[name] for name in physical_schema(inputs, dataset_id).names
+                        ]
+                    }
+                }
+            }
+
+    client = Athena()
     monkeypatch.setattr(job, "prepare_validation", prepare)
     monkeypatch.setattr(job, "run_validations_with_reports", execute)
     if outcome == "error":
@@ -388,6 +469,7 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
             job.run_validation(
                 load_validation_configuration(config),
                 run_directory=tmp_path / "run",
+                athena_client=client,
                 run_metadata={"release_revision": "a" * 40},
             )
     else:
@@ -395,6 +477,7 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
             job.run_validation(
                 load_validation_configuration(config),
                 run_directory=tmp_path / "run",
+                athena_client=client,
                 run_metadata={"release_revision": "a" * 40},
             ).exit_code
             == code

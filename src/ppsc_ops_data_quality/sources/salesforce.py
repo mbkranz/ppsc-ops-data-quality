@@ -4,7 +4,6 @@ from collections.abc import Callable
 
 import ibis.expr.types as ir
 from ppsc_metadata.artifacts import MetadataBundle
-from ppsc_metadata.contracts import property_references
 from ppsc_metadata.sources.salesforce_flow import FlowRequest, flow_assignments
 from ppsc_metadata.sources.salesforce_rollup import RollupRequest, rollup_values
 
@@ -14,6 +13,7 @@ from ppsc_ops_data_quality.core.comparison import (
     ValueBinding,
     compare_values,
 )
+from ppsc_ops_data_quality.sources.apmp import source_fields
 
 
 def flow_comparison(
@@ -38,7 +38,7 @@ def flow_comparison(
     if {value.name for value in spec.values} != set(request.fields):
         raise ValueError("Comparison fields must match the selected Flow fields")
     for field in request.fields:
-        if f"{request.object_name}.{field}" not in property_references(inputs.contract):
+        if f"{request.object_name}.{field}" not in source_fields(inputs):
             raise ValueError(f"Unbound Flow target: {request.object_name}.{field}")
     projection = flow_assignments(Record, inputs.flow["Metadata"], request, eligibility=eligibility)
     columns = {}
@@ -74,10 +74,10 @@ def native_rollup_comparison(
     _, separator, field = source_field.partition(".")
     if not separator or field != request.output_field:
         raise ValueError("Bind the selected native rollup to its declared output field")
-    if source_field not in property_references(inputs.contract):
-        raise ValueError(f"Unbound rollup source field: {source_field}")
     if source_field not in inputs.rollups:
         raise ValueError(f"No verified native rollup selected: {source_field}")
+    if source_field not in source_fields(inputs):
+        raise ValueError(f"Unbound rollup source field: {source_field}")
     Expected = rollup_values(
         Parent.select(request.parent_key), Child, inputs.rollups[source_field], request
     )

@@ -3,7 +3,7 @@
 Compute expected Account values from Survey Result history with Ibis, then compare
 them with independently observed Account values using native Great Expectations
 (GX) suites. Run the same query builders against Athena or bounded local DuckDB
-data. A pinned ODCS input profile and native Flow metadata drive the Flow
+data. Pinned APMP Athena definitions and native Flow metadata drive the Flow
 projections; Python owns bindings, history, rollups and native GX suite builders.
 SQL and suite JSON are generated review and run-audit artifacts.
 
@@ -68,7 +68,7 @@ src/ppsc_ops_data_quality/
         lineage.py              # Field, branch and original-source provenance
         schemas.py              # Schemas inferred from actual queries
     core/
-        schemas/                # ODCS-derived inputs and native history composition
+        schemas/                # APMP-derived inputs and native history composition
         queries/                # Pure snapshots, unbound history, optional SQL lineage
         configuration.py        # Shared YAML loader; rejects duplicate keys
     runtime/
@@ -102,11 +102,7 @@ receipts; expressions, dataframes and GX objects retain their native interfaces.
 from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_query
 from ppsc_ops_data_quality.core.queries import history_tables
 
-history = history_tables(
-    account_database="account_database",
-    contact_database="contact_database",
-    survey_result_database="survey_result_database",
-)
+history = history_tables(inputs=verified_inputs, locations=selected_locations)
 Comparison = flow_account_query(
     history,
     survey_result_id=verified_event_id,
@@ -117,12 +113,10 @@ Comparison = flow_account_query(
 )
 ```
 
-`history_tables()` returns unbound Ibis relations for tables named `history` in
-three explicitly configured databases. Supply catalog-verified schema overrides
-when types differ. An existing backend can instead discover tables through
-`runtime.data_access.bind_history_tables()`. For combined history, construct explicitly scoped
-Ibis relations upstream. Neither binding path infers object discriminators or
-silently fixes column casing.
+`history_tables()` constructs real physical relations from an explicitly selected
+verified APMP input bundle, then executes the physical-to-native aliases. Locations
+include catalog, database and relation identity. Runtime types and transformations
+come from the pinned definitions; nonempty legacy type overrides are rejected.
 
 The Flow query selects one verified triggering event, looks up related surveys at
 execution, derives expected Account AFTER values from Account BEFORE, and compares
@@ -153,8 +147,9 @@ The example uses an existing Athena workgroup/results location and a required
 result/configuration stores are written under the run directory. Reports are
 built locally and uploaded after every invocation, including ordinary failed
 expectations. Completed earlier results are also reported on an execution error.
-Schema overrides supplement the explicit input profiles; no automatic
-casting or case normalization is performed. The example rejects placeholder
+Explicit online catalog preflight checks selected types and partitions. Selected
+Iceberg snapshot IDs are probed and applied to every GX source query; mutable
+inputs require explicitly diagnostic mode and retain repeatability limitations. The example rejects placeholder
 bindings before connecting. Runtime adapters are also callable directly from your
 own job entrypoint; see their README for resource ownership.
 
@@ -261,7 +256,7 @@ be byte-identical. CI verifies Ibis structure, parent ownership and boundary sch
 
 - [Query composition and original sources](docs/query-design.md)
 - [Reusable comparison boundaries for other objects, mappings and surveys](docs/reusable-comparisons.md)
-- [Schema contracts and conversions](src/ppsc_ops_data_quality/core/schemas/README.md)
+- [Selected APMP schemas](src/ppsc_ops_data_quality/core/schemas/README.md)
 - [Runtime setup and native definitions](src/ppsc_ops_data_quality/runtime/README.md)
 - [Authored SQL-file execution and metadata/comment standards TODO](src/ppsc_ops_data_quality/runtime/TODO.md)
 - [Build, deployment and Glue acceptance](docs/build-deployment.md)

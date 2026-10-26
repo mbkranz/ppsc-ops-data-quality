@@ -1,0 +1,311 @@
+{
+  "account_id": "000000000000",
+  "catalog": "fixture_catalog",
+  "contract_version": "apmp-data-lake/v1",
+  "counts": {
+    "fields": 65,
+    "tables": 3
+  },
+  "coverage": {
+    "complete": false,
+    "scope": "provisional_ops_profile_fixture; not observed lake evidence"
+  },
+  "database": "fixture_lake",
+  "environment": "synthetic-fixture",
+  "evidence_note": "Migrated provisional Ops schema profile; no live catalog acquisition or native type certification.",
+  "provisional": true,
+  "region": "fixture",
+  "tables": [
+    {
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "string"
+        },
+        {
+          "Name": "personcontactid",
+          "Type": "string"
+        },
+        {
+          "Name": "ispersonaccount",
+          "Type": "boolean"
+        },
+        {
+          "Name": "age_at_time_of_consent__pc",
+          "Type": "decimal(3,0)"
+        },
+        {
+          "Name": "cabor_completion_date__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "earliest_primary_consent_date_for_report__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "latest_primary_consent_date_for_report__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "ehr_consent_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "ehr_reconsent_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "update_to_primary_consent_completed__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "basics_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "overall_health_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "lifestyle_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "personal_and_family_history_complete__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "hc_access_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "life_functioning_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "first_physical_measurement_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "last_physical_measurement_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "eh_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "behavioral_health_completion__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "environmental_exposures_date_time__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "social_determinants_of_health_completion__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "ehr_authorized__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "count_of_completed_ehr_auth__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "count_of_completed_primary_consent__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "count_of_completed_reconsent__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "ppi_2_completion_count__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "ppi_3_completion_count__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "ehr_consent_active__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "ehr_consent_declined__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "pp1_basics_survey_complete__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "re_consent_declined__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "re_consent_active__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "primary_consent_declined__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "ehr_consent_ever__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "assent_completion_count__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "pediatric_permission_completion_count__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "x0_6_peds_permission_count__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "x0_6_peds_permission_declined_count__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "x0_6_peds_permission_revoked_count__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "ehr_pediatric_complete__pc",
+          "Type": "bigint"
+        },
+        {
+          "Name": "valid_from",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "valid_to",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "is_current",
+          "Type": "boolean"
+        },
+        {
+          "Name": "loaded_at",
+          "Type": "timestamp"
+        }
+      ],
+      "Name": "account_history",
+      "Parameters": {
+        "fixture": "true"
+      },
+      "PartitionKeys": [],
+      "TableType": "EXTERNAL_TABLE"
+    },
+    {
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "string"
+        },
+        {
+          "Name": "accountid",
+          "Type": "string"
+        },
+        {
+          "Name": "birthdate",
+          "Type": "date"
+        },
+        {
+          "Name": "valid_from",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "valid_to",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "is_current",
+          "Type": "boolean"
+        },
+        {
+          "Name": "loaded_at",
+          "Type": "timestamp"
+        }
+      ],
+      "Name": "contact_history",
+      "Parameters": {
+        "fixture": "true"
+      },
+      "PartitionKeys": [],
+      "TableType": "EXTERNAL_TABLE"
+    },
+    {
+      "Columns": [
+        {
+          "Name": "id",
+          "Type": "string"
+        },
+        {
+          "Name": "participant__c",
+          "Type": "string"
+        },
+        {
+          "Name": "survey_index_number__c",
+          "Type": "string"
+        },
+        {
+          "Name": "completion_status__c",
+          "Type": "string"
+        },
+        {
+          "Name": "consent_status__c",
+          "Type": "string"
+        },
+        {
+          "Name": "consent_revoked__c",
+          "Type": "boolean"
+        },
+        {
+          "Name": "completion_status_timestamp__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "consent_status_timestamp__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "california_signature__c",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "valid_from",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "valid_to",
+          "Type": "timestamp"
+        },
+        {
+          "Name": "is_current",
+          "Type": "boolean"
+        },
+        {
+          "Name": "loaded_at",
+          "Type": "timestamp"
+        }
+      ],
+      "Name": "survey_results_history",
+      "Parameters": {
+        "fixture": "true"
+      },
+      "PartitionKeys": [],
+      "TableType": "EXTERNAL_TABLE"
+    }
+  ],
+  "workgroup": null
+}

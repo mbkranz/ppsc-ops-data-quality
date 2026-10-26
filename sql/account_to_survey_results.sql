@@ -33,44 +33,106 @@ SELECT
 FROM (
   WITH "Survey_Results_At_Execution" AS (
     SELECT
-      *
-    FROM "example_survey_result"."history" AS "history"
+      "survey_results_history"."california_signature__c" AS "California_Signature__c",
+      "survey_results_history"."completion_status__c" AS "Completion_Status__c",
+      "survey_results_history"."completion_status_timestamp__c" AS "Completion_Status_Timestamp__c",
+      "survey_results_history"."consent_revoked__c" AS "Consent_Revoked__c",
+      "survey_results_history"."consent_status__c" AS "Consent_Status__c",
+      "survey_results_history"."consent_status_timestamp__c" AS "Consent_Status_Timestamp__c",
+      "survey_results_history"."id" AS "Id",
+      "survey_results_history"."is_current",
+      "survey_results_history"."loaded_at",
+      "survey_results_history"."participant__c" AS "Participant__c",
+      "survey_results_history"."survey_index_number__c" AS "Survey_Index_Number__c",
+      "survey_results_history"."valid_from",
+      "survey_results_history"."valid_to"
+    FROM "fixture_catalog"."fixture_lake"."survey_results_history" AS "survey_results_history"
     WHERE
-      "history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+      "survey_results_history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
       AND (
         (
-          "history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+          "survey_results_history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
         )
         OR (
-          "history"."valid_to" IS NULL
+          "survey_results_history"."valid_to" IS NULL
         )
       )
   ), "Contact_At_Execution" AS (
     SELECT
-      *
-    FROM "example_contact"."history" AS "history_2"
+      "contact_history"."accountid" AS "AccountId",
+      "contact_history"."birthdate" AS "Birthdate",
+      "contact_history"."id" AS "Id",
+      "contact_history"."is_current",
+      "contact_history"."loaded_at",
+      "contact_history"."valid_from",
+      "contact_history"."valid_to"
+    FROM "fixture_catalog"."fixture_lake"."contact_history" AS "contact_history"
     WHERE
-      "history_2"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+      "contact_history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
       AND (
         (
-          "history_2"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+          "contact_history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
         )
         OR (
-          "history_2"."valid_to" IS NULL
+          "contact_history"."valid_to" IS NULL
         )
       )
   ), "Account_Before" AS (
     SELECT
-      *
-    FROM "example_account"."history" AS "history_3"
+      "account_history"."age_at_time_of_consent__pc" AS "Age_at_Time_of_Consent__pc",
+      "account_history"."assent_completion_count__pc" AS "Assent_Completion_Count__pc",
+      "account_history"."basics_date_time__c" AS "Basics_Date_Time__c",
+      "account_history"."behavioral_health_completion__c" AS "Behavioral_Health_Completion__c",
+      "account_history"."cabor_completion_date__c" AS "CABOR_Completion_Date__c",
+      "account_history"."count_of_completed_ehr_auth__pc" AS "Count_of_Completed_EHR_Auth__pc",
+      "account_history"."count_of_completed_primary_consent__pc" AS "Count_of_Completed_Primary_Consent__pc",
+      "account_history"."count_of_completed_reconsent__pc" AS "Count_of_Completed_Reconsent__pc",
+      "account_history"."earliest_primary_consent_date_for_report__c" AS "Earliest_Primary_Consent_Date_for_Report__c",
+      "account_history"."eh_date_time__c" AS "EH_Date_Time__c",
+      "account_history"."ehr_authorized__pc" AS "EHR_Authorized__pc",
+      "account_history"."ehr_consent_active__pc" AS "EHR_Consent_Active__pc",
+      "account_history"."ehr_consent_date_time__c" AS "EHR_Consent_Date_Time__c",
+      "account_history"."ehr_consent_declined__pc" AS "EHR_Consent_Declined__pc",
+      "account_history"."ehr_consent_ever__pc" AS "EHR_Consent_Ever__pc",
+      "account_history"."ehr_pediatric_complete__pc" AS "EHR_Pediatric_Complete__pc",
+      "account_history"."ehr_reconsent_date_time__c" AS "EHR_Reconsent_Date_Time__c",
+      "account_history"."environmental_exposures_date_time__c" AS "Environmental_Exposures_Date_Time__c",
+      "account_history"."first_physical_measurement_date_time__c" AS "First_Physical_Measurement_Date_Time__c",
+      "account_history"."hc_access_date_time__c" AS "HC_Access_Date_Time__c",
+      "account_history"."id" AS "Id",
+      "account_history"."is_current",
+      "account_history"."ispersonaccount" AS "IsPersonAccount",
+      "account_history"."last_physical_measurement_date_time__c" AS "Last_Physical_Measurement_Date_Time__c",
+      "account_history"."latest_primary_consent_date_for_report__c" AS "Latest_Primary_Consent_Date_for_Report__c",
+      "account_history"."life_functioning_date_time__c" AS "Life_Functioning_Date_Time__c",
+      "account_history"."lifestyle_date_time__c" AS "Lifestyle_Date_Time__c",
+      "account_history"."loaded_at",
+      "account_history"."overall_health_date_time__c" AS "Overall_Health_Date_Time__c",
+      "account_history"."pediatric_permission_completion_count__pc" AS "Pediatric_Permission_Completion_Count__pc",
+      "account_history"."personal_and_family_history_complete__c" AS "Personal_and_Family_History_Complete__c",
+      "account_history"."personcontactid" AS "PersonContactId",
+      "account_history"."pp1_basics_survey_complete__pc" AS "PP1_Basics_Survey_Complete__pc",
+      "account_history"."ppi_2_completion_count__pc" AS "PPI_2_Completion_Count__pc",
+      "account_history"."ppi_3_completion_count__pc" AS "PPI_3_Completion_Count__pc",
+      "account_history"."primary_consent_declined__pc" AS "Primary_Consent_Declined__pc",
+      "account_history"."re_consent_active__pc" AS "Re_consent_Active__pc",
+      "account_history"."re_consent_declined__pc" AS "Re_Consent_Declined__pc",
+      "account_history"."social_determinants_of_health_completion__c" AS "Social_Determinants_of_Health_Completion__c",
+      "account_history"."update_to_primary_consent_completed__c" AS "Update_to_Primary_Consent_Completed__c",
+      "account_history"."valid_from",
+      "account_history"."valid_to",
+      "account_history"."x0_6_peds_permission_count__pc" AS "X0_6_Peds_Permission_Count__pc",
+      "account_history"."x0_6_peds_permission_declined_count__pc" AS "X0_6_Peds_Permission_Declined_Count__pc",
+      "account_history"."x0_6_peds_permission_revoked_count__pc" AS "X0_6_Peds_Permission_Revoked_Count__pc"
+    FROM "fixture_catalog"."fixture_lake"."account_history" AS "account_history"
     WHERE
-      "history_3"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T11:59:59') AS TIMESTAMP)
+      "account_history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T11:59:59') AS TIMESTAMP)
       AND (
         (
-          "history_3"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T11:59:59') AS TIMESTAMP)
+          "account_history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T11:59:59') AS TIMESTAMP)
         )
         OR (
-          "history_3"."valid_to" IS NULL
+          "account_history"."valid_to" IS NULL
         )
       )
   ), "getFirstPhysicalMeasurement" AS (
@@ -918,19 +980,19 @@ FROM (
                                       ) AS "Survey_Result__c_4"
                                       LEFT OUTER JOIN (
                                         SELECT
-                                          "getEarliestPrimaryConsent"."Id",
-                                          "getEarliestPrimaryConsent"."Participant__c",
-                                          "getEarliestPrimaryConsent"."Survey_Index_Number__c",
-                                          "getEarliestPrimaryConsent"."Completion_Status__c",
-                                          "getEarliestPrimaryConsent"."Consent_Status__c",
-                                          "getEarliestPrimaryConsent"."Consent_Revoked__c",
-                                          "getEarliestPrimaryConsent"."Completion_Status_Timestamp__c",
-                                          "getEarliestPrimaryConsent"."Consent_Status_Timestamp__c",
                                           "getEarliestPrimaryConsent"."California_Signature__c",
-                                          "getEarliestPrimaryConsent"."valid_from",
-                                          "getEarliestPrimaryConsent"."valid_to",
+                                          "getEarliestPrimaryConsent"."Completion_Status__c",
+                                          "getEarliestPrimaryConsent"."Completion_Status_Timestamp__c",
+                                          "getEarliestPrimaryConsent"."Consent_Revoked__c",
+                                          "getEarliestPrimaryConsent"."Consent_Status__c",
+                                          "getEarliestPrimaryConsent"."Consent_Status_Timestamp__c",
+                                          "getEarliestPrimaryConsent"."Id",
                                           "getEarliestPrimaryConsent"."is_current",
                                           "getEarliestPrimaryConsent"."loaded_at",
+                                          "getEarliestPrimaryConsent"."Participant__c",
+                                          "getEarliestPrimaryConsent"."Survey_Index_Number__c",
+                                          "getEarliestPrimaryConsent"."valid_from",
+                                          "getEarliestPrimaryConsent"."valid_to",
                                           1 AS "__ppsc_match"
                                         FROM "getEarliestPrimaryConsent" AS "getEarliestPrimaryConsent"
                                       ) AS "getEarliestPrimaryConsent_2"
@@ -961,19 +1023,19 @@ FROM (
                               ) AS "Survey_Result__c_8"
                               LEFT OUTER JOIN (
                                 SELECT
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Id",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Participant__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Survey_Index_Number__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Completion_Status__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Consent_Status__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Consent_Revoked__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Completion_Status_Timestamp__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Consent_Status_Timestamp__c",
                                   "getEarliestEgetEarliestEHRConsentHRConsent"."California_Signature__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."valid_from",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."valid_to",
+                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Completion_Status__c",
+                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Completion_Status_Timestamp__c",
+                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Consent_Revoked__c",
+                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Consent_Status__c",
+                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Consent_Status_Timestamp__c",
+                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Id",
                                   "getEarliestEgetEarliestEHRConsentHRConsent"."is_current",
                                   "getEarliestEgetEarliestEHRConsentHRConsent"."loaded_at",
+                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Participant__c",
+                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Survey_Index_Number__c",
+                                  "getEarliestEgetEarliestEHRConsentHRConsent"."valid_from",
+                                  "getEarliestEgetEarliestEHRConsentHRConsent"."valid_to",
                                   1 AS "__ppsc_match"
                                 FROM "getEarliestEgetEarliestEHRConsentHRConsent" AS "getEarliestEgetEarliestEHRConsentHRConsent"
                               ) AS "getEarliestEgetEarliestEHRConsentHRConsent_2"
@@ -1020,19 +1082,19 @@ FROM (
                       ) AS "Survey_Result__c_12"
                       LEFT OUTER JOIN (
                         SELECT
-                          "Get_Permission_1007"."Id",
-                          "Get_Permission_1007"."Participant__c",
-                          "Get_Permission_1007"."Survey_Index_Number__c",
-                          "Get_Permission_1007"."Completion_Status__c",
-                          "Get_Permission_1007"."Consent_Status__c",
-                          "Get_Permission_1007"."Consent_Revoked__c",
-                          "Get_Permission_1007"."Completion_Status_Timestamp__c",
-                          "Get_Permission_1007"."Consent_Status_Timestamp__c",
                           "Get_Permission_1007"."California_Signature__c",
-                          "Get_Permission_1007"."valid_from",
-                          "Get_Permission_1007"."valid_to",
+                          "Get_Permission_1007"."Completion_Status__c",
+                          "Get_Permission_1007"."Completion_Status_Timestamp__c",
+                          "Get_Permission_1007"."Consent_Revoked__c",
+                          "Get_Permission_1007"."Consent_Status__c",
+                          "Get_Permission_1007"."Consent_Status_Timestamp__c",
+                          "Get_Permission_1007"."Id",
                           "Get_Permission_1007"."is_current",
                           "Get_Permission_1007"."loaded_at",
+                          "Get_Permission_1007"."Participant__c",
+                          "Get_Permission_1007"."Survey_Index_Number__c",
+                          "Get_Permission_1007"."valid_from",
+                          "Get_Permission_1007"."valid_to",
                           1 AS "__ppsc_match"
                         FROM "Get_Permission_1007" AS "Get_Permission_1007"
                       ) AS "Get_Permission_1007_2"
@@ -1075,19 +1137,19 @@ FROM (
               ) AS "Survey_Result__c_16"
               LEFT OUTER JOIN (
                 SELECT
-                  "getFirstPhysicalMeasurement"."Id",
-                  "getFirstPhysicalMeasurement"."Participant__c",
-                  "getFirstPhysicalMeasurement"."Survey_Index_Number__c",
-                  "getFirstPhysicalMeasurement"."Completion_Status__c",
-                  "getFirstPhysicalMeasurement"."Consent_Status__c",
-                  "getFirstPhysicalMeasurement"."Consent_Revoked__c",
-                  "getFirstPhysicalMeasurement"."Completion_Status_Timestamp__c",
-                  "getFirstPhysicalMeasurement"."Consent_Status_Timestamp__c",
                   "getFirstPhysicalMeasurement"."California_Signature__c",
-                  "getFirstPhysicalMeasurement"."valid_from",
-                  "getFirstPhysicalMeasurement"."valid_to",
+                  "getFirstPhysicalMeasurement"."Completion_Status__c",
+                  "getFirstPhysicalMeasurement"."Completion_Status_Timestamp__c",
+                  "getFirstPhysicalMeasurement"."Consent_Revoked__c",
+                  "getFirstPhysicalMeasurement"."Consent_Status__c",
+                  "getFirstPhysicalMeasurement"."Consent_Status_Timestamp__c",
+                  "getFirstPhysicalMeasurement"."Id",
                   "getFirstPhysicalMeasurement"."is_current",
                   "getFirstPhysicalMeasurement"."loaded_at",
+                  "getFirstPhysicalMeasurement"."Participant__c",
+                  "getFirstPhysicalMeasurement"."Survey_Index_Number__c",
+                  "getFirstPhysicalMeasurement"."valid_from",
+                  "getFirstPhysicalMeasurement"."valid_to",
                   1 AS "__ppsc_match"
                 FROM "getFirstPhysicalMeasurement" AS "getFirstPhysicalMeasurement"
               ) AS "getFirstPhysicalMeasurement_2"
@@ -2283,30 +2345,86 @@ SELECT
 FROM (
   WITH "Account_At_Snapshot" AS (
     SELECT
-      *
-    FROM "example_account"."history" AS "history"
+      "account_history"."age_at_time_of_consent__pc" AS "Age_at_Time_of_Consent__pc",
+      "account_history"."assent_completion_count__pc" AS "Assent_Completion_Count__pc",
+      "account_history"."basics_date_time__c" AS "Basics_Date_Time__c",
+      "account_history"."behavioral_health_completion__c" AS "Behavioral_Health_Completion__c",
+      "account_history"."cabor_completion_date__c" AS "CABOR_Completion_Date__c",
+      "account_history"."count_of_completed_ehr_auth__pc" AS "Count_of_Completed_EHR_Auth__pc",
+      "account_history"."count_of_completed_primary_consent__pc" AS "Count_of_Completed_Primary_Consent__pc",
+      "account_history"."count_of_completed_reconsent__pc" AS "Count_of_Completed_Reconsent__pc",
+      "account_history"."earliest_primary_consent_date_for_report__c" AS "Earliest_Primary_Consent_Date_for_Report__c",
+      "account_history"."eh_date_time__c" AS "EH_Date_Time__c",
+      "account_history"."ehr_authorized__pc" AS "EHR_Authorized__pc",
+      "account_history"."ehr_consent_active__pc" AS "EHR_Consent_Active__pc",
+      "account_history"."ehr_consent_date_time__c" AS "EHR_Consent_Date_Time__c",
+      "account_history"."ehr_consent_declined__pc" AS "EHR_Consent_Declined__pc",
+      "account_history"."ehr_consent_ever__pc" AS "EHR_Consent_Ever__pc",
+      "account_history"."ehr_pediatric_complete__pc" AS "EHR_Pediatric_Complete__pc",
+      "account_history"."ehr_reconsent_date_time__c" AS "EHR_Reconsent_Date_Time__c",
+      "account_history"."environmental_exposures_date_time__c" AS "Environmental_Exposures_Date_Time__c",
+      "account_history"."first_physical_measurement_date_time__c" AS "First_Physical_Measurement_Date_Time__c",
+      "account_history"."hc_access_date_time__c" AS "HC_Access_Date_Time__c",
+      "account_history"."id" AS "Id",
+      "account_history"."is_current",
+      "account_history"."ispersonaccount" AS "IsPersonAccount",
+      "account_history"."last_physical_measurement_date_time__c" AS "Last_Physical_Measurement_Date_Time__c",
+      "account_history"."latest_primary_consent_date_for_report__c" AS "Latest_Primary_Consent_Date_for_Report__c",
+      "account_history"."life_functioning_date_time__c" AS "Life_Functioning_Date_Time__c",
+      "account_history"."lifestyle_date_time__c" AS "Lifestyle_Date_Time__c",
+      "account_history"."loaded_at",
+      "account_history"."overall_health_date_time__c" AS "Overall_Health_Date_Time__c",
+      "account_history"."pediatric_permission_completion_count__pc" AS "Pediatric_Permission_Completion_Count__pc",
+      "account_history"."personal_and_family_history_complete__c" AS "Personal_and_Family_History_Complete__c",
+      "account_history"."personcontactid" AS "PersonContactId",
+      "account_history"."pp1_basics_survey_complete__pc" AS "PP1_Basics_Survey_Complete__pc",
+      "account_history"."ppi_2_completion_count__pc" AS "PPI_2_Completion_Count__pc",
+      "account_history"."ppi_3_completion_count__pc" AS "PPI_3_Completion_Count__pc",
+      "account_history"."primary_consent_declined__pc" AS "Primary_Consent_Declined__pc",
+      "account_history"."re_consent_active__pc" AS "Re_consent_Active__pc",
+      "account_history"."re_consent_declined__pc" AS "Re_Consent_Declined__pc",
+      "account_history"."social_determinants_of_health_completion__c" AS "Social_Determinants_of_Health_Completion__c",
+      "account_history"."update_to_primary_consent_completed__c" AS "Update_to_Primary_Consent_Completed__c",
+      "account_history"."valid_from",
+      "account_history"."valid_to",
+      "account_history"."x0_6_peds_permission_count__pc" AS "X0_6_Peds_Permission_Count__pc",
+      "account_history"."x0_6_peds_permission_declined_count__pc" AS "X0_6_Peds_Permission_Declined_Count__pc",
+      "account_history"."x0_6_peds_permission_revoked_count__pc" AS "X0_6_Peds_Permission_Revoked_Count__pc"
+    FROM "fixture_catalog"."fixture_lake"."account_history" AS "account_history"
     WHERE
-      "history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+      "account_history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
       AND (
         (
-          "history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+          "account_history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
         )
         OR (
-          "history"."valid_to" IS NULL
+          "account_history"."valid_to" IS NULL
         )
       )
   ), "Survey_Results_At_Execution" AS (
     SELECT
-      *
-    FROM "example_survey_result"."history" AS "history_2"
+      "survey_results_history"."california_signature__c" AS "California_Signature__c",
+      "survey_results_history"."completion_status__c" AS "Completion_Status__c",
+      "survey_results_history"."completion_status_timestamp__c" AS "Completion_Status_Timestamp__c",
+      "survey_results_history"."consent_revoked__c" AS "Consent_Revoked__c",
+      "survey_results_history"."consent_status__c" AS "Consent_Status__c",
+      "survey_results_history"."consent_status_timestamp__c" AS "Consent_Status_Timestamp__c",
+      "survey_results_history"."id" AS "Id",
+      "survey_results_history"."is_current",
+      "survey_results_history"."loaded_at",
+      "survey_results_history"."participant__c" AS "Participant__c",
+      "survey_results_history"."survey_index_number__c" AS "Survey_Index_Number__c",
+      "survey_results_history"."valid_from",
+      "survey_results_history"."valid_to"
+    FROM "fixture_catalog"."fixture_lake"."survey_results_history" AS "survey_results_history"
     WHERE
-      "history_2"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+      "survey_results_history"."valid_from" <= CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
       AND (
         (
-          "history_2"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
+          "survey_results_history"."valid_to" > CAST(FROM_ISO8601_TIMESTAMP('2026-10-21T12:00:00') AS TIMESTAMP)
         )
         OR (
-          "history_2"."valid_to" IS NULL
+          "survey_results_history"."valid_to" IS NULL
         )
       )
   ), "Person_Account" AS (

@@ -1,22 +1,21 @@
 """The provisional pinned QA2 evidence and explicit compatibility bindings."""
 
+import json
 from functools import cache
 from hashlib import sha256
 from importlib.metadata import version
 from importlib.resources import files
 from pathlib import Path
 
-from open_data_contract_standard.model import OpenDataContractStandard
 from ppsc_metadata.artifacts import MetadataBundle, MetadataReceipt, load_metadata_bundle
-from ppsc_metadata.contracts import validate_contract
-from ppsc_metadata.definitions import ProjectionDefinitionsRequest, add_projection_definitions
 from ppsc_metadata.sources.salesforce_flow import FlowRequest, flow_lineage
 from pydantic import Field
 
-from ppsc_ops_data_quality.core.schemas.contracts import normalize_foreign_keys
+from ppsc_ops_data_quality.sources.apmp import lake_bindings
 
-COMPILER_SOURCE_REVISION = "1eedb2abcf5cac6471fb6cc45e5a40c007982854"
-COMPILER_WHEEL_SHA256 = "fd0934ef5b8234554446358aa4471c8be1257d9e0fb8b6f9ae3ec408e4d502b8"
+COMPILER_SOURCE_REVISION = "7f4f3108ea0910ebd3649c770242f69e0301917c"
+COMPILER_SOURCE_SHA256 = "a74bb14dd0640a500d3050b32d22ae2c7a08c2f188107df8c98d8f7e11e5124a"
+COMPILER_WHEEL_SHA256 = "c26afb47820ecabc654f4f73b098af3e96062329815d09304e8f5c3686074ecf"
 
 FLOW_FIELDS = (
     "Age_at_Time_of_Consent__pc",
@@ -57,11 +56,36 @@ FLOW_REQUEST = FlowRequest(
 )
 
 
+def _compiler_root() -> Path:
+    import ppsc_metadata
+
+    return Path(ppsc_metadata.__file__).resolve().parent
+
+
+def _compiler_source_sha256() -> str:
+    """Fingerprint the installed source files selected by the frozen wheel."""
+    root = _compiler_root()
+    hashes = {
+        path.relative_to(root).as_posix(): sha256(path.read_bytes()).hexdigest()
+        for path in sorted(root.rglob("*.py"))
+    }
+    if not hashes:
+        raise ValueError("Installed compiler source files are unavailable for verification")
+    return sha256(json.dumps(hashes, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def _verify_compiler_source() -> None:
+    if _compiler_source_sha256() != COMPILER_SOURCE_SHA256:
+        raise ValueError(
+            "Installed compiler source fingerprint differs from the frozen wheel selection"
+        )
+
+
 def _read_inputs() -> MetadataBundle:
-    root = Path(str(files("ppsc_ops_data_quality")))
-    bundle = load_metadata_bundle(root, root / "account_to_survey_results/metadata/manifest.json")
-    relationships = normalize_foreign_keys(bundle.contract)
-    # These are the application's explicit join bindings, checked against ODCS.
+    root = Path(str(files("ppsc_ops_data_quality"))) / "account_to_survey_results/metadata"
+    bundle = load_metadata_bundle(root, root / "manifest.json")
+    relationships = lake_bindings(bundle).relationships
+    # These are the application's explicit ordered join bindings, checked against APMP.
     for source, field, target in (
         ("Survey_Result__c", "Participant__c", "Contact.Id"),
         ("Contact", "AccountId", "Account.Id"),
@@ -74,7 +98,7 @@ def _read_inputs() -> MetadataBundle:
         ]
         if selected != [target]:
             raise ValueError(
-                f"ODCS relationship does not match join binding {source}.{field} -> {target}"
+                f"APMP relationship does not match join binding {source}.{field} -> {target}"
             )
     return bundle
 
@@ -85,11 +109,13 @@ class CompilationReceipt(MetadataReceipt):
     flow_request_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     compiler_source_revision: str = Field(pattern=r"^[0-9a-f]{40}$")
     compiler_wheel_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    compiler_source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
 @cache
 def _compilation_inputs() -> tuple[str, str, str]:
-    # Strings cannot be changed through a returned nested dict or ODCS model.
+    _verify_compiler_source()
+    # Strings cannot be changed through returned nested mappings or source models.
     return (
         _read_inputs().model_dump_json(by_alias=True, exclude_unset=True),
         FLOW_REQUEST.model_dump_json(),
@@ -99,6 +125,7 @@ def _compilation_inputs() -> tuple[str, str, str]:
 
 def metadata_inputs() -> MetadataBundle:
     """Return a fresh parse of the verified compilation snapshot."""
+    _verify_compiler_source()
     return MetadataBundle.model_validate_json(_compilation_inputs()[0])
 
 
@@ -121,56 +148,31 @@ def metadata_receipt() -> CompilationReceipt:
         manifest=current.manifest,
         manifest_sha256=current.manifest_sha256,
         compiler_version=compiler_version,
-        contract_id=current.contract.id,
-        contract_version=current.contract.version,
+        definition_id=current.manifest.definition_id,
         flow_request_sha256=sha256(request_json.encode("utf-8")).hexdigest(),
         compiler_source_revision=COMPILER_SOURCE_REVISION,
         compiler_wheel_sha256=COMPILER_WHEEL_SHA256,
+        compiler_source_sha256=COMPILER_SOURCE_SHA256,
     )
 
 
-def expected_value_contract() -> OpenDataContractStandard:
-    """Attach native source definitions with separate BEFORE and expected identities.
-
-    The supplied authored profile stays intact. Derived object copies describe
-    roles in this comparison; they do not certify org policy or physical bindings.
-    Content-addressed source definitions resolve through the verified manifest.
-    """
+def expected_value_provenance() -> dict:
+    """Describe native source/BEFORE/expected/observed roles without a contract DSL."""
     bundle = metadata_inputs()
     request = metadata_request()
-    document = bundle.contract.model_dump(mode="json", by_alias=True, exclude_unset=True)
-    account = next(obj for obj in bundle.contract.schema_ if obj.name == "Account")
-    for name in ("AccountBefore", "AccountExpected"):
-        if any(obj["name"] == name for obj in document["schema"]):
-            raise ValueError(f"Derived contract object already exists: {name}")
-        obj = account.model_dump(mode="json", by_alias=True, exclude_unset=True)
-        obj.update(id=name, name=name)
-        if name == "AccountExpected":
-            obj["properties"] = [
-                prop for prop in obj["properties"] if prop["name"] in request.fields
-            ]
-            for prop in obj["properties"]:
-                prop["physicalName"] = f"expected__{prop['name']}"
-            obj.pop("relationships", None)
-        document["schema"].append(obj)
-    contract = validate_contract(document)
     artifact = next(item for item in bundle.manifest.artifacts if item.role == "flow")
-    bindings = {f"Account.{field}": f"AccountBefore.{field}" for field in request.fields}
-    bindings.update(
-        {
-            "Survey_Result__c.Participant__r.AccountId": "Contact.AccountId",
-            "Survey_Result__c.Participant__r.Birthdate": "Contact.Birthdate",
-            "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c": "AccountBefore.Earliest_Primary_Consent_Date_for_Report__c",
-        }
-    )
-    return add_projection_definitions(
-        contract,
-        ProjectionDefinitionsRequest(
-            source_url=f"urn:sha256:{artifact.sha256}",
-            field_bindings=bindings,
-            target_bindings={
-                f"Account.{field}": f"AccountExpected.{field}" for field in request.fields
-            },
-        ),
-        lineage=flow_lineage(bundle.flow["Metadata"], request),
-    )
+    return {
+        "version": "expected-values/v2",
+        "definition_id": bundle.manifest.definition_id,
+        "manifest_sha256": bundle.manifest_sha256,
+        "source": {"path": artifact.path, "sha256": artifact.sha256},
+        "fields": {
+            field: {
+                **evidence.model_dump(mode="json"),
+                "before": f"AccountBefore.{field}",
+                "expected": f"expected__{field}",
+                "observed": f"observed__{field}",
+            }
+            for field, evidence in flow_lineage(bundle.flow["Metadata"], request).items()
+        },
+    }

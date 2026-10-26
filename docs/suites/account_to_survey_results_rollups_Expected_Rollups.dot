@@ -2,585 +2,585 @@ digraph {
 	node [fontname="Deja Vu Sans Mono" shape=box]
 	edge [fontname="Deja Vu Sans Mono"]
 	rankdir=BT
-	7856991427354891540 [label=<<B>Aggregate</B><BR ALIGN="LEFT" /><I>Account.Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-6916225358326960123 [label=<<B>JoinChain</B><BR ALIGN="LEFT" /><I>Account.Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>_source_parent_key_is_unique</I>: boolean<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
-	-6916225358326960123 -> 7856991427354891540
-	-5964179906029178999 [label=<<I>Account.Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-5964179906029178999 -> 7856991427354891540
-	-2438166547557941663 [label=<<I>PersonContactId</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2438166547557941663 -> 7856991427354891540
-	-2424066755108707296 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2424066755108707296 -> 7856991427354891540
-	-4140220418265636178 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4140220418265636178 -> 7856991427354891540
-	-7803804865819888601 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-7803804865819888601 -> 7856991427354891540
-	6986231905208572521 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	6986231905208572521 -> 7856991427354891540
-	-6054300716609511661 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-6054300716609511661 -> 7856991427354891540
-	1746614869969054985 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	1746614869969054985 -> 7856991427354891540
-	-1627652422990149472 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-1627652422990149472 -> 7856991427354891540
-	-5020442301523975047 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-5020442301523975047 -> 7856991427354891540
-	-7963902076829093253 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-7963902076829093253 -> 7856991427354891540
-	8112496707733118478 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8112496707733118478 -> 7856991427354891540
-	-4398301886316745194 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4398301886316745194 -> 7856991427354891540
-	-8243033005296422610 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8243033005296422610 -> 7856991427354891540
-	860287761822827781 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	860287761822827781 -> 7856991427354891540
-	8048604340642554777 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8048604340642554777 -> 7856991427354891540
-	-6170937040215750259 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-6170937040215750259 -> 7856991427354891540
-	400834462139565921 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	400834462139565921 -> 7856991427354891540
-	2964345419279153856 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	2964345419279153856 -> 7856991427354891540
-	-7749613217943544138 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-7749613217943544138 -> 7856991427354891540
-	-8711780221399286215 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8711780221399286215 -> 7856991427354891540
-	2116573357972157849 [label=<<B>JoinReference</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>_source_parent_key_is_unique</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	2116573357972157849 -> -6916225358326960123
-	-3099336925742669362 [label=<<B>JoinLink</B><BR ALIGN="LEFT" />:: ∅<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
-	-3099336925742669362 -> -6916225358326960123
-	7741034743887031098 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	7741034743887031098 -> -6916225358326960123
-	8092170754987269971 [label=<<I>PersonContactId</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8092170754987269971 -> -6916225358326960123
-	-1180846930677513499 [label=<<I>_source_parent_key_is_unique</I>: <B>Field</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-1180846930677513499 -> -6916225358326960123
-	3840901136083102552 [label=<<I>Completion_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	3840901136083102552 -> -6916225358326960123
-	-4501894125988605603 [label=<<I>Survey_Index_Number__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-4501894125988605603 -> -6916225358326960123
-	-558660820454638900 [label=<<I>Consent_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-558660820454638900 -> -6916225358326960123
-	5450084235793687084 [label=<<I>Consent_Revoked__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	5450084235793687084 -> -6916225358326960123
-	-6916225358326960123 -> -5964179906029178999
-	-6916225358326960123 -> -2438166547557941663
-	665470237885588675 [label=<<I>EHR_Authorized__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	665470237885588675 -> -2424066755108707296
-	8985284086110495089 [label=<<I>Count_of_Completed_EHR_Auth__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8985284086110495089 -> -4140220418265636178
-	7862649747143789892 [label=<<I>Count_of_Completed_Primary_Consent__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	7862649747143789892 -> -7803804865819888601
-	-8028609199931361726 [label=<<I>Count_of_Completed_Reconsent__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8028609199931361726 -> 6986231905208572521
-	-3446504882634001179 [label=<<I>PPI_2_Completion_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-3446504882634001179 -> -6054300716609511661
-	-6206084387044229214 [label=<<I>PPI_3_Completion_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-6206084387044229214 -> 1746614869969054985
-	7754815000308391918 [label=<<I>EHR_Consent_Active__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	7754815000308391918 -> -1627652422990149472
-	-471590061891445053 [label=<<I>EHR_Consent_Declined__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-471590061891445053 -> -5020442301523975047
-	-3201044326859295622 [label=<<I>PP1_Basics_Survey_Complete__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-3201044326859295622 -> -7963902076829093253
-	3717429963061360110 [label=<<I>Re_Consent_Declined__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	3717429963061360110 -> 8112496707733118478
-	-412800969470560025 [label=<<I>Re_consent_Active__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-412800969470560025 -> -4398301886316745194
-	-5859486822095823700 [label=<<I>Primary_Consent_Declined__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-5859486822095823700 -> -8243033005296422610
-	8567442977353032996 [label=<<I>EHR_Consent_Ever__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8567442977353032996 -> 860287761822827781
-	6237922397339336424 [label=<<I>Assent_Completion_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	6237922397339336424 -> 8048604340642554777
-	5413311486274905864 [label=<<I>Pediatric_Permission_Completion_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	5413311486274905864 -> -6170937040215750259
-	-4998978032021818984 [label=<<I>X0_6_Peds_Permission_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4998978032021818984 -> 400834462139565921
-	7965597768459134627 [label=<<I>X0_6_Peds_Permission_Declined_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	7965597768459134627 -> 2964345419279153856
-	4862082564148349989 [label=<<I>X0_6_Peds_Permission_Revoked_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	4862082564148349989 -> -7749613217943544138
-	8611203653569691697 [label=<<I>EHR_Pediatric_Complete__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8611203653569691697 -> -8711780221399286215
-	-4278722599088219387 [label=<<B>Project</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>_source_parent_key_is_unique</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4278722599088219387 -> 2116573357972157849
-	-4784753130257658540 [label=<<B>JoinReference</B><BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-4784753130257658540 -> -3099336925742669362
-	6764652534659813923 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
-	6764652534659813923 -> -3099336925742669362
-	2116573357972157849 -> 7741034743887031098
-	2116573357972157849 -> 8092170754987269971
-	2116573357972157849 -> -1180846930677513499
-	-4784753130257658540 -> 3840901136083102552
-	-4784753130257658540 -> -4501894125988605603
-	-4784753130257658540 -> -558660820454638900
-	-4784753130257658540 -> 5450084235793687084
-	-6654489390994465634 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-6654489390994465634 -> 665470237885588675
-	-6654489390994465634 -> 8985284086110495089
-	4958113330188967784 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	4958113330188967784 -> 7862649747143789892
-	3948458248538523948 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	3948458248538523948 -> -8028609199931361726
-	-8870733476421449842 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8870733476421449842 -> -3446504882634001179
-	-3434352702029033657 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-3434352702029033657 -> -6206084387044229214
-	5451385773990086919 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	5451385773990086919 -> 7754815000308391918
-	-9104856477251154799 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-9104856477251154799 -> -471590061891445053
-	-3559577119794731924 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-3559577119794731924 -> -3201044326859295622
-	-9016866955218734119 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-9016866955218734119 -> 3717429963061360110
-	8523812568478882011 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8523812568478882011 -> -412800969470560025
-	411440232323856101 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	411440232323856101 -> -5859486822095823700
-	-2968436323181195551 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2968436323181195551 -> 8567442977353032996
-	-804509372033435539 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-804509372033435539 -> 6237922397339336424
-	-2521299917980331183 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2521299917980331183 -> 5413311486274905864
-	-4591641094422884014 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4591641094422884014 -> -4998978032021818984
-	-5872772156844580330 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-5872772156844580330 -> 7965597768459134627
-	-4446724513007970039 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4446724513007970039 -> 4862082564148349989
-	-7144588520757465937 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-7144588520757465937 -> 8611203653569691697
-	-2069149500945705420 [label=<<I>Person_Account</I>: <B>AliasedRelation</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2069149500945705420 -> -4278722599088219387
-	4622678771775193760 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	4622678771775193760 -> -4278722599088219387
-	4844140544811581715 [label=<<I>PersonContactId</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	4844140544811581715 -> -4278722599088219387
-	4735222156859696457 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	4735222156859696457 -> -4278722599088219387
-	3824816609564193022 [label=<<I>Survey_Result__c</I>: <B>AliasedRelation</B><BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	3824816609564193022 -> -4784753130257658540
-	8092170754987269971 -> 6764652534659813923
-	-7133620252212079838 [label=<<I>Participant__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-7133620252212079838 -> 6764652534659813923
-	-2660996340008892107 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2660996340008892107 -> -6654489390994465634
-	-7650216020129314548 [label=<<I>1</I>: <B>Literal</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-7650216020129314548 -> -6654489390994465634
-	4550223690829413284 [label=<<I>0</I>: <B>Literal</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	4550223690829413284 -> -6654489390994465634
-	-3229270714848660216 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-3229270714848660216 -> 4958113330188967784
-	-7650216020129314548 -> 4958113330188967784
-	4550223690829413284 -> 4958113330188967784
-	6660849648489571610 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	6660849648489571610 -> 3948458248538523948
-	-7650216020129314548 -> 3948458248538523948
-	4550223690829413284 -> 3948458248538523948
-	-4803548777345458523 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4803548777345458523 -> -8870733476421449842
-	-7650216020129314548 -> -8870733476421449842
-	4550223690829413284 -> -8870733476421449842
-	3454961478420641838 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	3454961478420641838 -> -3434352702029033657
-	-7650216020129314548 -> -3434352702029033657
-	4550223690829413284 -> -3434352702029033657
-	-5886891705187012604 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-5886891705187012604 -> 5451385773990086919
-	-7650216020129314548 -> 5451385773990086919
-	4550223690829413284 -> 5451385773990086919
-	8769153822048427210 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8769153822048427210 -> -9104856477251154799
-	-7650216020129314548 -> -9104856477251154799
-	4550223690829413284 -> -9104856477251154799
-	5600840861252089195 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	5600840861252089195 -> -3559577119794731924
-	-7650216020129314548 -> -3559577119794731924
-	4550223690829413284 -> -3559577119794731924
-	-428238375219861003 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-428238375219861003 -> -9016866955218734119
-	-7650216020129314548 -> -9016866955218734119
-	4550223690829413284 -> -9016866955218734119
-	7157096367859402294 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	7157096367859402294 -> 8523812568478882011
-	-7650216020129314548 -> 8523812568478882011
-	4550223690829413284 -> 8523812568478882011
-	6284781856480994316 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	6284781856480994316 -> 411440232323856101
-	-7650216020129314548 -> 411440232323856101
-	4550223690829413284 -> 411440232323856101
-	-2680617758576003974 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2680617758576003974 -> -2968436323181195551
-	-7650216020129314548 -> -2968436323181195551
-	4550223690829413284 -> -2968436323181195551
-	-740168508038474383 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-740168508038474383 -> -804509372033435539
-	-7650216020129314548 -> -804509372033435539
-	4550223690829413284 -> -804509372033435539
-	-5927966224091641246 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-5927966224091641246 -> -2521299917980331183
-	-7650216020129314548 -> -2521299917980331183
-	4550223690829413284 -> -2521299917980331183
-	2183996342491561421 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	2183996342491561421 -> -4591641094422884014
-	-7650216020129314548 -> -4591641094422884014
-	4550223690829413284 -> -4591641094422884014
-	4058800461072155693 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	4058800461072155693 -> -5872772156844580330
-	-7650216020129314548 -> -5872772156844580330
-	4550223690829413284 -> -5872772156844580330
-	8189361383979916473 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8189361383979916473 -> -4446724513007970039
-	-7650216020129314548 -> -4446724513007970039
-	4550223690829413284 -> -4446724513007970039
-	-3108965177781016989 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-3108965177781016989 -> -7144588520757465937
-	-7650216020129314548 -> -7144588520757465937
-	4550223690829413284 -> -7144588520757465937
-	8591575551563729734 [label=<<B>Project</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8591575551563729734 -> -2069149500945705420
-	-2069149500945705420 -> 4622678771775193760
-	-2069149500945705420 -> 4844140544811581715
-	7535000086258106996 [label=<<B>WindowFunction</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	7535000086258106996 -> 4735222156859696457
-	-7650216020129314548 -> 4735222156859696457
-	-1821563890147374475 [label=<<B>Project</B><BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-1821563890147374475 -> 3824816609564193022
-	-4784753130257658540 -> -7133620252212079838
-	-2939847108891178947 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2939847108891178947 -> -2660996340008892107
-	-8626326869112154336 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8626326869112154336 -> -2660996340008892107
-	-2939847108891178947 -> -3229270714848660216
-	8055012496410428443 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8055012496410428443 -> -3229270714848660216
-	-2939847108891178947 -> 6660849648489571610
-	-8620181182239051091 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8620181182239051091 -> 6660849648489571610
-	-2939847108891178947 -> -4803548777345458523
-	-6715176504301776702 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-6715176504301776702 -> -4803548777345458523
-	-2939847108891178947 -> 3454961478420641838
-	8409680727863176296 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8409680727863176296 -> 3454961478420641838
-	6884405434894241266 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	6884405434894241266 -> -5886891705187012604
-	8486389474203032875 [label=<<B>InValues</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8486389474203032875 -> -5886891705187012604
-	-2061018555292693463 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2061018555292693463 -> 8769153822048427210
-	8486389474203032875 -> 8769153822048427210
-	7580242151897770080 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	7580242151897770080 -> 5600840861252089195
-	6124479205984692858 [label=<<B>InValues</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	6124479205984692858 -> 5600840861252089195
-	-2061018555292693463 -> -428238375219861003
-	-8620181182239051091 -> -428238375219861003
-	6884405434894241266 -> 7157096367859402294
-	-8620181182239051091 -> 7157096367859402294
-	-2061018555292693463 -> 6284781856480994316
-	3552087045289768863 [label=<<B>InValues</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	3552087045289768863 -> 6284781856480994316
-	7090008496569775728 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	7090008496569775728 -> -2680617758576003974
-	8486389474203032875 -> -2680617758576003974
-	6884405434894241266 -> -740168508038474383
-	-2421909167149042034 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2421909167149042034 -> -740168508038474383
-	6884405434894241266 -> -5927966224091641246
-	-8335907838992824644 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8335907838992824644 -> -5927966224091641246
-	8322548592279776889 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8322548592279776889 -> 2183996342491561421
-	3404859132986741207 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	3404859132986741207 -> 2183996342491561421
-	-2157178937592462755 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2157178937592462755 -> 4058800461072155693
-	3404859132986741207 -> 4058800461072155693
-	-7715649001003348937 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-7715649001003348937 -> 8189361383979916473
-	3404859132986741207 -> 8189361383979916473
-	6884405434894241266 -> -3108965177781016989
-	7640658190009810687 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	7640658190009810687 -> -3108965177781016989
-	6976360811103430355 [label=<<B>Filter</B><BR ALIGN="LEFT" />:: …<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	6976360811103430355 -> 8591575551563729734
-	-8569569453064444279 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8569569453064444279 -> 8591575551563729734
-	-8348107680028056324 [label=<<I>PersonContactId</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8348107680028056324 -> 8591575551563729734
-	6943960062414063134 [label=<<B>Count</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	6943960062414063134 -> 7535000086258106996
-	4622678771775193760 -> 7535000086258106996
-	5434870361700831618 [label=<<I>Survey_Result_Snapshot</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>Consent_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	5434870361700831618 -> -1821563890147374475
-	8343519411329870582 [label=<<I>Participant__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	8343519411329870582 -> -1821563890147374475
-	-422147998362252666 [label=<<I>Completion_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-422147998362252666 -> -1821563890147374475
-	-1158864671964417525 [label=<<I>Survey_Index_Number__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-1158864671964417525 -> -1821563890147374475
-	-9220067337884362246 [label=<<I>Consent_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-9220067337884362246 -> -1821563890147374475
-	8793113689817875162 [label=<<I>Consent_Revoked__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	8793113689817875162 -> -1821563890147374475
-	4701425962575336198 [label=<<I>Completion_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	4701425962575336198 -> -2939847108891178947
-	-6213909355178582134 [label=<<I>&#x27;Complete&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-6213909355178582134 -> -2939847108891178947
-	-7436005496101523452 [label=<<I>Survey_Index_Number__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-7436005496101523452 -> -8626326869112154336
-	4348180242415883924 [label=<<I>&#x27;1003&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	4348180242415883924 -> -8626326869112154336
-	-7436005496101523452 -> 8055012496410428443
-	-2293379648435297377 [label=<<I>&#x27;1001&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2293379648435297377 -> 8055012496410428443
-	-7436005496101523452 -> -8620181182239051091
-	-4262723427338842342 [label=<<I>&#x27;1005&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4262723427338842342 -> -8620181182239051091
-	-7436005496101523452 -> -6715176504301776702
-	7436148036608779201 [label=<<I>&#x27;2005&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	7436148036608779201 -> -6715176504301776702
-	-7436005496101523452 -> 8409680727863176296
-	590776490154318361 [label=<<I>&#x27;2003&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	590776490154318361 -> 8409680727863176296
-	7090008496569775728 -> 6884405434894241266
-	8703735011346034560 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8703735011346034560 -> 6884405434894241266
-	-7436005496101523452 -> 8486389474203032875
-	4348180242415883924 -> 8486389474203032875
-	9223109246681881599 [label=<<I>&#x27;1004&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	9223109246681881599 -> 8486389474203032875
-	1358546185675711166 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	1358546185675711166 -> -2061018555292693463
-	8703735011346034560 -> -2061018555292693463
-	-2939847108891178947 -> 7580242151897770080
-	8703735011346034560 -> 7580242151897770080
-	-7436005496101523452 -> 6124479205984692858
-	-4202309104151757789 [label=<<I>&#x27;2001&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4202309104151757789 -> 6124479205984692858
-	-6316165579126550402 [label=<<I>&#x27;2002&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-6316165579126550402 -> 6124479205984692858
-	-7436005496101523452 -> 3552087045289768863
-	-4262723427338842342 -> 3552087045289768863
-	-440229013606059416 [label=<<I>&#x27;1002&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-440229013606059416 -> 3552087045289768863
-	-2939847108891178947 -> 7090008496569775728
-	-4824588632661239465 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4824588632661239465 -> 7090008496569775728
-	-7436005496101523452 -> -2421909167149042034
-	1725084682268923161 [label=<<I>&#x27;1008&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	1725084682268923161 -> -2421909167149042034
-	-7436005496101523452 -> -8335907838992824644
-	-9148222069448977039 [label=<<I>&#x27;1007&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-9148222069448977039 -> -8335907838992824644
-	-4824588632661239465 -> 8322548592279776889
-	8703735011346034560 -> 8322548592279776889
-	-7436005496101523452 -> 3404859132986741207
-	-440229013606059416 -> 3404859132986741207
-	301864006037594746 [label=<<I>Consent_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	301864006037594746 -> -2157178937592462755
-	-1834729590289058446 [label=<<I>&#x27;No&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-1834729590289058446 -> -2157178937592462755
-	6180934824222069812 [label=<<I>Consent_Revoked__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	6180934824222069812 -> -7715649001003348937
-	-4145290979864093950 [label=<<I>True</I>: <B>Literal</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4145290979864093950 -> -7715649001003348937
-	-7436005496101523452 -> 7640658190009810687
-	9223109246681881599 -> 7640658190009810687
-	-5700819107637130745 [label=<<I>Account_Snapshot</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>IsPersonAccount</I>: boolean<BR ALIGN="LEFT" /><I>Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-5700819107637130745 -> 6976360811103430355
-	5720620847990670145 [label=<<I>IsPersonAccount</I>: <B>Field</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	5720620847990670145 -> 6976360811103430355
-	6976360811103430355 -> -8569569453064444279
-	6976360811103430355 -> -8348107680028056324
-	4622678771775193760 -> 6943960062414063134
-	5434870361700831618 -> 8343519411329870582
-	5434870361700831618 -> -422147998362252666
-	5434870361700831618 -> -1158864671964417525
-	5434870361700831618 -> -9220067337884362246
-	5434870361700831618 -> 8793113689817875162
-	-6916225358326960123 -> 4701425962575336198
-	-6916225358326960123 -> -7436005496101523452
-	6180934824222069812 -> 8703735011346034560
-	-3389237940524591071 [label=<<I>False</I>: <B>Literal</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-3389237940524591071 -> 8703735011346034560
-	-2939847108891178947 -> 1358546185675711166
-	-2157178937592462755 -> 1358546185675711166
-	301864006037594746 -> -4824588632661239465
-	-8853173773850005431 [label=<<I>&#x27;Yes&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8853173773850005431 -> -4824588632661239465
-	-6916225358326960123 -> 301864006037594746
-	-6916225358326960123 -> 6180934824222069812
-	-5700819107637130745 -> 5720620847990670145
+	-1459555348189941618 [label=<<B>Aggregate</B><BR ALIGN="LEFT" /><I>Account.Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	2179666933407072768 [label=<<B>JoinChain</B><BR ALIGN="LEFT" /><I>Account.Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>_source_parent_key_is_unique</I>: boolean<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
+	2179666933407072768 -> -1459555348189941618
+	-749110889256874672 [label=<<I>Account.Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-749110889256874672 -> -1459555348189941618
+	-2668230422896246591 [label=<<I>PersonContactId</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-2668230422896246591 -> -1459555348189941618
+	-3811988820573982060 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3811988820573982060 -> -1459555348189941618
+	1526707294676183917 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1526707294676183917 -> -1459555348189941618
+	5234848062187100288 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	5234848062187100288 -> -1459555348189941618
+	8180241560482489796 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	8180241560482489796 -> -1459555348189941618
+	-4105191078818736121 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4105191078818736121 -> -1459555348189941618
+	-3302991743368699397 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3302991743368699397 -> -1459555348189941618
+	-8775073260753918762 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-8775073260753918762 -> -1459555348189941618
+	6390636146007974911 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	6390636146007974911 -> -1459555348189941618
+	399034876841112604 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	399034876841112604 -> -1459555348189941618
+	-7041452551066008550 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-7041452551066008550 -> -1459555348189941618
+	-2245889607480464486 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-2245889607480464486 -> -1459555348189941618
+	1046765928061533647 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1046765928061533647 -> -1459555348189941618
+	1418183577520334462 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1418183577520334462 -> -1459555348189941618
+	2683765753872182542 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	2683765753872182542 -> -1459555348189941618
+	-6466657386362874390 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-6466657386362874390 -> -1459555348189941618
+	370956842841184411 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	370956842841184411 -> -1459555348189941618
+	-4709472590106907888 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4709472590106907888 -> -1459555348189941618
+	-3343656378546541899 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3343656378546541899 -> -1459555348189941618
+	8901757272642804718 [label=<<B>Sum</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	8901757272642804718 -> -1459555348189941618
+	8053256350301375780 [label=<<B>JoinReference</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>_source_parent_key_is_unique</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	8053256350301375780 -> 2179666933407072768
+	6624356028361399821 [label=<<B>JoinLink</B><BR ALIGN="LEFT" />:: ∅<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
+	6624356028361399821 -> 2179666933407072768
+	-6762459728382053051 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-6762459728382053051 -> 2179666933407072768
+	1148937762172493121 [label=<<I>PersonContactId</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1148937762172493121 -> 2179666933407072768
+	-3157199360810014879 [label=<<I>_source_parent_key_is_unique</I>: <B>Field</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3157199360810014879 -> 2179666933407072768
+	5154670283997674929 [label=<<I>Completion_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	5154670283997674929 -> 2179666933407072768
+	-1774184444244722289 [label=<<I>Survey_Index_Number__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-1774184444244722289 -> 2179666933407072768
+	2253725549328038765 [label=<<I>Consent_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	2253725549328038765 -> 2179666933407072768
+	-5433492010578241492 [label=<<I>Consent_Revoked__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-5433492010578241492 -> 2179666933407072768
+	2179666933407072768 -> -749110889256874672
+	2179666933407072768 -> -2668230422896246591
+	-1026063802400080966 [label=<<I>EHR_Authorized__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-1026063802400080966 -> -3811988820573982060
+	7672844955732818385 [label=<<I>Count_of_Completed_EHR_Auth__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7672844955732818385 -> 1526707294676183917
+	-5555796367395329195 [label=<<I>Count_of_Completed_Primary_Consent__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-5555796367395329195 -> 5234848062187100288
+	-4889815835986476960 [label=<<I>Count_of_Completed_Reconsent__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4889815835986476960 -> 8180241560482489796
+	-5336215112392470995 [label=<<I>PPI_2_Completion_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-5336215112392470995 -> -4105191078818736121
+	-3502088530753486168 [label=<<I>PPI_3_Completion_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3502088530753486168 -> -3302991743368699397
+	7831607016088131271 [label=<<I>EHR_Consent_Active__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7831607016088131271 -> -8775073260753918762
+	-4177252934447884235 [label=<<I>EHR_Consent_Declined__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4177252934447884235 -> 6390636146007974911
+	-5128030179051799711 [label=<<I>PP1_Basics_Survey_Complete__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-5128030179051799711 -> 399034876841112604
+	172325440881747882 [label=<<I>Re_Consent_Declined__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	172325440881747882 -> -7041452551066008550
+	5505505230466425258 [label=<<I>Re_consent_Active__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	5505505230466425258 -> -2245889607480464486
+	-8856737893041904478 [label=<<I>Primary_Consent_Declined__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-8856737893041904478 -> 1046765928061533647
+	8019522030534761308 [label=<<I>EHR_Consent_Ever__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	8019522030534761308 -> 1418183577520334462
+	7969309297258080175 [label=<<I>Assent_Completion_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7969309297258080175 -> 2683765753872182542
+	-7003880860216381392 [label=<<I>Pediatric_Permission_Completion_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-7003880860216381392 -> -6466657386362874390
+	671866023342326019 [label=<<I>X0_6_Peds_Permission_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	671866023342326019 -> 370956842841184411
+	1552991865180781751 [label=<<I>X0_6_Peds_Permission_Declined_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1552991865180781751 -> -4709472590106907888
+	-735435395229070102 [label=<<I>X0_6_Peds_Permission_Revoked_Count__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-735435395229070102 -> -3343656378546541899
+	1397598526336105457 [label=<<I>EHR_Pediatric_Complete__pc</I>: <B>Alias</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1397598526336105457 -> 8901757272642804718
+	-4778469119036036889 [label=<<B>Project</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>_source_parent_key_is_unique</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4778469119036036889 -> 8053256350301375780
+	3569006887645202887 [label=<<B>JoinReference</B><BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	3569006887645202887 -> 6624356028361399821
+	-3250567116673898929 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
+	-3250567116673898929 -> 6624356028361399821
+	8053256350301375780 -> -6762459728382053051
+	8053256350301375780 -> 1148937762172493121
+	8053256350301375780 -> -3157199360810014879
+	3569006887645202887 -> 5154670283997674929
+	3569006887645202887 -> -1774184444244722289
+	3569006887645202887 -> 2253725549328038765
+	3569006887645202887 -> -5433492010578241492
+	4003949027664023837 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	4003949027664023837 -> -1026063802400080966
+	4003949027664023837 -> 7672844955732818385
+	-4046982956399978561 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4046982956399978561 -> -5555796367395329195
+	-8787863421477044328 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-8787863421477044328 -> -4889815835986476960
+	7034681212574757689 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7034681212574757689 -> -5336215112392470995
+	-8061697576668859035 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-8061697576668859035 -> -3502088530753486168
+	-1308716979985361185 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-1308716979985361185 -> 7831607016088131271
+	5247579345556736997 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	5247579345556736997 -> -4177252934447884235
+	-2301452052569804517 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-2301452052569804517 -> -5128030179051799711
+	7965794103027547830 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7965794103027547830 -> 172325440881747882
+	4309942247702943346 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	4309942247702943346 -> 5505505230466425258
+	1211657998776813340 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1211657998776813340 -> -8856737893041904478
+	-7399195852418118206 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-7399195852418118206 -> 8019522030534761308
+	2436611069403545524 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	2436611069403545524 -> 7969309297258080175
+	-4770968840813440246 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4770968840813440246 -> -7003880860216381392
+	7880520071499672293 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7880520071499672293 -> 671866023342326019
+	7625530672977365509 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7625530672977365509 -> 1552991865180781751
+	7857042207989069306 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7857042207989069306 -> -735435395229070102
+	-1793153703029042735 [label=<<B>SearchedCase</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-1793153703029042735 -> 1397598526336105457
+	5151039316517164128 [label=<<I>Person_Account</I>: <B>AliasedRelation</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	5151039316517164128 -> -4778469119036036889
+	3887827207548369816 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	3887827207548369816 -> -4778469119036036889
+	-6043798189227418995 [label=<<I>PersonContactId</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-6043798189227418995 -> -4778469119036036889
+	-3638226401271009156 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3638226401271009156 -> -4778469119036036889
+	-7145109221088155600 [label=<<I>Survey_Result__c</I>: <B>AliasedRelation</B><BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-7145109221088155600 -> 3569006887645202887
+	1148937762172493121 -> -3250567116673898929
+	-1706596924304552977 [label=<<I>Participant__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-1706596924304552977 -> -3250567116673898929
+	-3353163980683736008 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3353163980683736008 -> 4003949027664023837
+	-1146257365792486714 [label=<<I>1</I>: <B>Literal</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-1146257365792486714 -> 4003949027664023837
+	-3597925531938159003 [label=<<I>0</I>: <B>Literal</B><BR ALIGN="LEFT" />:: int8<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3597925531938159003 -> 4003949027664023837
+	-4292443121399519387 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4292443121399519387 -> -4046982956399978561
+	-1146257365792486714 -> -4046982956399978561
+	-3597925531938159003 -> -4046982956399978561
+	-4957249405620894159 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4957249405620894159 -> -8787863421477044328
+	-1146257365792486714 -> -8787863421477044328
+	-3597925531938159003 -> -8787863421477044328
+	1229259405095082914 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1229259405095082914 -> 7034681212574757689
+	-1146257365792486714 -> 7034681212574757689
+	-3597925531938159003 -> 7034681212574757689
+	4375185318975906551 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	4375185318975906551 -> -8061697576668859035
+	-1146257365792486714 -> -8061697576668859035
+	-3597925531938159003 -> -8061697576668859035
+	-7743689239730748262 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-7743689239730748262 -> -1308716979985361185
+	-1146257365792486714 -> -1308716979985361185
+	-3597925531938159003 -> -1308716979985361185
+	-3834001545848754094 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3834001545848754094 -> 5247579345556736997
+	-1146257365792486714 -> 5247579345556736997
+	-3597925531938159003 -> 5247579345556736997
+	-8924143874028207176 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-8924143874028207176 -> -2301452052569804517
+	-1146257365792486714 -> -2301452052569804517
+	-3597925531938159003 -> -2301452052569804517
+	-657422680763448604 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-657422680763448604 -> 7965794103027547830
+	-1146257365792486714 -> 7965794103027547830
+	-3597925531938159003 -> 7965794103027547830
+	-3877386836746905383 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3877386836746905383 -> 4309942247702943346
+	-1146257365792486714 -> 4309942247702943346
+	-3597925531938159003 -> 4309942247702943346
+	-6301753734663266017 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-6301753734663266017 -> 1211657998776813340
+	-1146257365792486714 -> 1211657998776813340
+	-3597925531938159003 -> 1211657998776813340
+	896956377408019349 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	896956377408019349 -> -7399195852418118206
+	-1146257365792486714 -> -7399195852418118206
+	-3597925531938159003 -> -7399195852418118206
+	5022191156337504849 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	5022191156337504849 -> 2436611069403545524
+	-1146257365792486714 -> 2436611069403545524
+	-3597925531938159003 -> 2436611069403545524
+	3354426083733542253 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	3354426083733542253 -> -4770968840813440246
+	-1146257365792486714 -> -4770968840813440246
+	-3597925531938159003 -> -4770968840813440246
+	8682573389010585824 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	8682573389010585824 -> 7880520071499672293
+	-1146257365792486714 -> 7880520071499672293
+	-3597925531938159003 -> 7880520071499672293
+	2145627509430395740 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	2145627509430395740 -> 7625530672977365509
+	-1146257365792486714 -> 7625530672977365509
+	-3597925531938159003 -> 7625530672977365509
+	-1092666209812414057 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-1092666209812414057 -> 7857042207989069306
+	-1146257365792486714 -> 7857042207989069306
+	-3597925531938159003 -> 7857042207989069306
+	-3986578575832470151 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3986578575832470151 -> -1793153703029042735
+	-1146257365792486714 -> -1793153703029042735
+	-3597925531938159003 -> -1793153703029042735
+	5077092720091663576 [label=<<B>Project</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	5077092720091663576 -> 5151039316517164128
+	5151039316517164128 -> 3887827207548369816
+	5151039316517164128 -> -6043798189227418995
+	-1991998961373512568 [label=<<B>WindowFunction</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-1991998961373512568 -> -3638226401271009156
+	-1146257365792486714 -> -3638226401271009156
+	8894994194659010008 [label=<<B>Project</B><BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	8894994194659010008 -> -7145109221088155600
+	3569006887645202887 -> -1706596924304552977
+	-646269839373415213 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-646269839373415213 -> -3353163980683736008
+	-7898654931228346113 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-7898654931228346113 -> -3353163980683736008
+	-646269839373415213 -> -4292443121399519387
+	4382520521321074392 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	4382520521321074392 -> -4292443121399519387
+	-646269839373415213 -> -4957249405620894159
+	8329527688712294733 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	8329527688712294733 -> -4957249405620894159
+	-646269839373415213 -> 1229259405095082914
+	-1189824841035930082 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-1189824841035930082 -> 1229259405095082914
+	-646269839373415213 -> 4375185318975906551
+	4867157021637408926 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	4867157021637408926 -> 4375185318975906551
+	8075433755028811181 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	8075433755028811181 -> -7743689239730748262
+	-2619710220754461857 [label=<<B>InValues</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-2619710220754461857 -> -7743689239730748262
+	-3718292288773325859 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3718292288773325859 -> -3834001545848754094
+	-2619710220754461857 -> -3834001545848754094
+	-955350893085407817 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-955350893085407817 -> -8924143874028207176
+	2424549746127485061 [label=<<B>InValues</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	2424549746127485061 -> -8924143874028207176
+	-3718292288773325859 -> -657422680763448604
+	8329527688712294733 -> -657422680763448604
+	8075433755028811181 -> -3877386836746905383
+	8329527688712294733 -> -3877386836746905383
+	-3718292288773325859 -> -6301753734663266017
+	-5613619914589116138 [label=<<B>InValues</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-5613619914589116138 -> -6301753734663266017
+	780188687179496714 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	780188687179496714 -> 896956377408019349
+	-2619710220754461857 -> 896956377408019349
+	8075433755028811181 -> 5022191156337504849
+	-263782694808676904 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-263782694808676904 -> 5022191156337504849
+	8075433755028811181 -> 3354426083733542253
+	-3662995953045378685 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3662995953045378685 -> 3354426083733542253
+	-5561111720464748512 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-5561111720464748512 -> 8682573389010585824
+	-6250719706338102391 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-6250719706338102391 -> 8682573389010585824
+	-944342780419146403 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-944342780419146403 -> 2145627509430395740
+	-6250719706338102391 -> 2145627509430395740
+	-1549993140024870905 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-1549993140024870905 -> -1092666209812414057
+	-6250719706338102391 -> -1092666209812414057
+	8075433755028811181 -> -3986578575832470151
+	4036714206754846735 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	4036714206754846735 -> -3986578575832470151
+	-7657800525908600491 [label=<<B>Filter</B><BR ALIGN="LEFT" />:: …<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-7657800525908600491 -> 5077092720091663576
+	-7473614174254091621 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-7473614174254091621 -> 5077092720091663576
+	-7297969510232939663 [label=<<I>PersonContactId</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-7297969510232939663 -> 5077092720091663576
+	-4465837695110642955 [label=<<B>Count</B><BR ALIGN="LEFT" />:: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4465837695110642955 -> -1991998961373512568
+	3887827207548369816 -> -1991998961373512568
+	-3722107590484534119 [label=<<I>Survey_Result_Snapshot</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-3722107590484534119 -> 8894994194659010008
+	-6970613039994704372 [label=<<I>Participant__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-6970613039994704372 -> 8894994194659010008
+	-6551653933948116658 [label=<<I>Completion_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-6551653933948116658 -> 8894994194659010008
+	567878028534669612 [label=<<I>Survey_Index_Number__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	567878028534669612 -> 8894994194659010008
+	-492292898775474851 [label=<<I>Consent_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-492292898775474851 -> 8894994194659010008
+	-3091429537798849591 [label=<<I>Consent_Revoked__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-3091429537798849591 -> 8894994194659010008
+	-5425047920186387438 [label=<<I>Completion_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-5425047920186387438 -> -646269839373415213
+	5399237160706620584 [label=<<I>&#x27;Complete&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	5399237160706620584 -> -646269839373415213
+	6092841425280766960 [label=<<I>Survey_Index_Number__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	6092841425280766960 -> -7898654931228346113
+	-6534382094385809142 [label=<<I>&#x27;1003&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-6534382094385809142 -> -7898654931228346113
+	6092841425280766960 -> 4382520521321074392
+	7108769173072015241 [label=<<I>&#x27;1001&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7108769173072015241 -> 4382520521321074392
+	6092841425280766960 -> 8329527688712294733
+	9036908876898736031 [label=<<I>&#x27;1005&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	9036908876898736031 -> 8329527688712294733
+	6092841425280766960 -> -1189824841035930082
+	-7146161655595070600 [label=<<I>&#x27;2005&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-7146161655595070600 -> -1189824841035930082
+	6092841425280766960 -> 4867157021637408926
+	-2220109289554528945 [label=<<I>&#x27;2003&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-2220109289554528945 -> 4867157021637408926
+	780188687179496714 -> 8075433755028811181
+	-1570737899154661517 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-1570737899154661517 -> 8075433755028811181
+	6092841425280766960 -> -2619710220754461857
+	-6534382094385809142 -> -2619710220754461857
+	-6576878917283808295 [label=<<I>&#x27;1004&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-6576878917283808295 -> -2619710220754461857
+	5962298944004398029 [label=<<B>And</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	5962298944004398029 -> -3718292288773325859
+	-1570737899154661517 -> -3718292288773325859
+	-646269839373415213 -> -955350893085407817
+	-1570737899154661517 -> -955350893085407817
+	6092841425280766960 -> 2424549746127485061
+	6238171045383779711 [label=<<I>&#x27;2001&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	6238171045383779711 -> 2424549746127485061
+	-8526668421946404151 [label=<<I>&#x27;2002&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-8526668421946404151 -> 2424549746127485061
+	6092841425280766960 -> -5613619914589116138
+	9036908876898736031 -> -5613619914589116138
+	181981832129203299 [label=<<I>&#x27;1002&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	181981832129203299 -> -5613619914589116138
+	-646269839373415213 -> 780188687179496714
+	7532153241469176973 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7532153241469176973 -> 780188687179496714
+	6092841425280766960 -> -263782694808676904
+	-3184140842720886030 [label=<<I>&#x27;1008&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3184140842720886030 -> -263782694808676904
+	6092841425280766960 -> -3662995953045378685
+	1698726041896585330 [label=<<I>&#x27;1007&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1698726041896585330 -> -3662995953045378685
+	7532153241469176973 -> -5561111720464748512
+	-1570737899154661517 -> -5561111720464748512
+	6092841425280766960 -> -6250719706338102391
+	181981832129203299 -> -6250719706338102391
+	-2013358790664234328 [label=<<I>Consent_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-2013358790664234328 -> -944342780419146403
+	1390820383020400738 [label=<<I>&#x27;No&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1390820383020400738 -> -944342780419146403
+	2433533858947247757 [label=<<I>Consent_Revoked__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	2433533858947247757 -> -1549993140024870905
+	-3719478476588870683 [label=<<I>True</I>: <B>Literal</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3719478476588870683 -> -1549993140024870905
+	6092841425280766960 -> 4036714206754846735
+	-6576878917283808295 -> 4036714206754846735
+	-5210188291953062028 [label=<<I>Account_Snapshot</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>IsPersonAccount</I>: boolean<BR ALIGN="LEFT" /><I>Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" /><I>Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-5210188291953062028 -> -7657800525908600491
+	9151566004529125531 [label=<<I>IsPersonAccount</I>: <B>Field</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	9151566004529125531 -> -7657800525908600491
+	-7657800525908600491 -> -7473614174254091621
+	-7657800525908600491 -> -7297969510232939663
+	3887827207548369816 -> -4465837695110642955
+	-3722107590484534119 -> -6970613039994704372
+	-3722107590484534119 -> -6551653933948116658
+	-3722107590484534119 -> 567878028534669612
+	-3722107590484534119 -> -492292898775474851
+	-3722107590484534119 -> -3091429537798849591
+	2179666933407072768 -> -5425047920186387438
+	2179666933407072768 -> 6092841425280766960
+	2433533858947247757 -> -1570737899154661517
+	4082603851385489021 [label=<<I>False</I>: <B>Literal</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	4082603851385489021 -> -1570737899154661517
+	-646269839373415213 -> 5962298944004398029
+	-944342780419146403 -> 5962298944004398029
+	-2013358790664234328 -> 7532153241469176973
+	-5453126903756891332 [label=<<I>&#x27;Yes&#x27;</I>: <B>Literal</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-5453126903756891332 -> 7532153241469176973
+	2179666933407072768 -> -2013358790664234328
+	2179666933407072768 -> 2433533858947247757
+	-5210188291953062028 -> 9151566004529125531
 	subgraph cluster_parent_0 {
 		color="#DCEBFF" label="Salesforce object: Account" style=rounded
-		7856991427354891540
-		-5964179906029178999
-		-2438166547557941663
-		-2424066755108707296
-		-4140220418265636178
-		-7803804865819888601
-		6986231905208572521
-		-6054300716609511661
-		1746614869969054985
-		-1627652422990149472
-		-5020442301523975047
-		-7963902076829093253
-		8112496707733118478
-		-4398301886316745194
-		-8243033005296422610
-		860287761822827781
-		8048604340642554777
-		-6170937040215750259
-		400834462139565921
-		2964345419279153856
-		-7749613217943544138
-		-8711780221399286215
-		2116573357972157849
-		7741034743887031098
-		8092170754987269971
-		-1180846930677513499
-		665470237885588675
-		8985284086110495089
-		7862649747143789892
-		-8028609199931361726
-		-3446504882634001179
-		-6206084387044229214
-		7754815000308391918
-		-471590061891445053
-		-3201044326859295622
-		3717429963061360110
-		-412800969470560025
-		-5859486822095823700
-		8567442977353032996
-		6237922397339336424
-		5413311486274905864
-		-4998978032021818984
-		7965597768459134627
-		4862082564148349989
-		8611203653569691697
-		-4278722599088219387
-		-6654489390994465634
-		4958113330188967784
-		3948458248538523948
-		-8870733476421449842
-		-3434352702029033657
-		5451385773990086919
-		-9104856477251154799
-		-3559577119794731924
-		-9016866955218734119
-		8523812568478882011
-		411440232323856101
-		-2968436323181195551
-		-804509372033435539
-		-2521299917980331183
-		-4591641094422884014
-		-5872772156844580330
-		-4446724513007970039
-		-7144588520757465937
-		-2069149500945705420
-		4622678771775193760
-		4844140544811581715
-		4735222156859696457
-		-2660996340008892107
-		-7650216020129314548
-		4550223690829413284
-		-3229270714848660216
-		6660849648489571610
-		-4803548777345458523
-		3454961478420641838
-		-5886891705187012604
-		8769153822048427210
-		5600840861252089195
-		-428238375219861003
-		7157096367859402294
-		6284781856480994316
-		-2680617758576003974
-		-740168508038474383
-		-5927966224091641246
-		2183996342491561421
-		4058800461072155693
-		8189361383979916473
-		-3108965177781016989
-		8591575551563729734
-		7535000086258106996
-		-2939847108891178947
-		-8626326869112154336
-		8055012496410428443
-		-8620181182239051091
-		-6715176504301776702
-		8409680727863176296
-		6884405434894241266
-		8486389474203032875
-		-2061018555292693463
-		7580242151897770080
-		6124479205984692858
-		3552087045289768863
-		7090008496569775728
-		-2421909167149042034
-		-8335907838992824644
-		8322548592279776889
-		3404859132986741207
-		-2157178937592462755
-		-7715649001003348937
-		7640658190009810687
-		6976360811103430355
-		-8569569453064444279
-		-8348107680028056324
-		6943960062414063134
-		-6213909355178582134
-		4348180242415883924
-		-2293379648435297377
-		-4262723427338842342
-		7436148036608779201
-		590776490154318361
-		8703735011346034560
-		9223109246681881599
-		1358546185675711166
-		-4202309104151757789
-		-6316165579126550402
-		-440229013606059416
-		-4824588632661239465
-		1725084682268923161
-		-9148222069448977039
-		-1834729590289058446
-		-4145290979864093950
-		-5700819107637130745
-		5720620847990670145
-		-3389237940524591071
-		-8853173773850005431
+		-1459555348189941618
+		-749110889256874672
+		-2668230422896246591
+		-3811988820573982060
+		1526707294676183917
+		5234848062187100288
+		8180241560482489796
+		-4105191078818736121
+		-3302991743368699397
+		-8775073260753918762
+		6390636146007974911
+		399034876841112604
+		-7041452551066008550
+		-2245889607480464486
+		1046765928061533647
+		1418183577520334462
+		2683765753872182542
+		-6466657386362874390
+		370956842841184411
+		-4709472590106907888
+		-3343656378546541899
+		8901757272642804718
+		8053256350301375780
+		-6762459728382053051
+		1148937762172493121
+		-3157199360810014879
+		-1026063802400080966
+		7672844955732818385
+		-5555796367395329195
+		-4889815835986476960
+		-5336215112392470995
+		-3502088530753486168
+		7831607016088131271
+		-4177252934447884235
+		-5128030179051799711
+		172325440881747882
+		5505505230466425258
+		-8856737893041904478
+		8019522030534761308
+		7969309297258080175
+		-7003880860216381392
+		671866023342326019
+		1552991865180781751
+		-735435395229070102
+		1397598526336105457
+		-4778469119036036889
+		4003949027664023837
+		-4046982956399978561
+		-8787863421477044328
+		7034681212574757689
+		-8061697576668859035
+		-1308716979985361185
+		5247579345556736997
+		-2301452052569804517
+		7965794103027547830
+		4309942247702943346
+		1211657998776813340
+		-7399195852418118206
+		2436611069403545524
+		-4770968840813440246
+		7880520071499672293
+		7625530672977365509
+		7857042207989069306
+		-1793153703029042735
+		5151039316517164128
+		3887827207548369816
+		-6043798189227418995
+		-3638226401271009156
+		-3353163980683736008
+		-1146257365792486714
+		-3597925531938159003
+		-4292443121399519387
+		-4957249405620894159
+		1229259405095082914
+		4375185318975906551
+		-7743689239730748262
+		-3834001545848754094
+		-8924143874028207176
+		-657422680763448604
+		-3877386836746905383
+		-6301753734663266017
+		896956377408019349
+		5022191156337504849
+		3354426083733542253
+		8682573389010585824
+		2145627509430395740
+		-1092666209812414057
+		-3986578575832470151
+		5077092720091663576
+		-1991998961373512568
+		-646269839373415213
+		-7898654931228346113
+		4382520521321074392
+		8329527688712294733
+		-1189824841035930082
+		4867157021637408926
+		8075433755028811181
+		-2619710220754461857
+		-3718292288773325859
+		-955350893085407817
+		2424549746127485061
+		-5613619914589116138
+		780188687179496714
+		-263782694808676904
+		-3662995953045378685
+		-5561111720464748512
+		-6250719706338102391
+		-944342780419146403
+		-1549993140024870905
+		4036714206754846735
+		-7657800525908600491
+		-7473614174254091621
+		-7297969510232939663
+		-4465837695110642955
+		5399237160706620584
+		-6534382094385809142
+		7108769173072015241
+		9036908876898736031
+		-7146161655595070600
+		-2220109289554528945
+		-1570737899154661517
+		-6576878917283808295
+		5962298944004398029
+		6238171045383779711
+		-8526668421946404151
+		181981832129203299
+		7532153241469176973
+		-3184140842720886030
+		1698726041896585330
+		1390820383020400738
+		-3719478476588870683
+		-5210188291953062028
+		9151566004529125531
+		4082603851385489021
+		-5453126903756891332
 	}
 	subgraph cluster_parent_1 {
 		color="#FFF0D6" label="Salesforce object: Survey_Result__c" style=rounded
-		3840901136083102552
-		-4501894125988605603
-		-558660820454638900
-		5450084235793687084
-		-4784753130257658540
-		3824816609564193022
-		-7133620252212079838
-		-1821563890147374475
-		5434870361700831618
-		8343519411329870582
-		-422147998362252666
-		-1158864671964417525
-		-9220067337884362246
-		8793113689817875162
-		4701425962575336198
-		-7436005496101523452
-		301864006037594746
-		6180934824222069812
+		5154670283997674929
+		-1774184444244722289
+		2253725549328038765
+		-5433492010578241492
+		3569006887645202887
+		-7145109221088155600
+		-1706596924304552977
+		8894994194659010008
+		-3722107590484534119
+		-6970613039994704372
+		-6551653933948116658
+		567878028534669612
+		-492292898775474851
+		-3091429537798849591
+		-5425047920186387438
+		6092841425280766960
+		-2013358790664234328
+		2433533858947247757
 	}
 	subgraph cluster_parent_2 {
 		color="#EEEEEE" label="Shared / query mechanics" style=rounded
-		-6916225358326960123
-		-3099336925742669362
-		6764652534659813923
+		2179666933407072768
+		6624356028361399821
+		-3250567116673898929
 	}
 }

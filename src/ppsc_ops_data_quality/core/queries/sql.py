@@ -135,7 +135,10 @@ def _name_relation_aliases(query: exp.Query) -> None:
 
 
 def to_sqlglot(
-    expression: ir.Table, *, projection_lineage: Mapping[str, Mapping[str, object]] | None = None
+    expression: ir.Table,
+    *,
+    projection_lineage: Mapping[str, Mapping[str, object]] | None = None,
+    table_versions: Mapping[tuple[str, str, str], str] | None = None,
 ) -> exp.Query:
     """Compile the completed Ibis query to Athena's AST, then annotate projections.
 
@@ -163,6 +166,19 @@ def to_sqlglot(
         for key, value in list(node.args.items()):
             if isinstance(value, tuple):
                 node.set(key, list(value))
+    if table_versions:
+        for table in query.find_all(exp.Table):
+            identity = (table.catalog, table.db, table.name)
+            snapshot_id = table_versions.get(identity)
+            if snapshot_id is not None:
+                if not fullmatch(r"[1-9][0-9]*", snapshot_id):
+                    raise ValueError("Iceberg snapshot IDs must be positive decimal integers")
+                table.set(
+                    "version",
+                    exp.Version(
+                        this="VERSION", expression=exp.Literal.number(snapshot_id), kind="AS OF"
+                    ),
+                )
     _name_relation_aliases(query)
     query = _resolve_final_projection(query)
     query = _select_first(query)

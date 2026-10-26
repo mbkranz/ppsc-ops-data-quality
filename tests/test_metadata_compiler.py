@@ -1,6 +1,7 @@
 """Behavioral acceptance for metadata-driven construction, independent observations."""
 
 from copy import deepcopy
+from importlib.metadata import version
 from pathlib import Path
 
 import ibis
@@ -148,11 +149,14 @@ def test_pinned_input_hashes_and_flow_identity_are_enforced(tmp_path):
     shutil.copytree(root, copied)
     manifest = copied / "account_to_survey_results/metadata/manifest.json"
     receipt = metadata_receipt()
-    assert receipt.compiler_version == "0.2.0" and receipt.manifest.provisional
-    assert load_metadata_bundle(copied, manifest).flow["Id"] == "301SL00000dpJqKYAU"
+    assert receipt.compiler_version == version("ppsc-metadata") and receipt.manifest.provisional
+    assert (
+        load_metadata_bundle(copied / "account_to_survey_results/metadata", manifest).flow["Id"]
+        == "301SL00000dpJqKYAU"
+    )
     (copied / "account_to_survey_results/metadata/flow.json").write_text("{}")
     with pytest.raises(ValueError, match="hash mismatch"):
-        load_metadata_bundle(copied, manifest)
+        load_metadata_bundle(copied / "account_to_survey_results/metadata", manifest)
 
 
 def test_live_metadata_mismatch_fails_before_creating_a_gx_context(tmp_path, monkeypatch):

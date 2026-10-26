@@ -1,17 +1,7 @@
-"""ODCS-derived Contact validation input; raw nulls remain observable.
+"""Provisional Contact schemas derived from the pinned APMP handoff."""
 
-The checked-in contract is provisional. Physical Athena bindings and history
-semantics require local verification; this module executes no data.
-"""
+from .inputs import provisional_schema
 
-import ibis
-from ppsc_metadata.schemas import ibis_schema
-
-from .contracts import validation_input_contract
-from .history import HISTORY_METADATA
-
-CONTACT_VALIDATION_INPUT = ibis_schema(validation_input_contract(), "Contact")
-CONTACT_HISTORY_VALIDATION_INPUT = ibis.schema(
-    {**CONTACT_VALIDATION_INPUT.fields, **HISTORY_METADATA.fields}
-)
+CONTACT_VALIDATION_INPUT = provisional_schema("Contact", include_history=False)
+CONTACT_HISTORY_VALIDATION_INPUT = provisional_schema("Contact", include_history=True)
 CONTACT_SNAPSHOT_VALIDATION_INPUT = CONTACT_HISTORY_VALIDATION_INPUT

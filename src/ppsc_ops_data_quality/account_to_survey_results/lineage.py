@@ -344,8 +344,9 @@ for _field, _record in _evidence.items():
         "source_file": _flow_artifact.path,
         "source_sha256": _flow_artifact.sha256,
         "metadata_manifest_sha256": _bundle.manifest_sha256,
-        "contract_id": _bundle.contract.id,
-        "contract_version": _bundle.contract.version,
+        "provenance_version": "native-apmp/v2",
+        "definition_id": _bundle.manifest.definition_id,
+        "definition_revision": _bundle.manifest.definition_revision,
         "provisional": _bundle.manifest.provisional,
         "workbook_rows": [
             _WORKBOOK_ROWS[source] for source in _record.source_entities if source in _WORKBOOK_ROWS

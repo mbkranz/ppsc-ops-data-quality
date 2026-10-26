@@ -18,7 +18,10 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
     rollup_account_suite,
 )
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
-from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt
+from ppsc_ops_data_quality.account_to_survey_results.metadata import (
+    metadata_inputs,
+    metadata_receipt,
+)
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ROLLUP_ACCOUNT_FIELDS,
     add_flow_context,
@@ -124,11 +127,7 @@ def synthetic_history_tables(backend):
 
 def compile_comparisons(output: Path):
     """Compile illustrative Athena comparisons and export native suite definitions."""
-    history = history_tables(
-        account_database="example_account",
-        contact_database="example_contact",
-        survey_result_database="example_survey_result",
-    )
+    history = history_tables(inputs=metadata_inputs())
     output.mkdir(parents=True, exist_ok=False)
     for name, query in comparisons(history).items():
         (output / f"{name}.sql").write_text(
@@ -142,11 +141,7 @@ def compile_comparisons(output: Path):
 
 def render_examples(output: Path):
     """Regenerate the checked-in illustrative expected and GX comparison SQL."""
-    history = history_tables(
-        account_database="example_account",
-        contact_database="example_contact",
-        survey_result_database="example_survey_result",
-    )
+    history = history_tables(inputs=metadata_inputs())
     event_id = "EXAMPLE_VERIFIED_SURVEY_EVENT"
     AccountBefore = snapshot(history["Account"], as_of=BEFORE_AT).alias("Account_Before")
     Contact = snapshot(history["Contact"], as_of=EXECUTION_AT).alias("Contact_At_Execution")

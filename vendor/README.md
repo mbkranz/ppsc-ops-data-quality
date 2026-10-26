@@ -1,22 +1,22 @@
-# Pinned shared compiler distribution
+# Frozen compiler dependency
 
-`1eedb2ab/ppsc_metadata-0.2.0-py3-none-any.whl` is built from
-[`projects/metadata` at producer commit 1eedb2abcf5cac6471fb6cc45e5a40c007982854](https://github.com/mbkranz/ppsc-salesforce/tree/1eedb2abcf5cac6471fb6cc45e5a40c007982854/projects/metadata).
+`7f4f3108/ppsc_metadata-0.3.0-py3-none-any.whl` is built from
+[`projects/metadata` at `7f4f3108ea0910ebd3649c770242f69e0301917c`](https://github.com/mbkranz/ppsc-salesforce/tree/7f4f3108ea0910ebd3649c770242f69e0301917c/projects/metadata).
 
-SHA256: `fd0934ef5b8234554446358aa4471c8be1257d9e0fb8b6f9ae3ec408e4d502b8`.
+- Package: `ppsc-metadata==0.3.0`, Ibis 12.0.0, SQLGlot 30.24.0.
+- Wheel SHA256: `c26afb47820ecabc654f4f73b098af3e96062329815d09304e8f5c3686074ecf`.
+- Installed source fingerprint: `a74bb14dd0640a500d3050b32d22ae2c7a08c2f188107df8c98d8f7e11e5124a`.
+- Build backend used: Hatchling 1.32.4; source and package version inspected from the actual wheel.
 
-The source is independently installable; the Salesforce application is not a
-runtime dependency. The small wheel is a temporary transport while independent
-package hosting is pending. uv's path source binds the ordinary versioned project
-requirement, and `uv.lock` records the actual artifact hash. DVC tracks this folder
-for requirements/dependency production; Glue receives it through the normal frozen
-wheel bundle. No source rule implementation is copied into the consumer.
+The runtime verifies the installed compiler source bytes against the fingerprint
+derived from this wheel, along with installed input hashes and request identity.
+`uv.lock` records this local wheel; DVC includes `vendor/` in the actual release
+graph. The packaged APMP/native inputs are generated from the same producer
+definition revision and preserve their own original source revision separately.
+Edits originate in APMP and are regenerated; do not maintain an edited schema copy here.
 
-To update, review and build the selected producer revision, copy the resulting
-wheel, update version/source bindings and this provenance, refresh the uv lock,
-and reproduce the release graph to obtain actual DVC output hashes. The compiler
-version is distinct from the Flow/native-metadata input revision in its manifest.
-
-The source-revision directory prevents reusing a stale path hash when an unreleased
-compiler version is rebuilt. The package includes assignment and determinism evidence,
-presence predicates, general rollups and ODCS source/field definitions.
+To refresh: build the compiler from a named producer commit, place its wheel in
+a new revision directory, regenerate selected APMP inputs, update constants and
+example hashes, lock/sync, regenerate queries/suites/diagrams, reproduce DVC and
+run the installed-bundle smoke with `--no-index --no-cache`. Rollback restores
+the complete prior wheel/lock/input selection.

@@ -22,6 +22,7 @@ from ppsc_ops_data_quality.account_to_survey_results.lineage import (
     FLOW_ENTITY_LINEAGE,
     PROJECTION_LINEAGE,
 )
+from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_inputs
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     add_flow_context,
     expected_account_values,
@@ -169,11 +170,7 @@ def _cut_input(expression: ir.Table, original: ir.Table, boundary: ir.Table) -> 
 
 def illustrative_parts() -> dict[str, list[DiagramPart]]:
     """Stop each native graph at schema-preserving, diagram-only table inputs."""
-    sources = history_tables(
-        account_database="example_account",
-        contact_database="example_contact",
-        survey_result_database="example_survey_result",
-    )
+    sources = history_tables(inputs=metadata_inputs())
     history = {
         name: ibis.table(table.schema(), name=f"{name}_History") for name, table in sources.items()
     }

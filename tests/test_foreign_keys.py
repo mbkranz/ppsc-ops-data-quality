@@ -1,4 +1,4 @@
-"""Equivalent ODCS declarations preserve composite matching and keyed findings."""
+"""Explicit APMP relationships preserve ordered composite matching and findings."""
 
 import operator
 from copy import deepcopy
@@ -9,59 +9,54 @@ import great_expectations.expectations as gxe
 import ibis
 import pytest
 from great_expectations.expectations.row_conditions import Column
-from ppsc_metadata.contracts import validate_contract
+from ppsc_metadata.lake import LakeBindings
 
 from ppsc_ops_data_quality.core.schemas.contracts import normalize_foreign_keys
 
 
 def document():
     return {
-        "apiVersion": "v3.2.0",
-        "kind": "DataContract",
-        "id": "foreign-keys",
-        "version": "1",
-        "schema": [
-            {
-                "id": "children",
-                "name": "Child",
-                "properties": [
-                    {"id": f, "name": f, "logicalType": "string"}
-                    for f in ("row_id", "country", "code")
-                ],
-            },
-            {
-                "id": "parents",
-                "name": "Parent",
-                "properties": [
-                    {"id": f, "name": f, "logicalType": "string"} for f in ("country", "code")
-                ],
-            },
-        ],
+        "datasets": {
+            name.lower(): {
+                "native_object": name,
+                "catalog": "c",
+                "database": "d",
+                "relation": name.lower(),
+                "ddl_path": f"lake/{name}.sql",
+                "columns": {field: field for field in fields},
+                "keys": [fields[0]],
+                "grain": "row",
+            }
+            for name, fields in (
+                ("Child", ("row_id", "country", "code")),
+                ("Parent", ("country", "code")),
+            )
+        },
+        "relationships": [],
     }
 
 
 def relationship():
     return {
-        "type": "foreignKey",
-        "from": ["Child.country", "Child.code"],
-        "to": ["Parent.country", "Parent.code"],
+        "source_object": "Child",
+        "source_fields": ["country", "code"],
+        "target_object": "Parent",
+        "target_fields": ["country", "code"],
     }
 
 
 def declared(form):
     doc = document()
-    child = doc["schema"][0]
     relation = relationship()
     if form == "reversed":
-        relation["from"].reverse()
-        relation["to"].reverse()
-    child["relationships"] = [relation]
+        relation["source_fields"].reverse()
+        relation["target_fields"].reverse()
+    doc["relationships"] = [relation]
     return doc
 
 
 def test_composite_form_preserves_order():
-    form = "object"
-    keys = normalize_foreign_keys(validate_contract(declared(form)))
+    keys = normalize_foreign_keys(LakeBindings.model_validate(declared("object")))
     assert len(keys) == 1
     assert keys[0].model_dump() == {
         "source_object": "Child",
@@ -71,24 +66,10 @@ def test_composite_form_preserves_order():
     }
 
 
-def test_implicit_property_key_and_object_key_are_equivalent():
-    doc = document()
-    child = doc["schema"][0]
-    child["properties"][2]["relationships"] = [{"type": "foreignKey", "to": "Parent.code"}]
-    property_keys = normalize_foreign_keys(validate_contract(doc))
-    child["properties"][2].pop("relationships")
-    child["relationships"] = [{"type": "foreignKey", "from": "Child.code", "to": "Parent.code"}]
-    assert normalize_foreign_keys(validate_contract(doc)) == property_keys
-
-
-def test_equivalent_duplicate_declarations_collapse_without_reordering_pairs():
-    doc = declared("object")
-    equivalent = deepcopy(relationship())
-    equivalent["from"].reverse()
-    equivalent["to"].reverse()
-    doc["schema"][0]["relationships"].append(equivalent)
-    keys = normalize_foreign_keys(validate_contract(doc))
-    assert len(keys) == 1 and keys[0].source_fields == ("country", "code")
+def test_fresh_binding_values_have_the_same_ordered_pairs():
+    first = LakeBindings.model_validate(declared("object"))
+    second = LakeBindings.model_validate(first.model_dump())
+    assert normalize_foreign_keys(first) == normalize_foreign_keys(second)
 
 
 @pytest.mark.parametrize(
@@ -97,43 +78,36 @@ def test_equivalent_duplicate_declarations_collapse_without_reordering_pairs():
 )
 def test_invalid_or_unsupported_relationships_fail_at_boundary(change):
     doc = declared("object")
-    relation = doc["schema"][0]["relationships"][0]
+    relation = doc["relationships"][0]
     if change == "missing":
-        relation["to"][1] = "Parent.missing"
+        relation["target_fields"][1] = "missing"
     elif change == "arity":
-        relation["to"].pop()
+        relation["target_fields"].pop()
     elif change == "ambiguous":
-        relation.pop("from")
+        relation.pop("source_fields")
     elif change == "duplicate":
         changed = deepcopy(relation)
-        changed["to"].reverse()
-        doc["schema"][0]["relationships"].append(changed)
+        changed["target_fields"].reverse()
+        doc["relationships"].append(changed)
     elif change == "external":
-        relation["to"] = [
-            "https://example.invalid/contract#country",
-            "https://example.invalid/contract#code",
-        ]
+        relation["target_object"] = "https://example.invalid/Parent"
     elif change == "unsupported":
-        relation["type"] = "unimplemented"
+        relation["expression"] = "dynamic join"
     elif change == "owner":
-        relation["from"] = ["Parent.country", "Parent.code"]
+        relation["source_object"] = "Unbound"
     elif change == "repeat":
-        relation["from"] = ["Child.code", "Child.code"]
+        relation["source_fields"] = ["code", "code"]
     with pytest.raises(ValueError):
-        normalize_foreign_keys(validate_contract(doc))
+        normalize_foreign_keys(LakeBindings.model_validate(doc))
 
 
-def test_field_definition_link_is_not_a_relational_key():
-    doc = document()
-    doc["schema"][0]["properties"][2]["authoritativeDefinitions"] = [
-        {"type": "fieldReference", "url": "#/schema/parents/properties/code"}
-    ]
-    assert normalize_foreign_keys(validate_contract(doc)) == ()
+def test_mapped_field_identity_is_not_a_relational_key():
+    assert normalize_foreign_keys(LakeBindings.model_validate(document())) == ()
 
 
 @pytest.mark.parametrize("form", ["object", "reversed"])
 def test_native_composite_match_and_gx_findings_are_equivalent(form):
-    (key,) = normalize_foreign_keys(validate_contract(declared(form)))
+    (key,) = normalize_foreign_keys(LakeBindings.model_validate(declared(form)))
     source = ibis.memtable(
         {
             "row_id": ["crossed", "valid", "nullable", "missing"],

@@ -1,22 +1,31 @@
-"""Catalog access kept outside pure query construction."""
+"""Explicit backend discovery; runtime validation uses verified APMP schemas."""
+
+from collections.abc import Mapping
 
 import ibis.expr.types as ir
+from ppsc_metadata.lake import LakeBindings
+
+from ppsc_ops_data_quality.sources.apmp import RelationLocation
 
 
 def bind_history_tables(
     backend,
     *,
-    account_database: str,
-    contact_database: str,
-    survey_result_database: str,
+    bindings: LakeBindings,
+    locations: Mapping[str, RelationLocation],
 ) -> dict[str, ir.Table]:
-    """Bind each object's Athena history table using its actual catalog schema.
+    """Read the supplied physical relations and execute their declared aliases.
 
-    Map lowercase columns to Salesforce API names upstream when needed. For a
-    combined-history table supply three explicitly object-scoped relations instead.
+    This explicit discovery helper makes no claim about compatibility or data
+    stability. The Athena validation entry point runs catalog preflight separately.
     """
-    return {
-        "Account": backend.table("history", database=account_database),
-        "Contact": backend.table("history", database=contact_database),
-        "Survey_Result__c": backend.table("history", database=survey_result_database),
-    }
+    if set(locations) != set(bindings.datasets):
+        raise ValueError("Locations must match the selected APMP dataset IDs")
+    result = {}
+    for dataset_id, binding in bindings.datasets.items():
+        location = locations[dataset_id]
+        physical = backend.table(location.relation, database=(location.catalog, location.database))
+        result[binding.native_object] = physical.select(
+            **{logical: physical[name] for name, logical in binding.columns.items()}
+        )
+    return result

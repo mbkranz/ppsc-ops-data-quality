@@ -20,7 +20,7 @@ def test_compilation_exports_native_suites_and_athena_selects(tmp_path, capsys):
         assert len(suite.expectations) == count
         sql = (output / f"{name}.sql").read_text()
         sqlglot.parse_one(sql, read="athena")
-        assert '"history"' in sql
+        assert '"account_history"' in sql and '"survey_results_history"' in sql
     with pytest.raises(FileExistsError):
         compile_comparisons(output)
 

@@ -67,7 +67,7 @@ metadata. The Salesforce Flow adapter requires determinism and assignment bindin
 Pass `suite.meta["finding_key_columns"]` as native GX's
 `unexpected_index_column_names` to retain all expected and observed composite-key
 parts in findings. Orchestration supplies independent row counts, snapshot
-freshness, exclusion/quarantine policy, ODCS source definitions, immutable input
+freshness, exclusion/quarantine policy, native source definitions and APMP bindings, immutable input
 receipts and run metadata. The suite builder creates no context or execution.
 Use the existing runner's explicit result-format argument and report handoffs.
 
@@ -80,10 +80,10 @@ eligibility predicate. It compiles the selected object and fields once through
 request. Prepare relationship paths and BEFORE state upstream. When lookups or
 formulas are needed, call the producer's `flow_context` with the selected Flow,
 request, source tables and execution date first. Requested target fields must
-exist in the supplied contract; missing assignments and unsupported native
+exist in the supplied verified native metadata and APMP bindings; missing assignments and unsupported native
 constructs retain compiler diagnostics. Output/evidence collisions fail explicitly.
 
-`sources.salesforce.native_rollup_comparison` accepts any contracted parent
+`sources.salesforce.native_rollup_comparison` accepts any explicitly selected parent
 object, child object, selected native rollup and explicit parent key. The caller
 chooses snapshots and the empty/all-null aggregate policy. Keys use source-neutral
 `expected_key__parent` and `observed_key__parent` names. The Account module retains
@@ -103,7 +103,7 @@ A mapping producer or Qualtrics compiler can feed the same boundary by preparing
 native expected columns and independent rule evidence. Display-required and
 hide/must-be-null are independent nullable predicates; one is never inferred as
 the complement of the other. Preserve source IDs, rule paths, dependency and
-transformation definitions in the producer's contract/lineage handoff.
+native transformation evidence in the producer's verified handoff.
 
 This change does not implement a Qualtrics parser, mapping interpreter or universal
 metadata manifest. The current producer `projection-inputs/v1` manifest explicitly

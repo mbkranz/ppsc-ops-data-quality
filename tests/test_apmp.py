@@ -1,0 +1,409 @@
+"""Verified APMP aliases, catalog drift and applied snapshot identities."""
+
+import json
+from copy import deepcopy
+from hashlib import sha256
+
+import ibis
+import pytest
+import yaml
+from ppsc_metadata.artifacts import MetadataArtifact, definition_identity, load_metadata_bundle
+from sqlglot import exp
+
+from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
+from ppsc_ops_data_quality.runtime.configuration import ValidationConfiguration
+from ppsc_ops_data_quality.runtime.preflight import DataVersionBinding, check_catalog
+from ppsc_ops_data_quality.sources.apmp import (
+    RelationLocation,
+    lake_bindings,
+    logical_schema,
+    source_relation,
+)
+
+
+def bundle(tmp_path):
+    bindings = {
+        "datasets": {
+            "ledger": {
+                "native_object": "Invoice",
+                "catalog": "lake",
+                "database": "finance",
+                "relation": "delivery_42",
+                "ddl_path": "table.sql",
+                "columns": {"external_id": "Id", "posted_amount": "Amount"},
+                "keys": ["Id"],
+                "grain": "invoice",
+                "history_grain": "unestablished",
+            }
+        },
+        "relationships": [],
+    }
+    contents = {
+        "bindings.yaml": ("bindings", yaml.safe_dump(bindings)),
+        "catalog.json": ("catalog", json.dumps({"fixture": True})),
+        "table.sql": (
+            "ddl",
+            "CREATE EXTERNAL TABLE delivery_42 (`external_id` string, `posted_amount` decimal(12,2))",
+        ),
+    }
+    artifacts = []
+    for name, (role, text) in contents.items():
+        (tmp_path / name).write_text(text)
+        artifacts.append(
+            MetadataArtifact(path=name, role=role, sha256=sha256(text.encode()).hexdigest())
+        )
+    manifest = {
+        "version": "projection-inputs/v2",
+        "org": "synthetic",
+        "source_revision": "a" * 40,
+        "definition_revision": "b" * 40,
+        "definition_id": definition_identity(tuple(artifacts)),
+        "provisional": True,
+        "coverage": "synthetic renamed ledger",
+        "artifacts": [item.model_dump() for item in artifacts],
+    }
+    (tmp_path / "manifest.json").write_text(json.dumps(manifest))
+    return load_metadata_bundle(tmp_path, tmp_path / "manifest.json")
+
+
+class Catalog:
+    def __init__(self):
+        self.table = {
+            "Name": "delivery_42",
+            "TableType": "EXTERNAL_TABLE",
+            "Parameters": {"table_type": "ICEBERG"},
+            "Columns": [
+                {"Name": "external_id", "Type": "string"},
+                {"Name": "posted_amount", "Type": "decimal(12,2)"},
+            ],
+            "PartitionKeys": [],
+        }
+        self.queries = []
+
+    def get_table_metadata(self, **kwargs):
+        assert kwargs == {
+            "CatalogName": "lake",
+            "DatabaseName": "finance",
+            "TableName": "delivery_42",
+        }
+        return {"TableMetadata": deepcopy(self.table)}
+
+    def start_query_execution(self, **kwargs):
+        self.queries.append(kwargs["QueryString"])
+        return {"QueryExecutionId": "schema-probe"}
+
+    def get_query_execution(self, **kwargs):
+        return {"QueryExecution": {"Status": {"State": "SUCCEEDED"}}}
+
+    def get_query_results(self, **kwargs):
+        return {"ResultSet": {"ResultSetMetadata": {"ColumnInfo": self.table["Columns"][:2]}}}
+
+
+def preflight(inputs, client, *, version=None, stable=False):
+    return check_catalog(
+        inputs,
+        dataset_ids=("ledger",),
+        locations={
+            "ledger": RelationLocation(catalog="lake", database="finance", relation="delivery_42")
+        },
+        data_versions={"ledger": version or DataVersionBinding()},
+        athena_client=client,
+        query_options={},
+        require_repeatable_reads=stable,
+    )
+
+
+def test_physical_names_are_executable_aliases_and_nulls_survive(tmp_path):
+    inputs = bundle(tmp_path)
+    backend = ibis.duckdb.connect()
+    try:
+        backend.con.execute(
+            "CREATE TABLE delivery_42 AS SELECT 'one' AS external_id, CAST(NULL AS DECIMAL(12,2)) AS posted_amount"
+        )
+        catalog = backend.con.execute("SELECT current_database()").fetchone()[0]
+        relation = source_relation(
+            inputs,
+            "ledger",
+            location=RelationLocation(catalog=catalog, database="main", relation="delivery_42"),
+        )
+        assert relation.schema() == logical_schema(inputs, "ledger")
+        sql = to_sqlglot(relation).sql(dialect="duckdb")
+        assert '"external_id"' in sql and '"posted_amount"' in sql and '"delivery_42"' in sql
+        rows = backend.con.execute(sql).fetchall()
+        assert rows == [("one", None)]
+    finally:
+        backend.disconnect()
+
+
+def test_unreferenced_additions_are_recorded_without_retyping_selected_fields(tmp_path):
+    inputs, client = bundle(tmp_path), Catalog()
+    client.table["Columns"].append({"Name": "unrelated", "Type": "uniontype<int,string>"})
+    result = preflight(inputs, client)[0]
+    assert result.compatible and result.additional_columns == ("unrelated",)
+    assert not result.repeatability_established
+    assert any("Mutable input" in text for text in result.limitations)
+    assert not client.queries
+
+
+@pytest.mark.parametrize("change", ["missing", "type", "partition", "kind", "identity"])
+def test_breaking_catalog_drift_blocks_before_validation_queries(tmp_path, change):
+    inputs, client = bundle(tmp_path), Catalog()
+    if change == "missing":
+        client.table["Columns"].pop()
+    elif change == "type":
+        client.table["Columns"][1]["Type"] = "double"
+    elif change == "partition":
+        client.table["PartitionKeys"] = [{"Name": "day", "Type": "date"}]
+    elif change == "kind":
+        client.table["TableType"] = "VIRTUAL_VIEW"
+    else:
+        client.table["Name"] = "unexpected"
+    with pytest.raises(ValueError, match="changed|identity"):
+        preflight(inputs, client)
+    assert not client.queries
+
+
+def test_unavailable_metadata_and_mutable_stable_assertions_fail_explicitly(tmp_path):
+    inputs, client = bundle(tmp_path), Catalog()
+    with pytest.raises(ValueError, match="Stable-input assertion unestablished"):
+        preflight(inputs, client, stable=True)
+    client.get_table_metadata = lambda **kwargs: {}
+    with pytest.raises(ValueError, match="unavailable"):
+        preflight(inputs, client)
+
+
+def test_selected_snapshot_is_probed_and_applied_to_every_physical_read(tmp_path):
+    inputs, client = bundle(tmp_path), Catalog()
+    result = preflight(
+        inputs,
+        client,
+        version=DataVersionBinding(mode="iceberg_snapshot", snapshot_id="123"),
+        stable=True,
+    )[0]
+    assert result.repeatability_established and result.schema_query_execution_id == "schema-probe"
+    assert "FOR VERSION AS OF 123" in client.queries[0]
+    relation = source_relation(inputs, "ledger")
+    other = relation.view()
+    query = relation.join(other, relation.Id == other.Id).select(relation.Id, other.Amount)
+    ast = to_sqlglot(query, table_versions={("lake", "finance", "delivery_42"): "123"})
+    physical = [node for node in ast.find_all(exp.Table) if node.catalog == "lake"]
+    assert physical and all(node.args["version"].expression.this == "123" for node in physical)
+    assert ast.sql(dialect="athena").count("FOR VERSION AS OF 123") == len(physical)
+
+
+def test_schema_and_mapping_changes_change_identity_or_reject(tmp_path):
+    inputs = bundle(tmp_path)
+    assert lake_bindings(inputs).datasets["ledger"].columns["external_id"] == "Id"
+    path = tmp_path / "bindings.yaml"
+    path.write_text(path.read_text().replace("external_id: Id", "external_id: NewId"))
+    with pytest.raises(ValueError, match="hash mismatch"):
+        load_metadata_bundle(tmp_path, tmp_path / "manifest.json")
+
+
+def test_nonempty_legacy_runtime_type_override_has_migration_message():
+    with pytest.raises(ValueError, match="reviewed APMP definition"):
+        ValidationConfiguration.model_validate({"schema_overrides": {"account": {"x": "string"}}})
+
+
+def test_query_assets_receive_the_same_snapshot_on_each_metric_source(tmp_path):
+    from types import SimpleNamespace
+
+    from ppsc_ops_data_quality.gx_queries import query_batch_definition
+
+    inputs = bundle(tmp_path)
+    relation = source_relation(inputs, "ledger")
+    queries = []
+
+    class Source:
+        def add_query_asset(self, **kwargs):
+            queries.append(kwargs["query"])
+            return SimpleNamespace(add_batch_definition_whole_table=lambda **kwargs: "batch")
+
+    for query in (relation, relation.filter(relation.Amount.notnull())):
+        assert (
+            query_batch_definition(
+                Source(),
+                query,
+                name="selected",
+                table_versions={("lake", "finance", "delivery_42"): "123"},
+            )
+            == "batch"
+        )
+    assert len(queries) == 2
+    assert all("FOR VERSION AS OF 123" in query for query in queries)
+
+
+def test_invalid_selection_never_constructs_an_online_client(tmp_path, monkeypatch):
+    import re
+    from pathlib import Path
+
+    from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt
+    from ppsc_ops_data_quality.runtime import validation
+    from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
+
+    path = tmp_path / "config.yaml"
+    path.write_text(
+        re.sub(r"REPLACE_WITH_[A-Z_]+", "fixture", Path("params.example.yaml").read_text())
+    )
+    request = load_validation_configuration(path)
+    request = request.model_copy(update={"locations": {}})
+    calls = []
+    with pytest.raises(ValueError, match="locations"):
+        validation.run_validation(
+            request,
+            run_directory=tmp_path / "never",
+            athena_client_factory=lambda: calls.append(True),
+        )
+    assert not calls and not (tmp_path / "never").exists()
+    assert metadata_receipt().manifest.provisional
+
+
+def test_snapshot_column_info_precision_and_scale_are_preserved(tmp_path):
+    inputs, client = bundle(tmp_path), Catalog()
+
+    def results(**kwargs):
+        return {
+            "ResultSet": {
+                "ResultSetMetadata": {
+                    "ColumnInfo": [
+                        {"Name": "external_id", "Type": "varchar"},
+                        {"Name": "posted_amount", "Type": "decimal", "Precision": 12, "Scale": 2},
+                    ]
+                }
+            }
+        }
+
+    client.get_query_results = results
+    result = preflight(
+        inputs,
+        client,
+        version=DataVersionBinding(mode="iceberg_snapshot", snapshot_id="123"),
+        stable=True,
+    )
+    assert result[0].repeatability_established
+    client.get_query_results = lambda **kwargs: {
+        "ResultSet": {
+            "ResultSetMetadata": {
+                "ColumnInfo": [
+                    {"Name": "external_id", "Type": "varchar"},
+                    {"Name": "posted_amount", "Type": "decimal", "Precision": 18, "Scale": 6},
+                ]
+            }
+        }
+    }
+    with pytest.raises(ValueError, match="historical schema differs"):
+        preflight(
+            inputs,
+            client,
+            version=DataVersionBinding(mode="iceberg_snapshot", snapshot_id="123"),
+            stable=True,
+        )
+
+
+def test_case_colliding_added_live_column_is_not_harmless(tmp_path):
+    inputs, client = bundle(tmp_path), Catalog()
+    client.table["Columns"].append({"Name": "EXTERNAL_ID", "Type": "string"})
+    with pytest.raises(ValueError, match="case-colliding"):
+        preflight(inputs, client)
+    assert not client.queries
+
+
+def test_date_validity_cannot_claim_timestamp_history_resolution(tmp_path, monkeypatch):
+    import re
+    from pathlib import Path
+
+    from ppsc_ops_data_quality.runtime import validation
+    from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
+
+    path = tmp_path / "config.yaml"
+    path.write_text(
+        re.sub(r"REPLACE_WITH_[A-Z_]+", "fixture", Path("params.example.yaml").read_text())
+    )
+    request = load_validation_configuration(path)
+    inputs = validation.metadata_inputs()
+    # A declaration claiming timestamp grain is insufficient if the selected
+    # physical state boundaries are actually DATE. loaded_at remains timestamp.
+    selected = lake_bindings(inputs).datasets["account"]
+    inputs.artifacts[selected.ddl_path] = (
+        inputs.artifacts[selected.ddl_path]
+        .replace("`valid_from` timestamp", "`valid_from` DATE")
+        .replace("`valid_to` timestamp", "`valid_to` DATE")
+    )
+    monkeypatch.setattr(validation, "metadata_inputs", lambda: inputs)
+    calls = []
+    with pytest.raises(ValueError, match="temporal resolution unestablished"):
+        validation.run_validation(
+            request,
+            run_directory=tmp_path / "never",
+            athena_client_factory=lambda: calls.append(True),
+        )
+    assert not calls
+
+
+@pytest.mark.parametrize("sidecar_dataset", ["ledger", "different_dataset"])
+def test_view_schema_native_types_and_dataset_identity_are_bound_together(
+    tmp_path, sidecar_dataset
+):
+    from ppsc_ops_data_quality.sources.apmp import physical_schema
+
+    bundle(tmp_path)
+    bindings_path = tmp_path / "bindings.yaml"
+    bindings = yaml.safe_load(bindings_path.read_text())
+    binding = bindings["datasets"]["ledger"]
+    binding.update(kind="view", ddl_path="view.sql", schema_path="schema.json")
+    binding["columns"]["observed_at"] = "ObservedAt"
+    bindings_path.write_text(yaml.safe_dump(bindings))
+    (tmp_path / "view.sql").write_text(
+        "CREATE VIEW delivery_42 AS SELECT external_id, posted_amount, observed_at FROM source_delivery"
+    )
+    (tmp_path / "schema.json").write_text(
+        json.dumps(
+            {
+                "dataset_id": sidecar_dataset,
+                "fields": [
+                    ["external_id", "string"],
+                    ["posted_amount", "decimal(18,6)"],
+                    ["observed_at", "timestamp('UTC', 6)"],
+                ],
+            }
+        )
+    )
+    manifest_path = tmp_path / "manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    selected = [item for item in manifest["artifacts"] if item["role"] != "ddl"]
+    selected.extend(
+        [{"path": "view.sql", "role": "view"}, {"path": "schema.json", "role": "schema"}]
+    )
+    for artifact in selected:
+        artifact["sha256"] = sha256((tmp_path / artifact["path"]).read_bytes()).hexdigest()
+    manifest["artifacts"] = selected
+    manifest["definition_id"] = definition_identity(
+        tuple(MetadataArtifact.model_validate(item) for item in selected)
+    )
+    manifest_path.write_text(json.dumps(manifest))
+    inputs = load_metadata_bundle(tmp_path, manifest_path)
+    if sidecar_dataset != "ledger":
+        with pytest.raises(ValueError, match="dataset identity mismatch"):
+            physical_schema(inputs, "ledger")
+    else:
+        schema = physical_schema(inputs, "ledger")
+        assert schema.names == tuple(lake_bindings(inputs).datasets["ledger"].columns)
+        assert schema["posted_amount"] == ibis.dtype("decimal(18,6)")
+        assert schema["observed_at"] == ibis.dtype("timestamp('UTC', 6)")
+
+
+def test_report_sources_follow_executed_sql_and_exclude_unused_locations():
+    from ppsc_ops_data_quality.runtime.athena import query_source_tables
+
+    selected = {
+        "used": RelationLocation(catalog="lake", database="finance", relation="delivery_42"),
+        "unused": RelationLocation(catalog="lake", database="finance", relation="unread_lookup"),
+    }
+    sql = """WITH delivery_42 AS (
+      SELECT external_id FROM "lake"."finance"."delivery_42" FOR VERSION AS OF 123
+    ) SELECT external_id FROM delivery_42"""
+    assert query_source_tables(sql, locations=selected) == ["lake.finance.delivery_42"]
+    with pytest.raises(ValueError, match="unselected physical relation"):
+        query_source_tables(
+            'SELECT external_id FROM "other"."finance"."delivery_42"', locations=selected
+        )

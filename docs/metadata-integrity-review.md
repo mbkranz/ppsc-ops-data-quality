@@ -1,3 +1,5 @@
+> Historical pre-migration review. The active v2 boundary is documented in [metadata-compiler.md](metadata-compiler.md).
+
 # Verified compilation snapshot
 
 Follow-up to the cached-metadata finding in the October 24 Spaces plan. The

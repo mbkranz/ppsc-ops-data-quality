@@ -16,7 +16,10 @@ from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 
 
 def query_asset_sql(
-    comparison: ir.Table, *, projection_lineage: Mapping[str, Mapping[str, object]] | None = None
+    comparison: ir.Table,
+    *,
+    projection_lineage: Mapping[str, Mapping[str, object]] | None = None,
+    table_versions: Mapping[tuple[str, str, str], str] | None = None,
 ) -> str:
     """Return one Athena SELECT, with lineage comments and no terminal semicolon.
 
@@ -26,7 +29,9 @@ def query_asset_sql(
     The SQL text carries comments; structured meta remains in the annotated AST
     and canonical lineage mapping rather than being serialized into SQL.
     """
-    query = to_sqlglot(comparison, projection_lineage=projection_lineage)
+    query = to_sqlglot(
+        comparison, projection_lineage=projection_lineage, table_versions=table_versions
+    )
     sql = query.sql(dialect="athena", pretty=False)
     # https://docs.aws.amazon.com/athena/latest/ug/service-limits.html
     if len(sql.encode("utf-8")) > 262_144:
@@ -41,6 +46,7 @@ def query_batch_definition(
     name: str,
     metadata: Mapping[str, object] | None = None,
     projection_lineage: Mapping[str, Mapping[str, object]] | None = None,
+    table_versions: Mapping[tuple[str, str, str], str] | None = None,
 ):
     """Register a native Query Asset and return its whole-query Batch Definition.
 
@@ -55,7 +61,9 @@ def query_batch_definition(
     """
     asset = data_source.add_query_asset(
         name=name,
-        query=query_asset_sql(comparison, projection_lineage=projection_lineage),
+        query=query_asset_sql(
+            comparison, projection_lineage=projection_lineage, table_versions=table_versions
+        ),
         batch_metadata=dict(metadata or {}),
     )
     return asset.add_batch_definition_whole_table(name="whole_comparison")

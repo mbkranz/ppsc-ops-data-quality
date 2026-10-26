@@ -1,156 +1,56 @@
-# Schemas for the Account / Survey Result queries
+# Selected APMP input schemas
 
-Schemas are ordinary `ibis.Schema` objects, derived from the packaged provisional
-`validation-inputs.odcs.yaml` through `ppsc_metadata.schemas.ibis_schema()`. Each
-source declaration contains all
-columns required by this validation workflow. `VALIDATION_INPUT` explicitly scopes
-the relation: these are not full exports of every Salesforce object field and are
-not catalog-discovered physical Athena schemas.
+The input schema authority is the generated, pinned APMP handoff under
+`account_to_survey_results/metadata`. Salesforce/APMP owns its source definitions.
+Ops verifies every selected byte through `projection-inputs/v2`, reads Athena DDL
+with `ppsc_metadata.schemas.athena_schema`, and builds native Ibis relations.
+There is no independently authored Ops schema copy.
 
-## Source and snapshot schemas
+The packaged Account, Contact and Survey Results selection is a **provisional
+fixture** migrated from the previous compatibility profile. Its catalog names,
+physical types, history resolution and native equivalence have not been accepted
+against a real lake. Source metadata capture and data snapshots have separate
+identities.
 
-| Module | Constants | Columns |
-|---|---|---:|
-| `account.py` | `ACCOUNT_VALIDATION_INPUT` | 41 |
-| | `ACCOUNT_HISTORY_VALIDATION_INPUT`, `ACCOUNT_SNAPSHOT_VALIDATION_INPUT` | 45 |
-| `contact.py` | `CONTACT_VALIDATION_INPUT` | 3 |
-| | `CONTACT_HISTORY_VALIDATION_INPUT`, `CONTACT_SNAPSHOT_VALIDATION_INPUT` | 7 |
-| `survey_results.py` | `SURVEY_RESULT_VALIDATION_INPUT` | 9 |
-| | `SURVEY_RESULT_HISTORY_VALIDATION_INPUT`, `SURVEY_RESULT_SNAPSHOT_VALIDATION_INPUT` | 13 |
-| `history.py` | `HISTORY_METADATA` | 4 |
-
-The ODCS profile migrates the existing ops input types, formerly documented from
-`salesforce_schemas_combined_latest.xlsx`, into one structured schema authority.
-It is a draft compatibility profile, not an approved QA2 or production contract.
-The bundled source catalog supplies identity/relationship evidence, not verified
-physical types. Catalog acceptance remains local work.
-
-- Account consent age is `decimal(3,0)`.
-- COUNT rollups use the explicit logical count type `int64`.
-- Survey index is text; Contact birthdate is a date; completion fields are timestamps.
-- Every raw field is nullable, including source-required IDs. Requiredness remains
-  a validation rule so invalid records are retained.
-- Three explicit property relationships bind Survey Participant to Contact,
-  Contact Account to Account, and Account PersonContact to Contact. The domain
-  checks these against its join bindings.
-
-History metadata comes from the earlier Athena sample: `valid_from`, `valid_to`,
-`is_current`, and `loaded_at`. This module provides a timestamp-grain history
-profile for the event examples. The previous sample used date-grain validity;
-verify which schema the producer actually writes. Timezone and timestamp precision
-are unspecified in this profile. The module invents no partition/discriminator or
-deletion columns, and performs no casts, reads or writes on import.
-
-Snapshots filter rows without changing the schema. Account BEFORE and AFTER use
-the same Account snapshot schema at distinct effective instants. Current and
-historical snapshot reads have the same column definitions.
-
-## Bind the inputs
+`account.py`, `contact.py`, `survey_results.py` and `history.py` retain public
+schema constants for offline examples. They derive from the same verified handoff;
+module imports acquire no Salesforce or AWS data. Derived comparison schemas come
+from the actual Ibis expressions in `account_to_survey_results.schemas`.
 
 ```python
 from ppsc_ops_data_quality.core.queries import history_tables
-from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_query
+from ppsc_ops_data_quality.sources.apmp import RelationLocation
 
+# verified_inputs is an explicitly selected MetadataBundle.
 history = history_tables(
-    account_database="your_account_database",
-    contact_database="your_contact_database",
-    survey_result_database="your_survey_result_database",
-)
-Comparison = flow_account_query(
-    history,
-    survey_result_id=verified_event_id,
-    account_before_at=verified_before_time,
-    execution_at=verified_execution_time,
-    account_after_at=verified_settled_after_time,
-    flow_run_date=org_local_execution_date,
+    inputs=verified_inputs,
+    locations={
+        dataset_id: RelationLocation(
+            catalog=selected_catalog,
+            database=selected_database,
+            relation=selected_relation,
+        )
+        for dataset_id in selected_dataset_ids
+    },
 )
 ```
 
-Each relation references a table named `history` in its configured object database.
-It is unbound Ibis input for Athena compilation, not a live backend connection.
+The physical relation uses the real catalog, database, table and columns. A
+`select` then executes physical-to-native aliases. Relabeling only schema names
+would leave SQL reading nonexistent columns and is not supported. Raw NULLs stay
+nullable; requiredness, value membership and conditional rules belong to checks.
 
-Supply real catalog schemas through `account_schema=`, `contact_schema=` and
-`survey_result_schema=`. Extra columns are preserved; no automatic casting or
-renaming occurs. If the catalog uses lowercase names, normalize/project aliases
-upstream before calling the query builders. `runtime.data_access.bind_history_tables()` remains
-available when an existing backend can inspect the catalog.
+No implicit casts are introduced. The initial mapping profile supports direct
+projections. A conversion requires a reviewed producer definition and explicit
+failure evidence before it can be selected. Free-form runtime `schema_overrides`
+are retired and rejected with a migration message.
 
-For example, an explicitly date-grain input can be declared with native composition:
+Runtime preflight compares selected live names/types, partition declarations and
+table/view kind before GX queries. Additional unreferenced columns are recorded
+and allowed with explicit projections. A view requires verified output-schema
+metadata and real registered relation bindings; live view compatibility remains
+unestablished until deployed SQL/dependencies can also be verified.
 
-```python
-import ibis
-from ppsc_ops_data_quality.core.schemas import ACCOUNT_HISTORY_VALIDATION_INPUT
-
-AccountDailyHistory = ibis.schema(
-    {
-        **ACCOUNT_HISTORY_VALIDATION_INPUT.fields,
-        "valid_from": "date",
-        "valid_to": "date",
-    }
-)
-```
-
-Pass `date` values when snapshotting that relation. Date-grain history cannot
-reconstruct BEFORE/execution/AFTER states within a single day.
-
-## Derived table and view schemas
-
-`account_to_survey_results/schemas.py` exposes these schemas, inferred from the existing expression builders:
-
-| Constant | Columns |
-|---|---:|
-| `JOINED_SURVEY_ACCOUNT_RECORD` | 29 |
-| `FLOW_EXECUTION_RECORD` | 47 |
-| `EXPECTED_ACCOUNT_BY_SURVEY_EVENT` | 26 |
-| `OBSERVED_ACCOUNT_AFTER_BY_SURVEY_EVENT` | 46 |
-| `EXPECTED_ACCOUNT_SURVEY_ROLLUPS` | 21 |
-| `FLOW_ACCOUNT_COMPARISON` | 46 |
-| `ROLLUP_ACCOUNT_COMPARISON` | 41 |
-
-Symbolic Ibis parameters supply the DATE and event ID types needed for inference;
-there is no fabricated event or runtime execution. These constants describe the
-default source profiles. With catalog overrides or custom projections, obtain the
-schema from the resulting expression:
-
-```python
-comparison_schema = Comparison.schema()
-```
-
-A GX Query Asset wraps the SELECT without changing its output columns. An optional
-Athena view uses the defining query's schema; `views.create_view()` already returns
-an Ibis relation with that schema. No duplicate view-schema declaration is needed.
-Inferred schemas are not independent assertions of output stability. Add a
-separately reviewed contract only for outputs whose consumers require one.
-
-## Interchange and provenance
-
-```python
-from ppsc_ops_data_quality.core.schemas import ACCOUNT_HISTORY_VALIDATION_INPUT
-
-arrow_schema = ACCOUNT_HISTORY_VALIDATION_INPUT.to_pyarrow()
-column_defs = ACCOUNT_HISTORY_VALIDATION_INPUT.to_sqlglot_column_defs(dialect="athena")
-```
-
-Use `ibis.Schema.from_pyarrow(arrow_schema)` to import an Arrow schema. Use
-`ibis.Schema.from_sqlglot(exp.Schema(expressions=column_defs), dialect="athena")`
-for SQLGlot column definitions, rather than a SQLGlot `MappingSchema` object.
-The schema-level `to_sqlglot()` method is deprecated.
-
-Arrow can make previously unspecified timestamp precision concrete during
-conversion. Arbitrary Arrow metadata is not carried through Ibis schema round
-trips. Field/branch provenance remains in the independent lineage mapping and
-the packaged contract and native metadata receipt, not in custom Ibis attributes. SQLGlot
-column `.meta` also does not survive a SQLGlot -> Ibis -> SQLGlot schema
-conversion, or rendering/reparsing ordinary SQL text. Keeping the original
-metadata-bearing schema AST is possible, but still requires reattaching that
-metadata to compiled query outputs. SQLGlot dump/load retains custom metadata
-in the tested AST representation.
-
-The schemas package depends on Ibis. Importing `account_to_survey_results.schemas` also requires the
-existing derivation, lineage and query modules alongside it; the complete bundle
-contains those files. Source schema imports do not load GX or evaluate data.
-
-References:
-
-- [Ibis schemas](https://ibis-project.org/reference/schemas)
-- [Arrow schemas](https://arrow.apache.org/docs/python/generated/pyarrow.schema.html)
+Timestamp history is required for the existing intra-day Flow workflow. DATE
+history remains valid source evidence but cannot establish arbitrary
+BEFORE/execution/AFTER states. The runtime reports that gap before connecting.

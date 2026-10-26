@@ -15,6 +15,7 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
     flow_account_suite,
     rollup_account_suite,
 )
+from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_inputs
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     flow_account_query,
     rollup_account_query,
@@ -75,18 +76,14 @@ class SchemaTests(unittest.TestCase):
         )
 
     def test_snapshot_profiles_preserve_all_declared_fields(self):
-        history = history_tables(
-            account_database="a", contact_database="c", survey_result_database="s"
-        )
+        history = history_tables(inputs=metadata_inputs())
         for relation in history.values():
             for point in [None, datetime(2026, 10, 21, 12)]:
                 self.assertEqual(snapshot(relation, as_of=point).schema(), relation.schema())
         self.assertIn("loaded_at", history["Account"].columns)
 
     def test_declared_sources_build_complete_comparisons_and_optional_views(self):
-        history = history_tables(
-            account_database="a", contact_database="c", survey_result_database="s"
-        )
+        history = history_tables(inputs=metadata_inputs())
         flow = flow_account_query(
             history,
             survey_result_id="r1",
@@ -112,31 +109,20 @@ class SchemaTests(unittest.TestCase):
             sqlglot.parse_one(query_asset_sql(query), read="athena")
             sqlglot.parse_one(create_view_sql(query, name="comparison"), read="athena")
 
-    def test_catalog_override_preserves_real_precision_and_date_validity(self):
+    def test_inadequate_date_history_is_retained_in_explicit_query_inputs(self):
+        # A prepared relation may expose date-grained history; runtime refuses to
+        # certify intra-day Flow equivalence from that weaker evidence.
         account_schema = ibis.schema(
             {
                 **ACCOUNT_HISTORY_VALIDATION_INPUT.fields,
-                "Age_at_Time_of_Consent__pc": "decimal(18,0)",
                 "valid_from": "date",
                 "valid_to": "date",
                 "ingestion_partition": "string",
             }
         )
-        history = history_tables(
-            account_database="a",
-            contact_database="c",
-            survey_result_database="s",
-            account_schema=account_schema,
-        )
-        self.assertEqual(history["Account"].schema(), account_schema)
-        self.assertIn(
-            "ingestion_partition",
-            snapshot(history["Account"], as_of=date(2026, 10, 21)).columns,
-        )
-        self.assertEqual(
-            history["Account"].schema()["Age_at_Time_of_Consent__pc"],
-            ibis.dtype("decimal(18,0)"),
-        )
+        account = ibis.table(account_schema, name="reviewed_date_delivery")
+        self.assertEqual(snapshot(account, as_of=date(2026, 10, 21)).schema(), account_schema)
+        self.assertIn("ingestion_partition", account.columns)
 
     def test_decimal_source_values_and_missing_identifiers_survive_execution(self):
         rows = [{name: None for name in ACCOUNT_VALIDATION_INPUT}]

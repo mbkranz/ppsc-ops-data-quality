@@ -46,7 +46,7 @@ def test_mutating_returned_metadata_cannot_change_receipted_compilation():
 def test_repeated_loads_and_configuration_return_independent_objects():
     first, second = metadata_inputs(), metadata_inputs()
     assert first == second and first is not second
-    first.contract.schema_[0].properties[0].description = "caller changed this"
+    first.artifacts.clear()
     first.flow["Metadata"]["decisions"].clear()
     assert metadata_inputs() == second
     request = metadata_request()
@@ -98,3 +98,18 @@ def test_changed_compiler_version_rejects_receipt(monkeypatch):
     monkeypatch.setattr(metadata, "version", lambda _: "different-compiler")
     with pytest.raises(ValueError, match="changed after query construction"):
         metadata_receipt()
+
+
+def test_same_version_installed_compiler_source_replacement_rejects_receipt(tmp_path, monkeypatch):
+    root = metadata._compiler_root()
+    copied = tmp_path / "ppsc_metadata"
+    shutil.copytree(root, copied, ignore=shutil.ignore_patterns("__pycache__"))
+    monkeypatch.setattr(metadata, "_compiler_root", lambda: copied)
+    before = metadata_receipt()
+    assert before.compiler_source_sha256 == metadata.COMPILER_SOURCE_SHA256
+    path = copied / "schemas.py"
+    path.write_text(path.read_text() + "\n# same version, changed installed bytes\n")
+    with pytest.raises(ValueError, match="compiler source fingerprint"):
+        metadata_receipt()
+    with pytest.raises(ValueError, match="compiler source fingerprint"):
+        metadata_inputs()

@@ -252,8 +252,8 @@ def glue_driver():
 
 
 def test_glue_calls_shared_runner_with_verified_config_and_provenance(monkeypatch):
+    from ppsc_ops_data_quality.account_to_survey_results.validation import ValidationOutcome
     from ppsc_ops_data_quality.runtime import glue as module
-    from ppsc_ops_data_quality.runtime.validation import ValidationOutcome
 
     content = re.sub(
         r"REPLACE_WITH_[A-Z_]+", "fixture", (ROOT / "params.example.yaml").read_text()
@@ -341,8 +341,10 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
     import re
     from types import SimpleNamespace
 
-    from ppsc_ops_data_quality.runtime import validation as job
-    from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
+    from ppsc_ops_data_quality.account_to_survey_results import validation as job
+    from ppsc_ops_data_quality.account_to_survey_results.configuration import (
+        load_validation_configuration,
+    )
 
     config = tmp_path / "params.yaml"
     config.write_text(

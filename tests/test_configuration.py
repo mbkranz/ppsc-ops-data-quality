@@ -12,10 +12,12 @@ import ibis
 import pytest
 import yaml
 
+from ppsc_ops_data_quality.account_to_survey_results.configuration import (
+    load_validation_configuration,
+)
 from ppsc_ops_data_quality.core.configuration import load_yaml
 from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 from ppsc_ops_data_quality.gx_queries import query_asset_sql
-from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
 from ppsc_ops_data_quality.runtime.resources import ConfigurationResource, read_configuration
 from ppsc_ops_data_quality.views import create_view_sql
 

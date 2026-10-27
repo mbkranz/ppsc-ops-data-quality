@@ -2,211 +2,211 @@ digraph {
 	node [fontname="Deja Vu Sans Mono" shape=box]
 	edge [fontname="Deja Vu Sans Mono"]
 	rankdir=BT
-	-7658929954726826026 [label=<<B>JoinChain</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.AccountId</I>: string<BR ALIGN="LEFT" /><I>Participant__r.Birthdate</I>: date<BR ALIGN="LEFT" /><I>Participant__r.Account.Id</I>: string<BR ALIGN="LEFT" /><I>Participant__r.Account.Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>Participant__r.Account.CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
-	6581291494379029773 [label=<<B>JoinReference</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	6581291494379029773 -> -7658929954726826026
-	-2190531301774294946 [label=<<B>JoinLink</B><BR ALIGN="LEFT" />:: ∅<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
-	-2190531301774294946 -> -7658929954726826026
-	-4763755688580265046 [label=<<B>JoinLink</B><BR ALIGN="LEFT" />:: ∅<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
-	-4763755688580265046 -> -7658929954726826026
-	-642722912010006150 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-642722912010006150 -> -7658929954726826026
-	7188196654483702229 [label=<<I>Participant__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	7188196654483702229 -> -7658929954726826026
-	-2314187428810585878 [label=<<I>Survey_Index_Number__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-2314187428810585878 -> -7658929954726826026
-	-8019778857464061211 [label=<<I>Completion_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-8019778857464061211 -> -7658929954726826026
-	1629045876723380825 [label=<<I>Consent_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	1629045876723380825 -> -7658929954726826026
-	2998102727065203452 [label=<<I>Completion_Status_Timestamp__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	2998102727065203452 -> -7658929954726826026
-	2614065107816796591 [label=<<I>California_Signature__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	2614065107816796591 -> -7658929954726826026
-	-2059042560379810195 [label=<<I>AccountId</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
-	-2059042560379810195 -> -7658929954726826026
-	8604292378955804209 [label=<<I>Birthdate</I>: <B>Field</B><BR ALIGN="LEFT" />:: date<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
-	8604292378955804209 -> -7658929954726826026
-	-2929391512651876190 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2929391512651876190 -> -7658929954726826026
-	-1291676475546747180 [label=<<I>Age_at_Time_of_Consent__pc</I>: <B>Field</B><BR ALIGN="LEFT" />:: decimal(3, 0)<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-1291676475546747180 -> -7658929954726826026
-	-6496499699235022734 [label=<<I>CABOR_Completion_Date__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-6496499699235022734 -> -7658929954726826026
-	-2328921645593147229 [label=<<I>Earliest_Primary_Consent_Date_for_Report__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2328921645593147229 -> -7658929954726826026
-	-5695229915517312185 [label=<<I>Latest_Primary_Consent_Date_for_Report__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-5695229915517312185 -> -7658929954726826026
-	-6922203667682662205 [label=<<I>EHR_Consent_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-6922203667682662205 -> -7658929954726826026
-	-7603846783444286914 [label=<<I>EHR_Reconsent_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-7603846783444286914 -> -7658929954726826026
-	-3565626827185620994 [label=<<I>Update_to_Primary_Consent_Completed__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-3565626827185620994 -> -7658929954726826026
-	-4865013393068933409 [label=<<I>Basics_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-4865013393068933409 -> -7658929954726826026
-	2070019837262955896 [label=<<I>Overall_Health_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	2070019837262955896 -> -7658929954726826026
-	-8717078976923235275 [label=<<I>Lifestyle_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-8717078976923235275 -> -7658929954726826026
-	955979054820262334 [label=<<I>Personal_and_Family_History_Complete__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	955979054820262334 -> -7658929954726826026
-	-5440941166477777715 [label=<<I>HC_Access_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-5440941166477777715 -> -7658929954726826026
-	5717365037477442020 [label=<<I>Life_Functioning_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	5717365037477442020 -> -7658929954726826026
-	-458916639416806921 [label=<<I>First_Physical_Measurement_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-458916639416806921 -> -7658929954726826026
-	-302165211449420300 [label=<<I>Last_Physical_Measurement_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-302165211449420300 -> -7658929954726826026
-	-2259608760823426547 [label=<<I>EH_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-2259608760823426547 -> -7658929954726826026
-	5781740451712475980 [label=<<I>Behavioral_Health_Completion__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	5781740451712475980 -> -7658929954726826026
-	8377590039523276193 [label=<<I>Environmental_Exposures_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	8377590039523276193 -> -7658929954726826026
-	15331199466948505 [label=<<I>Social_Determinants_of_Health_Completion__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	15331199466948505 -> -7658929954726826026
-	-4095026170382321643 [label=<<B>Project</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-4095026170382321643 -> 6581291494379029773
-	3013968124726405955 [label=<<B>JoinReference</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>AccountId</I>: string<BR ALIGN="LEFT" /><I>Birthdate</I>: date<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
-	3013968124726405955 -> -2190531301774294946
-	7350393082968042841 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
-	7350393082968042841 -> -2190531301774294946
-	3938958758925910317 [label=<<B>JoinReference</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>IsPersonAccount</I>: boolean<BR ALIGN="LEFT" /><I>Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	3938958758925910317 -> -4763755688580265046
-	3565905053199211114 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
-	3565905053199211114 -> -4763755688580265046
-	6581291494379029773 -> -642722912010006150
-	6581291494379029773 -> 7188196654483702229
-	6581291494379029773 -> -2314187428810585878
-	6581291494379029773 -> -8019778857464061211
-	6581291494379029773 -> 1629045876723380825
-	6581291494379029773 -> 2998102727065203452
-	6581291494379029773 -> 2614065107816796591
-	3013968124726405955 -> -2059042560379810195
-	3013968124726405955 -> 8604292378955804209
-	3938958758925910317 -> -2929391512651876190
-	3938958758925910317 -> -1291676475546747180
-	3938958758925910317 -> -6496499699235022734
-	3938958758925910317 -> -2328921645593147229
-	3938958758925910317 -> -5695229915517312185
-	3938958758925910317 -> -6922203667682662205
-	3938958758925910317 -> -7603846783444286914
-	3938958758925910317 -> -3565626827185620994
-	3938958758925910317 -> -4865013393068933409
-	3938958758925910317 -> 2070019837262955896
-	3938958758925910317 -> -8717078976923235275
-	3938958758925910317 -> 955979054820262334
-	3938958758925910317 -> -5440941166477777715
-	3938958758925910317 -> 5717365037477442020
-	3938958758925910317 -> -458916639416806921
-	3938958758925910317 -> -302165211449420300
-	3938958758925910317 -> -2259608760823426547
-	3938958758925910317 -> 5781740451712475980
-	3938958758925910317 -> 8377590039523276193
-	3938958758925910317 -> 15331199466948505
-	-8714432217363651549 [label=<<I>Survey_Result__c</I>: <B>AliasedRelation</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>Consent_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-8714432217363651549 -> -4095026170382321643
-	6158405390744651222 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	6158405390744651222 -> -4095026170382321643
-	-4457419116471192015 [label=<<I>Participant__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-4457419116471192015 -> -4095026170382321643
-	-1825692990247717780 [label=<<I>Survey_Index_Number__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-1825692990247717780 -> -4095026170382321643
-	-1088976316645552921 [label=<<I>Completion_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-1088976316645552921 -> -4095026170382321643
-	8430174179478038197 [label=<<I>Consent_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	8430174179478038197 -> -4095026170382321643
-	-8647513043889690792 [label=<<I>Completion_Status_Timestamp__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-8647513043889690792 -> -4095026170382321643
-	-6383878757487608956 [label=<<I>California_Signature__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-6383878757487608956 -> -4095026170382321643
-	1856453326077506949 [label=<<I>Contact</I>: <B>AliasedRelation</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>AccountId</I>: string<BR ALIGN="LEFT" /><I>Birthdate</I>: date<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
-	1856453326077506949 -> 3013968124726405955
-	7188196654483702229 -> 7350393082968042841
-	-2794180503132309956 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
-	-2794180503132309956 -> 7350393082968042841
-	-1453172878315123207 [label=<<I>Account</I>: <B>AliasedRelation</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>IsPersonAccount</I>: boolean<BR ALIGN="LEFT" /><I>Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-1453172878315123207 -> 3938958758925910317
-	-2059042560379810195 -> 3565905053199211114
-	-2929391512651876190 -> 3565905053199211114
-	-2823489515486401039 [label=<<I>Trigger_Survey_Result</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>Consent_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
-	-2823489515486401039 -> -8714432217363651549
-	-8714432217363651549 -> 6158405390744651222
-	-8714432217363651549 -> -4457419116471192015
-	-8714432217363651549 -> -1825692990247717780
-	-8714432217363651549 -> -1088976316645552921
-	-8714432217363651549 -> 8430174179478038197
-	-8714432217363651549 -> -8647513043889690792
-	-8714432217363651549 -> -6383878757487608956
-	4063227937132712623 [label=<<I>Contact_At_Execution</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>AccountId</I>: string<BR ALIGN="LEFT" /><I>Birthdate</I>: date<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
-	4063227937132712623 -> 1856453326077506949
-	3013968124726405955 -> -2794180503132309956
-	-572975097747732424 [label=<<I>Account_Before</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>IsPersonAccount</I>: boolean<BR ALIGN="LEFT" /><I>Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
-	-572975097747732424 -> -1453172878315123207
+	114384378052192838 [label=<<B>JoinChain</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.AccountId</I>: string<BR ALIGN="LEFT" /><I>Participant__r.Birthdate</I>: date<BR ALIGN="LEFT" /><I>Participant__r.Account.Id</I>: string<BR ALIGN="LEFT" /><I>Participant__r.Account.Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>Participant__r.Account.CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Participant__r.Account.Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
+	-3146335038718086089 [label=<<B>JoinReference</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-3146335038718086089 -> 114384378052192838
+	-3855035590739421350 [label=<<B>JoinLink</B><BR ALIGN="LEFT" />:: ∅<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
+	-3855035590739421350 -> 114384378052192838
+	201572154437891772 [label=<<B>JoinLink</B><BR ALIGN="LEFT" />:: ∅<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
+	201572154437891772 -> 114384378052192838
+	5048418882179243154 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	5048418882179243154 -> 114384378052192838
+	8032388663243247005 [label=<<I>Participant__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	8032388663243247005 -> 114384378052192838
+	-1977663957536961550 [label=<<I>Survey_Index_Number__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-1977663957536961550 -> 114384378052192838
+	-6991875282685404415 [label=<<I>Completion_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-6991875282685404415 -> 114384378052192838
+	6508282046876340149 [label=<<I>Consent_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	6508282046876340149 -> 114384378052192838
+	6686998150149824591 [label=<<I>Completion_Status_Timestamp__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	6686998150149824591 -> 114384378052192838
+	-5815733306332940126 [label=<<I>California_Signature__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-5815733306332940126 -> 114384378052192838
+	-1552155050276917685 [label=<<I>AccountId</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
+	-1552155050276917685 -> 114384378052192838
+	-63280239471636752 [label=<<I>Birthdate</I>: <B>Field</B><BR ALIGN="LEFT" />:: date<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
+	-63280239471636752 -> 114384378052192838
+	-5297264421878667547 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-5297264421878667547 -> 114384378052192838
+	121298527958554439 [label=<<I>Age_at_Time_of_Consent__pc</I>: <B>Field</B><BR ALIGN="LEFT" />:: decimal(3, 0)<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	121298527958554439 -> 114384378052192838
+	-8274518006709468751 [label=<<I>CABOR_Completion_Date__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-8274518006709468751 -> 114384378052192838
+	412916017948513596 [label=<<I>Earliest_Primary_Consent_Date_for_Report__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	412916017948513596 -> 114384378052192838
+	-3908638864771847708 [label=<<I>Latest_Primary_Consent_Date_for_Report__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3908638864771847708 -> 114384378052192838
+	-3573579972346951267 [label=<<I>EHR_Consent_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-3573579972346951267 -> 114384378052192838
+	-8462894154154912326 [label=<<I>EHR_Reconsent_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-8462894154154912326 -> 114384378052192838
+	1607866142632475664 [label=<<I>Update_to_Primary_Consent_Completed__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1607866142632475664 -> 114384378052192838
+	3123329551069407806 [label=<<I>Basics_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	3123329551069407806 -> 114384378052192838
+	-1804904612815158720 [label=<<I>Overall_Health_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-1804904612815158720 -> 114384378052192838
+	6130885713319849760 [label=<<I>Lifestyle_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	6130885713319849760 -> 114384378052192838
+	3949093376789187829 [label=<<I>Personal_and_Family_History_Complete__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	3949093376789187829 -> 114384378052192838
+	-5302383064651996048 [label=<<I>HC_Access_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-5302383064651996048 -> 114384378052192838
+	-258793700555308631 [label=<<I>Life_Functioning_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-258793700555308631 -> 114384378052192838
+	7636110507282578671 [label=<<I>First_Physical_Measurement_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	7636110507282578671 -> 114384378052192838
+	-4101278622450703102 [label=<<I>Last_Physical_Measurement_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-4101278622450703102 -> 114384378052192838
+	2378955122982938496 [label=<<I>EH_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	2378955122982938496 -> 114384378052192838
+	2449675348484395012 [label=<<I>Behavioral_Health_Completion__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	2449675348484395012 -> 114384378052192838
+	8340117199708478736 [label=<<I>Environmental_Exposures_Date_Time__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	8340117199708478736 -> 114384378052192838
+	-7901153062763162444 [label=<<I>Social_Determinants_of_Health_Completion__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-7901153062763162444 -> 114384378052192838
+	-980381556621957633 [label=<<B>Project</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-980381556621957633 -> -3146335038718086089
+	-7748698734711780833 [label=<<B>JoinReference</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>AccountId</I>: string<BR ALIGN="LEFT" /><I>Birthdate</I>: date<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
+	-7748698734711780833 -> -3855035590739421350
+	-4849841637691262542 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
+	-4849841637691262542 -> -3855035590739421350
+	1176490051994229752 [label=<<B>JoinReference</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>IsPersonAccount</I>: boolean<BR ALIGN="LEFT" /><I>Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	1176490051994229752 -> 201572154437891772
+	-5071111719138619410 [label=<<B>Equals</B><BR ALIGN="LEFT" />:: boolean<BR ALIGN="LEFT" />> fillcolor="#EEEEEE" group="Shared / query mechanics" style="rounded,filled" tooltip="Parent entity: Shared / query mechanics"]
+	-5071111719138619410 -> 201572154437891772
+	-3146335038718086089 -> 5048418882179243154
+	-3146335038718086089 -> 8032388663243247005
+	-3146335038718086089 -> -1977663957536961550
+	-3146335038718086089 -> -6991875282685404415
+	-3146335038718086089 -> 6508282046876340149
+	-3146335038718086089 -> 6686998150149824591
+	-3146335038718086089 -> -5815733306332940126
+	-7748698734711780833 -> -1552155050276917685
+	-7748698734711780833 -> -63280239471636752
+	1176490051994229752 -> -5297264421878667547
+	1176490051994229752 -> 121298527958554439
+	1176490051994229752 -> -8274518006709468751
+	1176490051994229752 -> 412916017948513596
+	1176490051994229752 -> -3908638864771847708
+	1176490051994229752 -> -3573579972346951267
+	1176490051994229752 -> -8462894154154912326
+	1176490051994229752 -> 1607866142632475664
+	1176490051994229752 -> 3123329551069407806
+	1176490051994229752 -> -1804904612815158720
+	1176490051994229752 -> 6130885713319849760
+	1176490051994229752 -> 3949093376789187829
+	1176490051994229752 -> -5302383064651996048
+	1176490051994229752 -> -258793700555308631
+	1176490051994229752 -> 7636110507282578671
+	1176490051994229752 -> -4101278622450703102
+	1176490051994229752 -> 2378955122982938496
+	1176490051994229752 -> 2449675348484395012
+	1176490051994229752 -> 8340117199708478736
+	1176490051994229752 -> -7901153062763162444
+	-8202903372090962575 [label=<<I>Survey_Result__c</I>: <B>AliasedRelation</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>Consent_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-8202903372090962575 -> -980381556621957633
+	2113699309626743259 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	2113699309626743259 -> -980381556621957633
+	-1214964773501042164 [label=<<I>Participant__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-1214964773501042164 -> -980381556621957633
+	-514026147105093317 [label=<<I>Survey_Index_Number__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-514026147105093317 -> -980381556621957633
+	9123870404850863939 [label=<<I>Completion_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	9123870404850863939 -> -980381556621957633
+	-2739071389867949020 [label=<<I>Consent_Status__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-2739071389867949020 -> -980381556621957633
+	3752278577597324696 [label=<<I>Completion_Status_Timestamp__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	3752278577597324696 -> -980381556621957633
+	-1144374290415896725 [label=<<I>California_Signature__c</I>: <B>Field</B><BR ALIGN="LEFT" />:: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	-1144374290415896725 -> -980381556621957633
+	-4572213638756792409 [label=<<I>Contact</I>: <B>AliasedRelation</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>AccountId</I>: string<BR ALIGN="LEFT" /><I>Birthdate</I>: date<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
+	-4572213638756792409 -> -7748698734711780833
+	8032388663243247005 -> -4849841637691262542
+	-66199711990785081 [label=<<I>Id</I>: <B>Field</B><BR ALIGN="LEFT" />:: string<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
+	-66199711990785081 -> -4849841637691262542
+	-6364508221845646901 [label=<<I>Account</I>: <B>AliasedRelation</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>IsPersonAccount</I>: boolean<BR ALIGN="LEFT" /><I>Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	-6364508221845646901 -> 1176490051994229752
+	-1552155050276917685 -> -5071111719138619410
+	-5297264421878667547 -> -5071111719138619410
+	6556043161818868047 [label=<<I>Trigger_Survey_Result</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>Participant__c</I>: string<BR ALIGN="LEFT" /><I>Survey_Index_Number__c</I>: string<BR ALIGN="LEFT" /><I>Completion_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Status__c</I>: string<BR ALIGN="LEFT" /><I>Consent_Revoked__c</I>: boolean<BR ALIGN="LEFT" /><I>Completion_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>Consent_Status_Timestamp__c</I>: timestamp<BR ALIGN="LEFT" /><I>California_Signature__c</I>: timestamp<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#FFF0D6" group="Salesforce object: Survey_Result__c" style="rounded,filled" tooltip="Parent entity: Salesforce object: Survey_Result__c"]
+	6556043161818868047 -> -8202903372090962575
+	-8202903372090962575 -> 2113699309626743259
+	-8202903372090962575 -> -1214964773501042164
+	-8202903372090962575 -> -514026147105093317
+	-8202903372090962575 -> 9123870404850863939
+	-8202903372090962575 -> -2739071389867949020
+	-8202903372090962575 -> 3752278577597324696
+	-8202903372090962575 -> -1144374290415896725
+	4513119052703082982 [label=<<I>Contact_At_Execution</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>AccountId</I>: string<BR ALIGN="LEFT" /><I>Birthdate</I>: date<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DDF4E4" group="Salesforce object: Contact" style="rounded,filled" tooltip="Parent entity: Salesforce object: Contact"]
+	4513119052703082982 -> -4572213638756792409
+	-7748698734711780833 -> -66199711990785081
+	8160803345228761410 [label=<<I>Account_Before</I>: <B>UnboundTable</B><BR ALIGN="LEFT" /><I>Id</I>: string<BR ALIGN="LEFT" /><I>PersonContactId</I>: string<BR ALIGN="LEFT" /><I>IsPersonAccount</I>: boolean<BR ALIGN="LEFT" /><I>Age_at_Time_of_Consent__pc</I>: decimal(3, 0)<BR ALIGN="LEFT" /><I>CABOR_Completion_Date__c</I>: timestamp<BR ALIGN="LEFT" /><I>Earliest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>Latest_Primary_Consent_Date_for_Report__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Consent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Reconsent_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Update_to_Primary_Consent_Completed__c</I>: timestamp<BR ALIGN="LEFT" /><I>Basics_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Overall_Health_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Lifestyle_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Personal_and_Family_History_Complete__c</I>: timestamp<BR ALIGN="LEFT" /><I>HC_Access_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Life_Functioning_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>First_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Last_Physical_Measurement_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>EH_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Behavioral_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>Environmental_Exposures_Date_Time__c</I>: timestamp<BR ALIGN="LEFT" /><I>Social_Determinants_of_Health_Completion__c</I>: timestamp<BR ALIGN="LEFT" /><I>EHR_Authorized__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_EHR_Auth__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Primary_Consent__pc</I>: int64<BR ALIGN="LEFT" /><I>Count_of_Completed_Reconsent__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_2_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>PPI_3_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>PP1_Basics_Survey_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>Re_consent_Active__pc</I>: int64<BR ALIGN="LEFT" /><I>Primary_Consent_Declined__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Consent_Ever__pc</I>: int64<BR ALIGN="LEFT" /><I>Assent_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>Pediatric_Permission_Completion_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Declined_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>X0_6_Peds_Permission_Revoked_Count__pc</I>: int64<BR ALIGN="LEFT" /><I>EHR_Pediatric_Complete__pc</I>: int64<BR ALIGN="LEFT" /><I>valid_from</I>: timestamp<BR ALIGN="LEFT" /><I>valid_to</I>: timestamp<BR ALIGN="LEFT" /><I>is_current</I>: boolean<BR ALIGN="LEFT" /><I>loaded_at</I>: timestamp<BR ALIGN="LEFT" />> fillcolor="#DCEBFF" group="Salesforce object: Account" style="rounded,filled" tooltip="Parent entity: Salesforce object: Account"]
+	8160803345228761410 -> -6364508221845646901
 	subgraph cluster_parent_0 {
 		color="#DCEBFF" label="Salesforce object: Account" style=rounded
-		-2929391512651876190
-		-1291676475546747180
-		-6496499699235022734
-		-2328921645593147229
-		-5695229915517312185
-		-6922203667682662205
-		-7603846783444286914
-		-3565626827185620994
-		-4865013393068933409
-		2070019837262955896
-		-8717078976923235275
-		955979054820262334
-		-5440941166477777715
-		5717365037477442020
-		-458916639416806921
-		-302165211449420300
-		-2259608760823426547
-		5781740451712475980
-		8377590039523276193
-		15331199466948505
-		3938958758925910317
-		-1453172878315123207
-		-572975097747732424
+		-5297264421878667547
+		121298527958554439
+		-8274518006709468751
+		412916017948513596
+		-3908638864771847708
+		-3573579972346951267
+		-8462894154154912326
+		1607866142632475664
+		3123329551069407806
+		-1804904612815158720
+		6130885713319849760
+		3949093376789187829
+		-5302383064651996048
+		-258793700555308631
+		7636110507282578671
+		-4101278622450703102
+		2378955122982938496
+		2449675348484395012
+		8340117199708478736
+		-7901153062763162444
+		1176490051994229752
+		-6364508221845646901
+		8160803345228761410
 	}
 	subgraph cluster_parent_1 {
 		color="#DDF4E4" label="Salesforce object: Contact" style=rounded
-		-2059042560379810195
-		8604292378955804209
-		3013968124726405955
-		1856453326077506949
-		-2794180503132309956
-		4063227937132712623
+		-1552155050276917685
+		-63280239471636752
+		-7748698734711780833
+		-4572213638756792409
+		-66199711990785081
+		4513119052703082982
 	}
 	subgraph cluster_parent_2 {
 		color="#FFF0D6" label="Salesforce object: Survey_Result__c" style=rounded
-		6581291494379029773
-		-642722912010006150
-		7188196654483702229
-		-2314187428810585878
-		-8019778857464061211
-		1629045876723380825
-		2998102727065203452
-		2614065107816796591
-		-4095026170382321643
-		-8714432217363651549
-		6158405390744651222
-		-4457419116471192015
-		-1825692990247717780
-		-1088976316645552921
-		8430174179478038197
-		-8647513043889690792
-		-6383878757487608956
-		-2823489515486401039
+		-3146335038718086089
+		5048418882179243154
+		8032388663243247005
+		-1977663957536961550
+		-6991875282685404415
+		6508282046876340149
+		6686998150149824591
+		-5815733306332940126
+		-980381556621957633
+		-8202903372090962575
+		2113699309626743259
+		-1214964773501042164
+		-514026147105093317
+		9123870404850863939
+		-2739071389867949020
+		3752278577597324696
+		-1144374290415896725
+		6556043161818868047
 	}
 	subgraph cluster_parent_3 {
 		color="#EEEEEE" label="Shared / query mechanics" style=rounded
-		-7658929954726826026
-		-2190531301774294946
-		-4763755688580265046
-		7350393082968042841
-		3565905053199211114
+		114384378052192838
+		-3855035590739421350
+		201572154437891772
+		-4849841637691262542
+		-5071111719138619410
 	}
 }

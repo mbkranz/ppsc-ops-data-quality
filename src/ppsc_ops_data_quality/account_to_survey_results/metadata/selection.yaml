@@ -1,0 +1,31 @@
+object_name: Account
+fields:
+- Age_at_Time_of_Consent__pc
+- CABOR_Completion_Date__c
+- Earliest_Primary_Consent_Date_for_Report__c
+- Latest_Primary_Consent_Date_for_Report__c
+- EHR_Consent_Date_Time__c
+- EHR_Reconsent_Date_Time__c
+- Update_to_Primary_Consent_Completed__c
+- Basics_Date_Time__c
+- Overall_Health_Date_Time__c
+- Lifestyle_Date_Time__c
+- Personal_and_Family_History_Complete__c
+- HC_Access_Date_Time__c
+- Life_Functioning_Date_Time__c
+- First_Physical_Measurement_Date_Time__c
+- Last_Physical_Measurement_Date_Time__c
+- EH_Date_Time__c
+- Behavioral_Health_Completion__c
+- Environmental_Exposures_Date_Time__c
+- Social_Determinants_of_Health_Completion__c
+before_prefix: Participant__r.Account.
+target_reference: $Record.Participant__r.AccountId
+path_type: AsyncAfterCommit
+resource_aliases:
+  getEarliestPrimaryConsent: FlowRecordLookup.Earliest_Other_Yes_Primary_Consent
+  getEarliestEgetEarliestEHRConsentHRConsent: FlowRecordLookup.Earliest_Other_Yes_EHR_Consent
+  getFirstPhysicalMeasurement: FlowRecordLookup.First_Remote_Physical_Measurement
+  Get_Permission_1007: FlowRecordLookup.Pediatric_Permission_For_Assent
+formula_aliases:
+  formAgeCalculation: FlowFormula_Age_At_Execution

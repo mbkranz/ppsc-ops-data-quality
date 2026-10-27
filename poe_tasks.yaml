@@ -84,3 +84,12 @@ tasks:
   check-synthetic:
     cmd: python -m scripts.check_validation synthetic
     help: Validate independently authored synthetic history and preserve native report evidence.
+  capture-definitions:
+    cmd: python -m scripts.capture_definitions
+    help: Hash reviewed local DDL/builders/evidence into a fresh candidate manifest.
+  author-salesforce:
+    cmd: uv run --isolated --no-default-groups --with "ppsc-salesforce[ibis] @ git+https://github.com/mbkranz/ppsc-salesforce.git@a534c63353680e41d12e3b55997a125ba703c675" python -m scripts.author_salesforce
+    help: Produce offline candidate DDL and Flow references with an optional pinned producer.
+  check-standalone:
+    cmd: python -m scripts.check_standalone
+    help: Build/install a wheel and run compilation plus synthetic GX without producer packages.

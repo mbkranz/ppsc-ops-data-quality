@@ -9,19 +9,19 @@ import pyarrow as pa
 import sqlglot
 from sqlglot import exp
 
+from ppsc_ops_data_quality.account_to_survey_results.history import bind_history_tables
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     flow_account_query,
     rollup_account_query,
 )
 from ppsc_ops_data_quality.core.queries.snapshot import snapshot
 from ppsc_ops_data_quality.gx_queries import query_asset_sql
-from ppsc_ops_data_quality.runtime.data_access import bind_history_tables
 from ppsc_ops_data_quality.views import create_view, create_view_sql
 
 
 def object_history_schemas():
     """Use the shared source profiles instead of duplicating fixture dtypes."""
-    from ppsc_ops_data_quality.core.schemas import (
+    from ppsc_ops_data_quality.account_to_survey_results.input_schemas import (
         ACCOUNT_HISTORY_VALIDATION_INPUT,
         CONTACT_HISTORY_VALIDATION_INPUT,
         SURVEY_RESULT_HISTORY_VALIDATION_INPUT,

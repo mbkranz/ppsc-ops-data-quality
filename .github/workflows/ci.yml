@@ -24,6 +24,8 @@ jobs:
       - run: uv run --locked poe check
       - run: uv run --locked poe check-queries
       - run: uv run --locked poe check-synthetic
+      - run: uv run --locked poe check-standalone
+        if: matrix.python == '3.11'
       - run: UV_PYTHON=3.11.17 UV_PROJECT_ENVIRONMENT=.venv-release uv run --locked --only-group release poe build-release
         if: matrix.python == '3.11'
       - run: uv run --locked poe suite-diagrams

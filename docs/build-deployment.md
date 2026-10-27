@@ -43,10 +43,10 @@ The release graph has four exclusive outputs:
 | `wheel` | `build/release/project/` | Application wheel |
 | `bundle` | `build/release/bundle/dependencies.gluewheels.zip` | Deterministic ZIP containing the application once and its complete wheel closure |
 
-The requirements and dependency stages also track `vendor/`, which carries the
-independent compiler wheel until it has a separate distribution channel. The
-application declares `ppsc-metadata[ibis]==0.2.0`; uv binds that requirement to the
-checked-in wheel and records its actual hash. No Salesforce application is bundled.
+The runtime export contains native Ibis/GX/Athena dependencies and the application.
+No Salesforce package, ODCS library or vendored compiler wheel is included. DDL,
+local builders and detached evidence are ordinary application wheel resources;
+the wheel producer tracks their actual source bytes.
 
 The archive producer validates metadata, target tags and dependency closure,
 rejects duplicates/source archives and tolerates an existing output parent.

@@ -1,3 +1,5 @@
+> Historical review of the previous ODCS/compiler integration. Current behavior is documented in [standalone definitions](metadata-compiler.md).
+
 # ODCS foreign key boundary
 
 `normalize_foreign_keys(contract)` accepts validated ODCS v3.2.0 contracts and

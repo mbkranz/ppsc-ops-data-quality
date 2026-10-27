@@ -1,3 +1,5 @@
+> Historical review of the previous ODCS/compiler integration. Current behavior is documented in [standalone definitions](metadata-compiler.md).
+
 # Expected-value consumer implementation and PPSC review
 
 This completes the offline consumer work from the October 24 Spaces plan. Review

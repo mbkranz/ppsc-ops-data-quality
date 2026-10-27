@@ -41,13 +41,13 @@ from great_expectations.expectations.row_conditions import Column
 
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
 from ppsc_ops_data_quality.account_to_survey_results.metadata import (
-    expected_value_contract,
     metadata_receipt,
 )
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ACCOUNT_FIELDS_ASSIGNED_BY_FLOW,
     ROLLUP_ACCOUNT_FIELDS,
 )
+from ppsc_ops_data_quality.core.comparison_gx import equal_values
 
 FLOW_IDENTITY_COLUMNS = (
     "survey_result_id",
@@ -169,11 +169,8 @@ def flow_account_suite(
         if field == "CABOR_Completion_Date__c":
             row_condition = row_condition & (Column("cabor_lookup_is_deterministic") == True)
         expectations.append(
-            gxe.ExpectColumnPairValuesToBeEqual(
-                column_A=f"observed__{field}",
-                column_B=f"expected__{field}",
-                ignore_row_if="both_values_are_missing",
-                mostly=1,
+            equal_values(
+                field=field,
                 description=f"Observed Account.{field} equals its expected AFTER value.",
                 meta={
                     "check_id": f"observed_{field}_equals_expected",
@@ -217,9 +214,7 @@ def flow_account_suite(
         name="account_to_survey_results_flow",
         meta={
             "metadata_inputs": metadata_receipt().model_dump(mode="json"),
-            "expected_value_contract": expected_value_contract().model_dump(
-                mode="json", by_alias=True, exclude_unset=True
-            ),
+            "projection_lineage": deepcopy(PROJECTION_LINEAGE),
             "grain": "survey_event",
             "expected_state": "Account BEFORE plus one Flow event",
             "observed_state": "independent Account AFTER the same event",
@@ -279,12 +274,9 @@ def rollup_account_suite(*, expected_row_count: int | None = None) -> gx.Expecta
     )
     for field in ROLLUP_ACCOUNT_FIELDS:
         expectations.append(
-            gxe.ExpectColumnPairValuesToBeEqual(
-                column_A=f"observed__{field}",
-                column_B=f"expected__{field}",
+            equal_values(
+                field=field,
                 row_condition=Column("comparison_keys_are_valid") == True,
-                ignore_row_if="both_values_are_missing",
-                mostly=1,
                 description=f"Observed Account.{field} equals its expected survey rollup count.",
                 meta={
                     "check_id": f"observed_{field}_equals_expected_rollup",

@@ -1,4 +1,4 @@
-"""Expected Account values compiled from pinned native metadata into Ibis.
+"""Expected Account values built locally with native Ibis expressions.
 
     Record = join_account(Survey_Result__c, Contact, Account)
     Record = add_flow_context(Record, Survey_Result__c, flow_run_date=run_date)
@@ -6,8 +6,8 @@
     query = to_sqlglot(ExpectedAccount, projection_lineage=PROJECTION_LINEAGE)
     sql = query.sql(dialect="athena", pretty=True)
 
-The shared metadata compiler owns Flow decisions, assignments, lookups and the
-age formula. This application binds history/relationships and comparison scope.
+Reviewed local Ibis builders own Flow decisions, assignments, lookups and the
+age formula. The saved metadata is detached evidence, not executable input. This application binds history/relationships and comparison scope.
 The pinned QA2 metadata is provisional; live trigger eligibility and production
 Flow/version selection require local verification.
 
@@ -37,18 +37,22 @@ from functools import reduce
 
 import ibis
 import ibis.expr.types as ir
-from ppsc_metadata.artifacts import MetadataBundle
-from ppsc_metadata.contracts import property_references
-from ppsc_metadata.projections import presence_requirements
-from ppsc_metadata.sources.salesforce_flow import flow_assignments, flow_context
-from ppsc_metadata.sources.salesforce_rollup import RollupRequest, rollup_values
 
+from ppsc_ops_data_quality.core.projection import presence_requirements
 from ppsc_ops_data_quality.core.queries.snapshot import snapshot
 
+from .flow import FLOW_FIELDS, add_flow_context, flow_assignments
 from .lineage import ROLLUP_FIELD_LINEAGE
-from .metadata import FLOW_FIELDS, metadata_inputs, metadata_request
 
 ACCOUNT_FIELDS_ASSIGNED_BY_FLOW = FLOW_FIELDS
+
+
+def _check_relationship(left: ir.Table, left_key: str, right: ir.Table, right_key: str) -> None:
+    for table, key in ((left, left_key), (right, right_key)):
+        if key not in table.columns:
+            raise ValueError(f"Unbound relationship key: {key}")
+    if left[left_key].type().copy(nullable=True) != right[right_key].type().copy(nullable=True):
+        raise ValueError(f"Relationship key types must match: {left_key} -> {right_key}")
 
 
 def join_account(Survey_Result__c: ir.Table, Contact: ir.Table, Account: ir.Table) -> ir.Table:
@@ -60,6 +64,8 @@ def join_account(Survey_Result__c: ir.Table, Contact: ir.Table, Account: ir.Tabl
     Contact.Birthdate supplies $Record.Participant__r.Birthdate. All joins are left
     joins; missing parents remain visible through NULL relationship columns.
     """
+    _check_relationship(Survey_Result__c, "Participant__c", Contact, "Id")
+    _check_relationship(Contact, "AccountId", Account, "Id")
     Survey_Result__c = Survey_Result__c.alias("Survey_Result__c")
     Contact = Contact.alias("Contact")
     Account = Account.alias("Account")
@@ -87,35 +93,10 @@ def join_account(Survey_Result__c: ir.Table, Contact: ir.Table, Account: ir.Tabl
     )
 
 
-def _eligible(Record: ir.Table) -> ir.BooleanValue:
-    """Observable completion guard; full trigger eligibility remains caller policy."""
-    return Record.Completion_Status__c == "Complete"
-
-
-def add_flow_context(
-    Record: ir.Table, Survey_Result__c: ir.Table, *, flow_run_date: ir.DateValue
-) -> ir.Table:
-    """Compile native lookup filters, first-row semantics and referenced formulas."""
-    return flow_context(
-        Record,
-        {"Survey_Result__c": Survey_Result__c},
-        metadata_inputs().flow["Metadata"],
-        metadata_request(),
-        flow_run_date=flow_run_date,
-        eligibility=_eligible,
-    )
-
-
 def derived_account_expressions(Record: ir.Table) -> tuple[ir.Value, ...]:
-    """The selected native QA2 assignments; SQL display text is never executed."""
-    return tuple(
-        flow_assignments(
-            Record,
-            metadata_inputs().flow["Metadata"],
-            metadata_request(),
-            eligibility=_eligible,
-        ).expressions.values()
-    )
+    """The reviewed native QA2 assignments as ordinary, named Ibis values."""
+    projection = flow_assignments(Record)
+    return tuple(projection[f"expected__{field}"].name(field) for field in FLOW_FIELDS)
 
 
 def survey_rollup_indicators(Record: ir.Table) -> tuple[ir.Value, ...]:
@@ -308,6 +289,7 @@ def survey_rollup_expressions(Record: ir.Table) -> dict[str, ir.Value]:
 
 
 def _survey_rollup_record(Account: ir.Table, Survey_Result__c: ir.Table) -> ir.Table:
+    _check_relationship(Account, "PersonContactId", Survey_Result__c, "Participant__c")
     Account = (
         Account.filter(Account.IsPersonAccount)
         .select("Id", "PersonContactId")
@@ -358,12 +340,7 @@ SURVEY_COMPLETION_FLOW_LAUNCH_DATE = date(2024, 12, 16)
 
 def cabor_lookup_is_deterministic(Record: ir.Table) -> ir.BooleanValue:
     """Keep unsorted permission ambiguity separate from the authored assignment."""
-    return flow_assignments(
-        Record,
-        metadata_inputs().flow["Metadata"],
-        metadata_request(),
-        eligibility=_eligible,
-    ).deterministic["CABOR_Completion_Date__c"]
+    return flow_assignments(Record)["expected__CABOR_Completion_Date__c__deterministic"]
 
 
 def flow_account_comparison(
@@ -400,14 +377,12 @@ def flow_account_comparison(
     # Bind presence to source state before the observation is introduced. Ibis
     # rejects predicates depending on an unrelated observed target relation.
     Record = Record.mutate(**presence)
-    projection = flow_assignments(
-        Record, metadata_inputs().flow["Metadata"], metadata_request(), eligibility=_eligible
-    )
+    projection = flow_assignments(Record)
     complete = reduce(
         operator.and_,
         [
-            *projection.deterministic.values(),
-            *[value.notnull() for value in projection.assigned.values()],
+            *[projection[f"expected__{field}__deterministic"] for field in FLOW_FIELDS],
+            *[projection[f"expected__{field}__assigned"].notnull() for field in FLOW_FIELDS],
             *[Record[name].notnull() for name in presence],
         ],
     ).fill_null(False)
@@ -432,15 +407,12 @@ def flow_account_comparison(
         Record.Survey_Index_Number__c.name("survey_index_number"),
         Record.Completion_Status_Timestamp__c.name("survey_completion_timestamp"),
         survey_completion_occurred_on_or_after_launch,
-        projection.deterministic["CABOR_Completion_Date__c"].name("cabor_lookup_is_deterministic"),
+        projection["expected__CABOR_Completion_Date__c__deterministic"].name(
+            "cabor_lookup_is_deterministic"
+        ),
         complete.name("flow_evidence_is_complete"),
         *[Record[name] for name in presence],
-        **{f"expected__{name}": value for name, value in projection.expressions.items()},
-        **{
-            f"expected__{name}__deterministic": value
-            for name, value in projection.deterministic.items()
-        },
-        **{f"expected__{name}__assigned": value for name, value in projection.assigned.items()},
+        **projection,
         **{f"observed__{field}": AccountAfter[field] for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW},
     )
     keys_present = reduce(
@@ -590,54 +562,3 @@ def rollup_account_query(
         "Survey_Results_At_Snapshot"
     )
     return rollup_account_comparison(AccountSnapshot, SurveyResultSnapshot, AccountSnapshot)
-
-
-def native_rollup_comparison(
-    Parent: ir.Table,
-    Child: ir.Table,
-    Observed: ir.Table,
-    request: RollupRequest,
-    *,
-    source_field: str,
-    inputs: MetadataBundle,
-) -> ir.Table:
-    """Compare one selected verified rollup; callers own snapshots and empty policy.
-
-    This opt-in path does not replace workbook rollups without reviewed native
-    metadata. Missing selections fail rather than falling back to a handwritten
-    definition. Duplicate/missing parents and observations remain detectable.
-    """
-    object_name, separator, field = source_field.partition(".")
-    if not separator or field != request.output_field:
-        raise ValueError("Bind the selected native rollup to its declared output field")
-    bundle = inputs
-    if source_field not in property_references(bundle.contract):
-        raise ValueError(f"Unbound rollup source field: {source_field}")
-    if source_field not in bundle.rollups:
-        raise ValueError(f"No verified native rollup selected: {source_field}")
-    Expected = rollup_values(
-        Parent.select(request.parent_key), Child, bundle.rollups[source_field], request
-    )
-    Observed = Observed.alias("Observed_Rollup")
-    joined = Expected.left_join(
-        Observed, Expected[request.parent_key] == Observed[request.parent_key]
-    )
-    comparison = joined.select(
-        Expected[request.parent_key].name("validation_record_id"),
-        Expected[request.parent_key].name("expected_account_id"),
-        Observed[request.parent_key].name("observed_account_id"),
-        Expected[field].name(f"expected__{field}"),
-        Observed[field].name(f"observed__{field}"),
-    )
-    return comparison.mutate(
-        comparison_keys_are_valid=(
-            comparison.expected_account_id.notnull()
-            & comparison.observed_account_id.notnull()
-            & (
-                comparison.expected_account_id.count().over(
-                    ibis.window(group_by=comparison.expected_account_id)
-                )
-                == 1
-            )
-        )
-    )

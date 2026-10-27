@@ -1,17 +1,13 @@
 {
-  "version": "projection-inputs/v1",
+  "version": "ops-definitions/v2",
   "org": "qa2",
   "flow_name": "Survey_Result_Survey_Completion_Updates",
   "flow_version_id": "301SL00000dpJqKYAU",
   "source_revision": "d769cb047a80d5ff22a011ece2d6671b71fb0646",
+  "producer_revision": "1eedb2abcf5cac6471fb6cc45e5a40c007982854",
   "provisional": true,
-  "coverage": "Pinned active QA2 Flow and matching source identity/relationship catalog. Input types are the existing ops validation profile; production contracts, event eligibility and deployed lake bindings remain unverified.",
+  "coverage": "Reviewed local Ibis builders for the pinned native QA2 Flow. DDL types retain the provisional validation profiles; deployed schemas, production activation, eligibility and live acceptance remain unverified.",
   "artifacts": [
-    {
-      "path": "core/schemas/validation-inputs.odcs.yaml",
-      "role": "contract",
-      "sha256": "b52d7e9cd420c6e5d259ba42819a41b9436b1f80f0bf55c0ebc8969e9fbcef1f"
-    },
     {
       "path": "account_to_survey_results/metadata/flow.json",
       "role": "flow",
@@ -21,6 +17,91 @@
       "path": "account_to_survey_results/metadata/source_catalog.json",
       "role": "source",
       "sha256": "537f3d43f5df58671b2ed0d9bca685c9bde1f5b5d5e5ddf34d9b9988570fcd13"
+    },
+    {
+      "path": "account_to_survey_results/metadata/lineage.json",
+      "role": "lineage",
+      "sha256": "aa2b83caa44a85b277d6325ae2af0391b227612ca531533d7a38be7d05ddc975"
+    },
+    {
+      "path": "account_to_survey_results/metadata/selection.yaml",
+      "role": "selection",
+      "sha256": "50f6da665be69a76aaa367f621096a6f36691bfe942a93e0c94030ef392d0a9d"
+    },
+    {
+      "path": "account_to_survey_results/inputs/account.sql",
+      "role": "schema",
+      "sha256": "91baf2abdd23359c51b1deac6489c7d2aa3861f67f8c2c1aaef6e86877286fa4"
+    },
+    {
+      "path": "account_to_survey_results/inputs/contact.sql",
+      "role": "schema",
+      "sha256": "e04c832257bd2877b78e9421ebfcca56e0d7942da3f5c100216cc3724cfb8a2e"
+    },
+    {
+      "path": "account_to_survey_results/inputs/history.sql",
+      "role": "schema",
+      "sha256": "7538c4734c715202c2e4a396ee8d99fc2512664e4f936f2132877424a658570a"
+    },
+    {
+      "path": "account_to_survey_results/inputs/survey_results.sql",
+      "role": "schema",
+      "sha256": "ced91389c7a1a9511371886a197c19b0d5dad8a702ed0138e86dca044b679fc3"
+    },
+    {
+      "path": "account_to_survey_results/flow.py",
+      "role": "code",
+      "sha256": "db8e262368259cb3398ff88f8ea4149fa35d04af1f347284093b1e3ab83b2533"
+    },
+    {
+      "path": "account_to_survey_results/queries.py",
+      "role": "code",
+      "sha256": "2ec4739849b913a17393aed8c882da4dc3751e0ee4fa8158e6676a46174c4203"
+    },
+    {
+      "path": "account_to_survey_results/input_schemas.py",
+      "role": "code",
+      "sha256": "dc18bd6f482a361d12501ae2a924879e3acd56f9502047b43e0acb166ae16f9f"
+    },
+    {
+      "path": "account_to_survey_results/history.py",
+      "role": "code",
+      "sha256": "5cfb52012b03fc7952b458de99791a0c73070e7ea74a9fdd7f1934d7d65decc2"
+    },
+    {
+      "path": "account_to_survey_results/lineage.py",
+      "role": "code",
+      "sha256": "011cb3bf4a3b142483974c2887a8cc8e35290e6ce830cc4df778c14f43db516f"
+    },
+    {
+      "path": "account_to_survey_results/metadata.py",
+      "role": "code",
+      "sha256": "ac9034f27a184d4c5f57bdbecd9bafa850bc162c53f567443aaa3c8e5193f5f3"
+    },
+    {
+      "path": "core/projection.py",
+      "role": "code",
+      "sha256": "71ad4141261c581a9934215b29a2e7f9aac3f7b8f27f7f551b180a056a965505"
+    },
+    {
+      "path": "core/schemas/ddl.py",
+      "role": "code",
+      "sha256": "774d8b7750f7a05b38cc7da6da810739789328e0b6ffb5c33bea208400f8dbb1"
+    },
+    {
+      "path": "core/queries/snapshot.py",
+      "role": "code",
+      "sha256": "34be158c3391bb4c00cb652c70ae9b3cb8f9094300333b4a977fbb624917fc6f"
+    },
+    {
+      "path": "core/comparison.py",
+      "role": "code",
+      "sha256": "f74f6f13ea79ab69d02bbd992cc8cb30a7925b6e24fb3392cef5b7c56e60f924"
+    },
+    {
+      "path": "core/configuration.py",
+      "role": "code",
+      "sha256": "3ba0df8ddc2b70232ddd0d4a31a99af89b6e206b29c260b3abca75c8b33c78a6"
     }
   ]
 }

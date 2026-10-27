@@ -21,7 +21,7 @@ compiles expressions locally; it does not execute SQL or contact AWS.
 | File | Responsibility |
 |---|---|
 | `runtime/` | Athena/DuckDB adapters, native GX runner, and SQL-file metadata TODO |
-| `core/schemas/` | Reusable validation-input/history schemas |
+| `account_to_survey_results/inputs.py` | Domain-owned physical/schema/history bindings |
 | `account_to_survey_results/schemas.py` | Domain schemas inferred from actual queries |
 | `core/queries/sql.py` | Generic Athena compilation with optional explicit lineage |
 | `runtime/data_access.py` | Backend catalog binding |
@@ -40,11 +40,11 @@ compiles expressions locally; it does not execute SQL or contact AWS.
 
 Supply Ibis history relations with real catalog schemas and your existing GX SQL
 Data Source. `core.queries.history_tables()` builds explicitly selected APMP
-physical relations and aliases without a backend. Supply the verified v2 bundle
+physical relations and aliases without a backend. Supply the selected Ops definitions and native evidence
 and declared catalog/database/relation locations. Credentials and connection
 configuration remain outside these expression modules. Runtime performs explicit
 preflight and applies selected data versions before executing GX queries.
-See `core/schemas/README.md` for field coverage, workbook provenance and physical-type
+See `docs/metadata-compiler.md` for source coverage, provenance and physical-type
 assumptions. `runtime.data_access.bind_history_tables()` remains available for catalog discovery
 through an existing backend. For Athena, configure the
 GX SQL Data Source with the PyAthena SQLAlchemy dialect and temporary-table

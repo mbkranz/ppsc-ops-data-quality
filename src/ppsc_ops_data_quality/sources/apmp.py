@@ -1,14 +1,6 @@
-"""Read APMP-generated table data and compose physical-to-logical Ibis aliases.
-
-ODCS authoring, parsing and Athena DDL interpretation belong to the lake project.
-This consumer uses generated native Ibis schemas; it acquires no source metadata.
-"""
+"""Compose physical-to-native aliases over caller-supplied Ibis schemas and bindings."""
 
 from __future__ import annotations
-
-import json
-from hashlib import sha256
-from pathlib import Path
 
 import ibis
 import ibis.expr.types as ir
@@ -25,29 +17,6 @@ class RelationLocation(BaseModel):
     @property
     def identity(self) -> str:
         return f"{self.catalog}.{self.database}.{self.relation}"
-
-
-def load_inputs(directory: Path) -> dict:
-    """Load the selected generated product; Git/DVC and the release pin its files."""
-    payloads = {
-        name: (directory / f"{name}.json").read_bytes()
-        for name in ("tables", "flow", "source_catalog", "rollups")
-        if (directory / f"{name}.json").exists()
-    }
-    inputs = json.loads(payloads["tables"])
-    inputs.update(
-        {
-            name: json.loads(payloads[name]) if name in payloads else {}
-            for name in ("flow", "source_catalog", "rollups")
-        }
-    )
-    inputs["inputs_sha256"] = sha256(
-        b"".join(name.encode() + b"\0" + content for name, content in sorted(payloads.items()))
-    ).hexdigest()
-    inputs["flow_sha256"] = sha256(payloads.get("flow", b"")).hexdigest()
-    for dataset_id in inputs["tables"]:
-        physical_schema(inputs, dataset_id)
-    return inputs
 
 
 def dataset_binding(inputs: dict, dataset_id: str) -> dict:

@@ -5,9 +5,10 @@ supplemental navigation only. No Flow conditions or assignments are authored her
 Rollup rules remain unchanged pending verified native rollup metadata.
 """
 
+from salesforce.entities.flows.lineage import resolve_field
 from salesforce.entities.flows.queries import flow_lineage
 
-from .metadata import metadata_inputs, metadata_receipt, metadata_request
+from .metadata import field_definitions, metadata_inputs, metadata_receipt, metadata_request
 
 ROLLUP_FIELD_LINEAGE = {
     "Account.EHR_Authorized__pc": {
@@ -331,12 +332,47 @@ _bundle = metadata_inputs()
 _native = _bundle["flow"]["Metadata"]
 _provenance = metadata_receipt()
 _request = metadata_request()
-_evidence = flow_lineage(_native, _request)
+_field_definitions = field_definitions(_bundle)
+_evidence = flow_lineage(_native, _request, source={**_provenance, "source_file": "flow.json"})
+
+_native_fields = {tuple(identity.split(".", 1)) for identity in _field_definitions}
+_native_relationships = {}
+for _field_record in _bundle["source_catalog"].get("fields", []):
+    _obj = _field_record.get("EntityDefinition.QualifiedApiName", _field_record.get("objectName"))
+    _relationship = _field_record.get(
+        "FieldDefinition.RelationshipName", _field_record.get("RelationshipName")
+    )
+    _references = (
+        _field_record.get("FieldDefinition.ReferenceTo", _field_record.get("ReferenceTo")) or {}
+    )
+    if _obj and _relationship:
+        _native_relationships[(_obj, _relationship)] = tuple(_references.get("referenceTo") or ())
+
+
+def _input_definitions(references):
+    """Resolve saved native dependency identities; physical selection stays in Ops."""
+    definitions = {}
+    trigger_object = (_native.get("start") or {}).get("object")
+    for reference in references:
+        reference = reference.removeprefix("FieldDefinition.")
+        if trigger_object and reference.startswith(("$Record.", "$Record__Prior.")):
+            reference = trigger_object + "." + reference.partition(".")[2]
+        obj, separator, path = reference.partition(".")
+        if not separator:
+            continue
+        resolved = resolve_field(obj, path, _native_fields, _native_relationships)
+        if resolved is not None:
+            identity = ".".join(resolved)
+            definitions[identity] = _field_definitions[identity]
+    return dict(sorted(definitions.items()))
+
+
 ACCOUNT_FIELD_LINEAGE = {}
 PROJECTION_LINEAGE = {}
 for _field, _record in _evidence.items():
     _entry = {
         **_record,
+        "field_definition": _field_definitions.get(_record["target_field"]),
         "rule_id": f"{_provenance['flow_version_id']}/{_field}",
         "entity_type": "AccountField",
         "source_flow": _provenance["flow_name"],
@@ -345,7 +381,7 @@ for _field, _record in _evidence.items():
         "source_sha256": _provenance["flow_sha256"],
         "inputs_sha256": _provenance["inputs_sha256"],
         "provenance_version": "native-salesforce",
-        "contract_id": _provenance["contract_id"],
+        "definition_sha256": _provenance["definition_sha256"],
         "source_revision": _provenance["source_revision"],
         "provisional": _provenance["provisional"],
         "workbook_rows": [
@@ -448,6 +484,13 @@ for _target in (*ACCOUNT_FIELD_LINEAGE, *ROLLUP_FIELD_LINEAGE):
         "comparison_role": "observed",
         "description": "Independently observed " + _target,
         "source_entities": [_target],
+        "field_definition": _field_definitions.get(_target),
+        "definition_bindings": [
+            {"dataset_id": name, "relation": table["relation"], "column": physical}
+            for name, table in _bundle["tables"].items()
+            for physical, logical in table["columns"].items()
+            if f"{table['native_object']}.{logical}" == _target
+        ],
     }
 
 for _alias, _source_alias, _role in (
@@ -522,3 +565,61 @@ PROJECTION_LINEAGE["source_parent_keys_are_valid"] = {
     "source_entities": ["Account.Id"],
     "description": "Unique source parent identities before child aggregation",
 }
+
+
+# Direct aliases retain the original field definition. Derived outputs additionally
+# retain native definitions for resolved input identities, not only their target.
+for _annotation in PROJECTION_LINEAGE.values():
+    _target = _annotation.get("target_field")
+    if not _target and _annotation.get("entity_type") == "SalesforceField":
+        _sources = _annotation.get("source_entities", [])
+        _target = _sources[0] if len(_sources) == 1 else None
+    if _target in _field_definitions:
+        _annotation["field_definition"] = _field_definitions[_target]
+    _annotation["input_field_definitions"] = _input_definitions(
+        [
+            *_annotation.get("field_references", []),
+            *_annotation.get("dependencies", []),
+            *_annotation.get("source_entities", []),
+        ]
+    )
+
+
+def bound_projection_lineage(inputs: dict, locations) -> dict:
+    """Bind native field provenance to the actual selected physical relations.
+
+    Definition bindings describe the reviewed profile. This orchestration helper
+    supplies execution locations without mutating the reusable source lineage.
+    Event/snapshot timing remains separately recorded in runtime metadata.
+    """
+    from copy import deepcopy
+
+    if set(locations) != set(inputs["tables"]):
+        raise ValueError("Provenance locations must match the selected dataset IDs")
+    result = deepcopy(PROJECTION_LINEAGE)
+    for metadata in result.values():
+        source_fields = set(metadata.get("source_entities", []))
+        source_fields.update(metadata.get("field_references", []))
+        source_fields.update(metadata.get("input_field_definitions", {}))
+        if metadata.get("target_field"):
+            source_fields.add(metadata["target_field"])
+        source_fields.update(name.removeprefix("FieldDefinition.") for name in tuple(source_fields))
+        bound = []
+        for dataset_id, table in inputs["tables"].items():
+            selected = locations[dataset_id]
+            for physical, logical in table["columns"].items():
+                identity = f"{table['native_object']}.{logical}"
+                if identity in source_fields:
+                    bound.append(
+                        {
+                            "dataset_id": dataset_id,
+                            "source_field": identity,
+                            "catalog": selected.catalog,
+                            "database": selected.database,
+                            "relation": selected.relation,
+                            "column": physical,
+                        }
+                    )
+        if bound:
+            metadata["physical_bindings"] = bound
+    return result

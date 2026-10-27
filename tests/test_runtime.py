@@ -19,15 +19,15 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
     flow_account_suite,
     rollup_account_suite,
 )
+from ppsc_ops_data_quality.account_to_survey_results.inputs import (
+    ACCOUNT_VALIDATION_INPUT,
+    SURVEY_RESULT_VALIDATION_INPUT,
+)
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ROLLUP_ACCOUNT_FIELDS,
     flow_account_comparison,
     rollup_account_comparison,
-)
-from ppsc_ops_data_quality.core.schemas import (
-    ACCOUNT_VALIDATION_INPUT,
-    SURVEY_RESULT_VALIDATION_INPUT,
 )
 from ppsc_ops_data_quality.runtime.artifacts import save_suite
 from ppsc_ops_data_quality.runtime.athena import prepare_validation as prepare_athena

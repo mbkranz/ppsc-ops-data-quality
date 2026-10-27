@@ -45,8 +45,14 @@ The release graph has four exclusive outputs:
 
 The requirements and dependency stages also track `vendor/`, which carries the
 independent compiler wheel until it has a separate distribution channel. The
-application declares `ppsc-metadata[ibis]==0.2.0`; uv binds that requirement to the
-checked-in wheel and records its actual hash. No Salesforce application is bundled.
+application declares `ppsc-salesforce[ibis]==0.1.1`; uv binds that requirement to the
+checked-in wheel and records its actual hash. See [the vendor receipt](../vendor/README.md)
+for its source and checksum.
+
+Ops pins `duckdb==1.5.6` for bounded local validation. DuckDB 2.0 Linux x86_64
+wheels use a newer CPU baseline that the local release producer does not expose.
+See [current release evidence](evidence/native-apmp-migration.md) for the measured
+compatibility checks and artifact identities.
 
 The archive producer validates metadata, target tags and dependency closure,
 rejects duplicates/source archives and tolerates an existing output parent.
@@ -57,8 +63,8 @@ There is no build manifest, revision-dependent producer or runtime
 completion manifests remain separate contracts.
 
 The installed smoke uses an isolated interpreter, index-free wheel installation,
-dependency checking, installed CLI help/error handling and the synthetic 28 Flow
-plus 25 rollup expectations, 53 expectation rows and two validation summaries.
+dependency checking, installed CLI help/error handling and the synthetic 30 Flow
+plus 26 rollup expectations, 56 expectation rows and two validation summaries.
 It does not establish managed Glue bootstrap/network compatibility.
 
 ## Publish an exact release
@@ -162,7 +168,7 @@ uv run --no-sync poe register-report-catalog --plan build/deployment-dev --catal
 
 Inspect both Athena DDL executions and existing table schemas. Verify terminal
 Glue success, expected quality-failure/error behavior, matching native results,
-53 synthetic expectation rows/two summaries, complete Data Docs assets and
+56 synthetic expectation rows/two summaries, complete Data Docs assets and
 report completion manifests. Promote the same archive/driver hashes to prod after
 dev acceptance. Retain failed-run evidence; retries get fresh run IDs.
 

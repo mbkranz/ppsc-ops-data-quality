@@ -1,9 +1,9 @@
 # Runtime selection migration
 
-Current Athena runs require `locations` keyed by selected APMP dataset ID and
+Current Athena runs require `locations` keyed by selected Ops dataset ID and
 `data_versions` containing explicit Iceberg snapshot IDs (or explicitly mutable
 diagnostic inputs). Nonempty `schema_overrides` and database-only `history`
-bindings are retired. See [native/APMP compilation](../../../docs/metadata-compiler.md)
+bindings are retired. See [native compilation and Ops bindings](../../../docs/metadata-compiler.md)
 and `params.example.yaml` for the active shape. Online preflight is separate from
 local selection verification and occurs before GX queries. Library callers provide
 an explicit Athena client or factory; imports and local validation create none.

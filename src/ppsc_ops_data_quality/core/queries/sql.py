@@ -200,6 +200,14 @@ def to_sqlglot(
         comment = metadata["description"]
         if original_sources:
             comment += "; source: " + ", ".join(original_sources)
+        # Native descriptions are data. Keep delimiters and SQLGlot's special
+        # metadata-comment syntax from becoming SQL or altering AST metadata.
+        comment = " ".join(
+            comment.replace("/*", "/ *")
+            .replace("*/", "* /")
+            .replace("sqlglot.meta", "sqlglot_meta")
+            .split()
+        )
         projection.add_comments([comment])
         annotated.append(name)
     query.meta["ppsc"] = {

@@ -1,3 +1,6 @@
+> Historical release evidence for the predecessor at `39c5139`. Current schema ownership
+> and provenance are documented in [native compilation](../metadata-compiler.md).
+
 # Frozen native-query release
 
 The consumer pins `ppsc-salesforce[ibis]==0.1.0` from Salesforce revision

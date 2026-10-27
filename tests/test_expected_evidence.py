@@ -168,7 +168,7 @@ def test_expected_provenance_has_before_roles_and_native_source_paths():
     before = json.dumps(source, sort_keys=True)
     provenance = expected_value_provenance()
     assert json.dumps(source, sort_keys=True) == before
-    assert provenance["contract_id"] == source["contract_id"]
+    assert provenance["definition_sha256"] == source["definition_sha256"]
     for field, entry in provenance["fields"].items():
         assert entry["before"] == f"AccountBefore.{field}"
         assert entry["expected"] == f"expected__{field}"

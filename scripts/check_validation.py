@@ -17,6 +17,11 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
     flow_account_suite,
     rollup_account_suite,
 )
+from ppsc_ops_data_quality.account_to_survey_results.inputs import (
+    ACCOUNT_HISTORY_VALIDATION_INPUT,
+    CONTACT_HISTORY_VALIDATION_INPUT,
+    SURVEY_RESULT_HISTORY_VALIDATION_INPUT,
+)
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
 from ppsc_ops_data_quality.account_to_survey_results.metadata import (
     metadata_inputs,
@@ -33,11 +38,6 @@ from ppsc_ops_data_quality.account_to_survey_results.queries import (
 )
 from ppsc_ops_data_quality.core.queries import history_tables, snapshot
 from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
-from ppsc_ops_data_quality.core.schemas import (
-    ACCOUNT_HISTORY_VALIDATION_INPUT,
-    CONTACT_HISTORY_VALIDATION_INPUT,
-    SURVEY_RESULT_HISTORY_VALIDATION_INPUT,
-)
 from ppsc_ops_data_quality.gx_queries import query_asset_sql
 from ppsc_ops_data_quality.runtime import run_validations_with_reports
 from ppsc_ops_data_quality.runtime.artifacts import save_suite
@@ -173,7 +173,7 @@ def render_examples(output: Path):
         "rollups": rollup_account_query(history, as_of=EXECUTION_AT),
     }
     header = (
-        "-- ILLUSTRATIVE bindings/event/times; source profiles are defined in core/schemas/.\n"
+        "-- ILLUSTRATIVE bindings/event/times; source profiles are defined in account_to_survey_results/definitions/.\n"
         "-- Direct SELECTs over history. Verify physical catalog types before execution.\n"
         "-- Execution: 2026-10-21 12:00; BEFORE: 11:59:59; settled AFTER: 12:05.\n\n"
     )

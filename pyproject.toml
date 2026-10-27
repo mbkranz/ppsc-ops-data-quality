@@ -9,12 +9,14 @@ description = "Composable Ibis comparisons and native GX validation for Salesfor
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
-  "ppsc-salesforce[ibis]==0.1.0",
+  "ppsc-salesforce[ibis]==0.1.1",
   "pydantic>=2.12,<3",
   "PyYAML>=6,<7",
   "boto3>=1.35,<2",
   "great-expectations==1.24.0",
   "ibis-framework[duckdb]==12.0.0",
+  # DuckDB 2.0 Linux x86_64 wheels require a newer CPU baseline than this producer.
+  "duckdb==1.5.6",
   "sqlglot==30.24.0",
   "pyarrow>=16,<27",
   "PyAthena[SQLAlchemy]>=3,<4",
@@ -40,7 +42,7 @@ release = [
 packages = ["src/ppsc_ops_data_quality"]
 
 [tool.uv.sources]
-ppsc-salesforce = { path = "vendor/1d59b5b8/ppsc_salesforce-0.1.0-py3-none-any.whl" }
+ppsc-salesforce = { path = "vendor/native-0.1.1/ppsc_salesforce-0.1.1-py3-none-any.whl" }
 
 [tool.poe]
 executor = {type = "simple"}

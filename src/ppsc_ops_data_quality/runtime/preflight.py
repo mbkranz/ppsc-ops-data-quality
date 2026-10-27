@@ -66,6 +66,20 @@ def _column_type(column: dict[str, Any]) -> str:
     return declared
 
 
+def _native_type(declaration: str) -> exp.DataType:
+    """Canonicalize Athena aliases without discarding CHAR or length semantics."""
+    dtype = exp.DataType.build(declaration, dialect="athena")
+    for node in dtype.find_all(exp.DataType):
+        # Athena's catalog may expose STRING as unbounded VARCHAR. CHAR and
+        # length-bearing VARCHAR retain their distinct physical declarations.
+        if (
+            node.this in {exp.DataType.Type.TEXT, exp.DataType.Type.VARCHAR}
+            and not node.expressions
+        ):
+            node.set("this", exp.DataType.Type.TEXT)
+    return dtype
+
+
 def _catalog_schema(columns: list[dict[str, Any]], *, fields: tuple[str, ...] | None = None):
     if fields is not None:
         columns = [column for column in columns if column["Name"] in fields]
@@ -213,6 +227,19 @@ def check_catalog(
             raise ValueError(
                 f"Catalog schema changed for {location.identity}: missing={sorted(missing_names)}"
             )
+        # Compare native declarations before Ibis conversion loses CHAR/VARCHAR
+        # and other physical distinctions. The query schema is checked below too.
+        declared_types = binding.get("physical_types", {})
+        changed_native = [
+            name
+            for name in expected.names
+            if name in declared_types
+            and _native_type(declared_types[name]) != _native_type(_column_type(unique[name]))
+        ]
+        if changed_native:
+            raise ValueError(
+                f"Catalog physical types changed for {location.identity}: {changed_native}"
+            )
         catalog_schema = _catalog_schema(list(unique.values()), fields=expected.names)
         missing = set(expected.names).difference(catalog_schema.names)
         changed = [
@@ -260,6 +287,11 @@ def check_catalog(
                 raise ValueError(
                     f"Stable-input assertion unestablished for mutable relation {location.identity}; select an Iceberg snapshot or run explicitly diagnostic comparisons"
                 )
+        coverage = inputs.get("source_coverage")
+        if coverage is not None and not coverage["complete"]:
+            limitations.append(
+                "Native field evidence incomplete: " + ", ".join(coverage["missing_fields"])
+            )
         if binding["provisional"] or any(
             table["provisional"] for table in inputs["tables"].values()
         ):

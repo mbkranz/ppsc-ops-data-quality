@@ -256,7 +256,7 @@ be byte-identical. CI verifies Ibis structure, parent ownership and boundary sch
 
 - [Query composition and original sources](docs/query-design.md)
 - [Reusable comparison boundaries for other objects, mappings and surveys](docs/reusable-comparisons.md)
-- [Selected APMP schemas](src/ppsc_ops_data_quality/core/schemas/README.md)
+- [Ops lake definitions and native source metadata](docs/metadata-compiler.md)
 - [Runtime setup and native definitions](src/ppsc_ops_data_quality/runtime/README.md)
 - [Authored SQL-file execution and metadata/comment standards TODO](src/ppsc_ops_data_quality/runtime/TODO.md)
 - [Build, deployment and Glue acceptance](docs/build-deployment.md)

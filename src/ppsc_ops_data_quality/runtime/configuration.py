@@ -111,7 +111,7 @@ class ValidationConfiguration(Configuration):
             overrides = values.pop("schema_overrides")
             if not isinstance(overrides, dict) or any(overrides.values()):
                 raise ValueError(
-                    "schema_overrides is retired; change the reviewed APMP definition and regenerate its pinned handoff"
+                    "schema_overrides is retired; change the reviewed Ops Athena definition and rebuild its pinned release"
                 )
         if "databases" in values:
             raise ValueError(

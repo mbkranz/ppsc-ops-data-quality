@@ -1,93 +1,80 @@
-# Native Salesforce compilation and APMP inputs
+# Native Salesforce compilation and Ops lake bindings
 
-The existing `ppsc-salesforce[ibis]` distribution supplies Flow queries from
-`salesforce.entities.flows.queries` and rollups from
-`salesforce.entities.field_definitions.rollups`. APMP owns ODCS authoring, Athena
-schema parsing, physical aliases, keys and history definitions. Ops consumes
-APMP's generated `tables.json` and saved native JSON, then owns event selection,
-historical alignment, comparisons and native GX suites. ODCS is not an Ops dependency.
+`ppsc-salesforce[ibis]` interprets saved native Flow/rollup metadata. It supplies
+`flow_context`, `flow_assignments`, and `rollup_values` as native Ibis functions.
+Field definitions compile through `salesforce.entities.field_definitions.schemas.to_sqlglot`;
+Ops uses native `ibis.Schema.from_sqlglot` when a selected source schema is needed.
+Unsupported source types remain explicit evidence; they are never guessed from a lake type.
 
-The selected files live in `account_to_survey_results/metadata`. Native Ibis
-schemas are reconstructed from generated field/type pairs; explicit selections
-apply physical-to-logical aliases. Git, the vendored wheel and the locked release
-pin these files. No separate metadata package or handoff manifest is required.
+Ops owns the Account/Contact/Survey Result physical schema files under
+`account_to_survey_results/definitions/`. These provisional schema-only Athena
+DDLs are not deployable storage definitions. `account_to_survey_results.inputs`
+contains the explicit aliases, keys, relationship and history bindings and reads
+DDL into nullable Ibis schemas. No `tables.json`, ODCS definition, or generated
+APMP product is a runtime input. The former authored descriptions and policies
+are retained separately in `definitions/descriptions.json`.
 
-`metadata_inputs()` and `metadata_request()` return fresh values from an immutable
-serialized compilation cache. `metadata_receipt()` checks the selected bytes,
-request and compiler version before runtime connections. Its ordinary run metadata
-records source revision, exact Flow version/hash, ODCS identity and inputs digest.
+The saved Flow, native field catalog, and observed catalog remain under
+`account_to_survey_results/metadata/`. Git, the vendored Salesforce wheel and the
+existing release graph pin them. `metadata_inputs()` returns fresh parsed values
+from an immutable serialized compilation cache. `metadata_receipt()` checks the
+actual selected files, application bindings, request and compiler version before
+online client creation. It records definition/input digests and source coverage
+separately from provisional status. The catalog is synthetic and no real lake or
+Flow applicability is certified by these files.
 
-The packaged catalog remains a provisional synthetic fixture. Offline compilation
-does not establish real lake compatibility or Flow applicability.
+## Explicit query and provenance boundaries
 
-## Native expression boundary
+The caller supplies trigger identity, lookup candidates, BEFORE state, independent
+AFTER observations, execution date and eligibility. Salesforce resolves supported
+native lookups, formulas, decision priority and assignments against those inputs.
+Ops binds catalog/database/relation, historical instants and per-table data
+versions. The comparison core receives native tables and explicit key/value/evidence
+bindings and contains no Salesforce object names or metadata loading.
 
-The compiler preserves `flow_context`, `flow_assignments`, `rollup_values`,
-plain named Ibis values and independent presence predicates. Native expressions
-remain Ibis tables/values. No ODCS model, expression serialization, query registry
-or acquisition dependency is needed.
+`field_definitions()` keeps original native field records and exact source
+pointers/hashes. Supported records use annotated SQLGlot ColumnDefs; missing type
+evidence remains `unsupported` alongside its original record. Ibis schema
+conversion does not carry these annotations. The domain's `PROJECTION_LINEAGE`
+therefore carries field definitions and native Flow evidence alongside query
+composition, and `core.queries.sql.to_sqlglot()` attaches it to final projections
+after SQL rewrites. Expected and independently observed roles remain distinct.
+Readable comments are escaped summaries; structured `meta["ppsc"]` and serialized
+GX suite metadata retain the full provenance. Native SQLGlot copy/dump/load retains
+that metadata; rendering and reparsing SQL alone does not reconstruct it.
 
-`sources.salesforce.flow_comparison` takes explicitly supplied generated inputs, Flow
-request, prepared record, independently observed table and `ComparisonSpec`.
-Fields must occur in the selected APMP mapping and native source identities.
-Ordered relationship bindings remain separate from field provenance.
-`sources.salesforce.native_rollup_comparison` requires actual selected native
-rollup metadata; workbook-derived rollups do not silently become native rules.
+Duplicate/missing keys, join fanout, unmatched observations, assigned NULL,
+retained BEFORE values and unknown routes remain observable. Required and
+must-be-null predicates remain independent application policies.
 
-The comparison core remains independent of Salesforce. It supports differing
-expected/observed column names, ordered composite keys, strict key/value types,
-missing keys/parents, duplicate fanout and unmatched observations. Assigned NULL,
-unassigned retained BEFORE values and unknown routing remain distinct. Required
-and must-be-null predicates are independent; one is not the inverse of the other.
+## Capture and live acceptance
 
-Suite metadata carries ordinary provenance: native source pointers and
-hashes, APMP definition identity, BEFORE/expected/observed roles and output aliases.
-`expected_value_provenance()` does not construct a separate comparison contract.
+`uv run poe discover-lake` explicitly discovers the catalog using `lake/params.yaml`.
+`uv run poe capture-lake -- --help` describes selected Glue storage/view capture.
+Both operations are separate from the four offline DVC release producers.
+They never execute DDL and do not run during imports or schema construction.
 
-## Runtime evidence
+Runtime preflight checks selected native physical types before conversion to
+Ibis, including distinctions such as CHAR versus VARCHAR. It rejects duplicate
+and case-colliding declarations, verifies schema/partitions/relation identity,
+and records unreferenced additions. Native evidence coverage is recorded separately
+from definition approval. Views still require deployed-definition verification.
 
-`params.example.yaml` binds dataset IDs to explicit catalog/database/relation
-locations and per-relation data versions. Runtime types, keys and transformations
-cannot be overridden outside the selected producer definitions. Database-only
-`history` bindings and nonempty `schema_overrides` are rejected.
-
-`runtime.preflight.check_catalog` takes an explicit Athena client. It compares
-selected columns/types, partition declarations and relation kind. Unreferenced
-additions are recorded without automatically changing the schema. Missing or
-incompatible metadata blocks the affected check before GX validation queries.
-Views currently require additional captured deployed-definition/dependency
-verification before live acceptance.
-
-An `iceberg_snapshot` binding supplies an exact positive snapshot ID. Preflight
-executes a bounded schema probe using `FOR VERSION AS OF`; the same IDs are
-applied through native SQLGlot Version nodes to every physical occurrence in all
-GX query assets. Run metadata records IDs, schema probe execution identity, exact
-source SQL, checked catalog digest/time, resolved locations and configuration
-hash. Independent table snapshots establish neither a cross-table transaction
-nor business-time alignment.
-
-Mutable input can run only as an explicit diagnostic selection with
-`require_repeatable_reads: false`. Its inability to guarantee repeatable reads
-across GX metric queries is recorded. Stable-input assertions are unestablished
-and blocked by default. Timestamp fields alone are not data-version evidence.
-
-Local selection/schema/history checks occur before client creation. Library
-callers supply an Athena client or explicit factory; the CLI and Glue adapter
-provide factories after local checks. This keeps offline use free of credential
-resolution and network access.
+An explicit Iceberg snapshot is schema-probed with `FOR VERSION AS OF` and applied
+to every physical query occurrence. Separate table snapshots establish no
+cross-table transaction or business-time alignment. Mutable inputs require an
+explicit diagnostic selection and cannot establish repeatable reads across GX
+metric queries. Flow checks also require sufficient history resolution.
 
 ## Refresh
 
-1. Capture and review actual native and lake evidence in Salesforce/APMP.
-2. Build the selected APMP product through its DVC stage; review its dictionary,
-   unresolved coverage and provisional status.
-3. Build the existing Salesforce wheel from the reviewed source revision. Freeze
-   that wheel and copy `tables.json`, `flow.json`, `source_catalog.json` and
-   `observed.json` into the consumer selection.
-4. Update the wheel reference and lockfile. Regenerate suites, SQL and diagrams
-   through the existing Poe tasks.
-5. Run the installed-release smoke and real DVC producers.
-6. Use explicit online preflight and selected snapshots for a targeted Athena run.
-
-Real physical definitions, historical observations, Flow applicability and rollup
-policies remain evidence gates for the checks that depend on them.
+1. Explicitly capture and review the selected native and lake evidence.
+2. Edit the Ops schema files and bindings as required; retain source differences
+   and provisional/coverage limitations explicitly.
+3. Build and pin the reviewed Salesforce wheel and update the existing lockfile.
+4. Run `poe check`, `poe check-queries`, and `poe check-synthetic`; regenerate
+   affected SQL, suites and diagrams using existing commands.
+5. Run installed-release smoke and the real DVC producers in their supported
+   release environment; commit locks only from actual outputs.
+6. Perform separately authorized targeted Athena validation with explicit source
+   versions and independently observed historical records.

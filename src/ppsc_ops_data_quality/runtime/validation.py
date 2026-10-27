@@ -15,7 +15,7 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
     flow_account_suite,
     rollup_account_suite,
 )
-from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
+from ppsc_ops_data_quality.account_to_survey_results.lineage import bound_projection_lineage
 from ppsc_ops_data_quality.account_to_survey_results.metadata import (
     metadata_inputs,
     metadata_receipt,
@@ -88,6 +88,7 @@ def run_validation(
             raise ValueError(
                 f"Flow temporal resolution unestablished for {dataset_id}: {binding['history_grain']} history cannot establish arbitrary intra-day BEFORE/execution/AFTER states"
             )
+    projection_lineage = bound_projection_lineage(inputs, request.locations)
     history = {
         binding["native_object"]: source_relation(
             inputs, dataset_id, location=request.locations[dataset_id]
@@ -158,11 +159,18 @@ def run_validation(
     try:
         prepared = []
         for name, query in queries.items():
-            suite = context.suites.add(
+            suite = (
                 flow_account_suite(expected_row_count=1)
                 if name == "flow"
                 else rollup_account_suite()
             )
+            suite.meta["physical_bindings"] = {
+                column: projection_lineage[column]["physical_bindings"]
+                for column in query.columns
+                if column in projection_lineage
+                and "physical_bindings" in projection_lineage[column]
+            }
+            suite = context.suites.add(suite)
             prepared.append(
                 prepare_validation(
                     context,
@@ -171,7 +179,7 @@ def run_validation(
                     suite,
                     name=name,
                     metadata={"run_name": run_directory.name},
-                    projection_lineage=PROJECTION_LINEAGE,
+                    projection_lineage=projection_lineage,
                     table_versions=table_versions,
                     sql_path=run_directory / "sql" / f"{name}.sql",
                 )

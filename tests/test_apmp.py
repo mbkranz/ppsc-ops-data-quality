@@ -176,7 +176,7 @@ def test_generated_schema_and_mapping_disagreement_is_rejected(tmp_path):
 
 
 def test_nonempty_legacy_runtime_type_override_has_migration_message():
-    with pytest.raises(ValueError, match="reviewed APMP definition"):
+    with pytest.raises(ValueError, match="reviewed Ops Athena definition"):
         ValidationConfiguration.model_validate({"schema_overrides": {"account": {"x": "string"}}})
 
 

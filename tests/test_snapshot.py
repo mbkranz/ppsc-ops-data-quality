@@ -21,7 +21,7 @@ from ppsc_ops_data_quality.views import create_view, create_view_sql
 
 def object_history_schemas():
     """Use the shared source profiles instead of duplicating fixture dtypes."""
-    from ppsc_ops_data_quality.core.schemas import (
+    from ppsc_ops_data_quality.account_to_survey_results.inputs import (
         ACCOUNT_HISTORY_VALIDATION_INPUT,
         CONTACT_HISTORY_VALIDATION_INPUT,
         SURVEY_RESULT_HISTORY_VALIDATION_INPUT,

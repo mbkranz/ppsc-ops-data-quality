@@ -382,6 +382,15 @@ def test_shared_athena_job_runs_both_suites_and_closes_engine(tmp_path, monkeypa
         table_versions,
     ):
         assert projection_lineage
+        observed_name = (
+            "observed__Age_at_Time_of_Consent__pc"
+            if name == "flow"
+            else "observed__Count_of_Completed_Primary_Consent__pc"
+        )
+        observed = projection_lineage[observed_name]["physical_bindings"][0]
+        assert observed["catalog"] == "fixture" and observed["database"] == "fixture"
+        assert observed["relation"] == "account_history"
+        assert suite.meta["physical_bindings"][observed_name] == [observed]
         assert len(table_versions) == (0 if outcome == "diagnostic" else 3)
         prepared.append((name, suite))
         return SimpleNamespace(

@@ -1,4 +1,4 @@
--- ILLUSTRATIVE bindings/event/times; source profiles are defined in core/schemas/.
+-- ILLUSTRATIVE bindings/event/times; source profiles are defined in account_to_survey_results/definitions/.
 -- Direct SELECTs over history. Verify physical catalog types before execution.
 -- Execution: 2026-10-21 12:00; BEFORE: 11:59:59; settled AFTER: 12:05.
 

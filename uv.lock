@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.11, <3.14"
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'win32'",
@@ -1519,19 +1519,6 @@ wheels = [
 ]
 
 [[package]]
-name = "open-data-contract-standard"
-version = "3.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pydantic" },
-    { name = "pyyaml" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/01/5d/11fcaf438c29e66d3f3eb40fa8e10fb53930f6346bce323624e139e0e301/open_data_contract_standard-3.2.0.tar.gz", hash = "sha256:37589b1e98ea519de51366e0efc2e02dbc87e1da68f07fd9385e49ab5df76763", size = 26890, upload-time = "2026-09-02T14:16:17.219Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9b/3a/8b7eacd298d76cc4777c9195f43d744a55bfda84060fd1c33fe8431fe6ea/open_data_contract_standard-3.2.0-py3-none-any.whl", hash = "sha256:a7e05dfc52b94a77b54f81a9033dd7a718133cf37bf66f3eb7d0eefd2fd33d4f", size = 20894, upload-time = "2026-09-02T14:16:15.799Z" },
-]
-
-[[package]]
 name = "orjson"
 version = "3.13.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1675,36 +1662,6 @@ wheels = [
 ]
 
 [[package]]
-name = "ppsc-metadata"
-version = "0.2.0"
-source = { path = "vendor/1eedb2ab/ppsc_metadata-0.2.0-py3-none-any.whl" }
-dependencies = [
-    { name = "jsonschema" },
-    { name = "open-data-contract-standard" },
-    { name = "pydantic" },
-    { name = "pyyaml" },
-]
-wheels = [
-    { filename = "ppsc_metadata-0.2.0-py3-none-any.whl", hash = "sha256:fd0934ef5b8234554446358aa4471c8be1257d9e0fb8b6f9ae3ec408e4d502b8" },
-]
-
-[package.optional-dependencies]
-ibis = [
-    { name = "ibis-framework" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "ibis-framework", marker = "extra == 'ibis'", specifier = "==12.0.0" },
-    { name = "jsonschema", specifier = ">=4.25,<5" },
-    { name = "open-data-contract-standard", specifier = "==3.2.0" },
-    { name = "pandas", marker = "extra == 'workbook'", specifier = ">=2.2,<3" },
-    { name = "pydantic", specifier = ">=2.11,<3" },
-    { name = "pyyaml", specifier = ">=6,<7" },
-]
-provides-extras = ["ibis", "workbook"]
-
-[[package]]
 name = "ppsc-ops-data-quality"
 version = "0.1.0"
 source = { editable = "." }
@@ -1712,7 +1669,6 @@ dependencies = [
     { name = "boto3" },
     { name = "great-expectations" },
     { name = "ibis-framework", extra = ["duckdb"] },
-    { name = "ppsc-metadata", extra = ["ibis"] },
     { name = "pyarrow" },
     { name = "pyathena", extra = ["sqlalchemy"] },
     { name = "pydantic" },
@@ -1758,7 +1714,6 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.35,<2" },
     { name = "great-expectations", specifier = "==1.24.0" },
     { name = "ibis-framework", extras = ["duckdb"], specifier = "==12.0.0" },
-    { name = "ppsc-metadata", extras = ["ibis"], path = "vendor/1eedb2ab/ppsc_metadata-0.2.0-py3-none-any.whl" },
     { name = "pyarrow", specifier = ">=16,<27" },
     { name = "pyathena", extras = ["sqlalchemy"], specifier = ">=3,<4" },
     { name = "pydantic", specifier = ">=2.12,<3" },
@@ -2486,7 +2441,7 @@ resolution-markers = [
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" } },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7a/97/5a3609c4f8d58b039179648e62dd220f89864f56f7357f5d4f45c29eb2cc/scipy-1.17.1.tar.gz", hash = "sha256:95d8e012d8cb8816c226aef832200b1d45109ed4464303e997c5b13122b297c0", size = 30573822, upload-time = "2026-02-23T00:26:24.851Z" }
 wheels = [
@@ -2545,7 +2500,7 @@ resolution-markers = [
     "python_full_version == '3.12.*' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" } },
+    { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7e/74/66de6258867beb2ef08f35f9f2ac017a52cacd5081714d239ff1a442d458/scipy-1.18.1.tar.gz", hash = "sha256:52c4b7422442aba924d03ad4019852b08a92e64ea187b933135687bfe2747307", size = 30781235, upload-time = "2026-08-21T23:28:50.599Z" }
 wheels = [

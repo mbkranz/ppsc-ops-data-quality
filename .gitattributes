@@ -1,2 +1,8 @@
 # Preserve native DVC command serialization in the generated lock.
 dvc.lock whitespace=-blank-at-eol
+
+# Definition receipts hash source/profile bytes on every supported checkout.
+*.py text eol=lf
+*.sql text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf

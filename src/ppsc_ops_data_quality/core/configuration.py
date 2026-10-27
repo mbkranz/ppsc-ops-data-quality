@@ -27,7 +27,12 @@ ConfigurationLoader.add_constructor(
 
 def load_yaml(path: Path) -> dict:
     """Load one mapping, preserving YAML date/datetime values and quoted IDs."""
-    value = yaml.load(path.read_text(encoding="utf-8"), Loader=ConfigurationLoader)
+    return parse_yaml(path.read_text(encoding="utf-8"))
+
+
+def parse_yaml(text: str) -> dict:
+    """Parse verified YAML bytes without reopening their source file."""
+    value = yaml.load(text, Loader=ConfigurationLoader)
     if not isinstance(value, dict):
         raise ValueError("Configuration must be a YAML mapping")
     return value

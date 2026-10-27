@@ -1,4 +1,4 @@
--- ILLUSTRATIVE bindings/event/times; source profiles are defined in core/schemas/.
+-- ILLUSTRATIVE bindings/event/times; source profiles are defined in account_to_survey_results/inputs/.
 -- Direct SELECTs over history. Verify physical catalog types before execution.
 -- Execution: 2026-10-21 12:00; BEFORE: 11:59:59; settled AFTER: 12:05.
 
@@ -73,19 +73,19 @@ FROM (
           "history_3"."valid_to" IS NULL
         )
       )
-  ), "getFirstPhysicalMeasurement" AS (
+  ), "FlowRecordLookup.First_Remote_Physical_Measurement" AS (
     SELECT
       *
     FROM "Survey_Results_At_Execution" AS "Survey_Results_At_Execution"
-  ), "Get_Permission_1007" AS (
+  ), "FlowRecordLookup.Pediatric_Permission_For_Assent" AS (
     SELECT
       *
     FROM "Survey_Results_At_Execution" AS "Survey_Results_At_Execution_2"
-  ), "getEarliestEgetEarliestEHRConsentHRConsent" AS (
+  ), "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent" AS (
     SELECT
       *
     FROM "Survey_Results_At_Execution" AS "Survey_Results_At_Execution_3"
-  ), "getEarliestPrimaryConsent" AS (
+  ), "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent" AS (
     SELECT
       *
     FROM "Survey_Results_At_Execution" AS "Survey_Results_At_Execution_4"
@@ -312,7 +312,6 @@ FROM (
               "Survey_Result__c_17"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c",
               "Survey_Result__c_17"."FlowRecordLookup.First_Remote_Physical_Measurement.Id",
               "Survey_Result__c_17"."__ppsc_match",
-              "Survey_Result__c_17"."__ppsc_lookup_known",
               COALESCE(
                 SUM("Survey_Result__c_17"."__ppsc_match") OVER (
                   PARTITION BY "Survey_Result__c_17"."__ppsc_flow_row"
@@ -324,16 +323,13 @@ FROM (
                 PARTITION BY "Survey_Result__c_17"."__ppsc_flow_row"
                 ORDER BY "Survey_Result__c_17"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c" ASC NULLS FIRST
               ) - 1 AS "__ppsc_rank",
-              TRUE
-              AND (
-                COALESCE(
-                  SUM("Survey_Result__c_17"."__ppsc_match") OVER (
-                    PARTITION BY "Survey_Result__c_17"."__ppsc_flow_row", "Survey_Result__c_17"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c"
-                    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                  ),
-                  0
-                ) <= 1
-              ) AS "__known.FlowRecordLookup.First_Remote_Physical_Measurement.Id"
+              COALESCE(
+                SUM("Survey_Result__c_17"."__ppsc_match") OVER (
+                  PARTITION BY "Survey_Result__c_17"."__ppsc_flow_row", "Survey_Result__c_17"."FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c"
+                  ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                ),
+                0
+              ) <= 1 AS "__known.FlowRecordLookup.First_Remote_Physical_Measurement.Id"
             FROM (
               SELECT
                 "Survey_Result__c_16"."Id",
@@ -379,10 +375,9 @@ FROM (
                 "Survey_Result__c_16"."FlowRecordLookup.Pediatric_Permission_For_Assent.match_count",
                 "Survey_Result__c_16"."__known.FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c",
                 "Survey_Result__c_16"."__known.FlowRecordLookup.Pediatric_Permission_For_Assent.Id",
-                "getFirstPhysicalMeasurement_2"."Completion_Status_Timestamp__c" AS "FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c",
-                "getFirstPhysicalMeasurement_2"."Id" AS "FlowRecordLookup.First_Remote_Physical_Measurement.Id",
-                "getFirstPhysicalMeasurement_2"."__ppsc_match",
-                TRUE AS "__ppsc_lookup_known"
+                "FlowRecordLookup.First_Remote_Physical_Measurement_2"."Completion_Status_Timestamp__c" AS "FlowRecordLookup.First_Remote_Physical_Measurement.Completion_Status_Timestamp__c",
+                "FlowRecordLookup.First_Remote_Physical_Measurement_2"."Id" AS "FlowRecordLookup.First_Remote_Physical_Measurement.Id",
+                "FlowRecordLookup.First_Remote_Physical_Measurement_2"."__ppsc_match"
               FROM (
                 SELECT
                   "Survey_Result__c_15"."Id",
@@ -472,22 +467,18 @@ FROM (
                       "Survey_Result__c_13"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.match_count",
                       "Survey_Result__c_13"."__known.FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
                       IF(
-                        TRUE
-                        AND (
-                          COALESCE(
-                            SUM("Survey_Result__c_13"."__ppsc_match") OVER (
-                              PARTITION BY "Survey_Result__c_13"."__ppsc_flow_row"
-                              ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                            ),
-                            0
-                          ) <= 1
-                        ),
+                        COALESCE(
+                          SUM("Survey_Result__c_13"."__ppsc_match") OVER (
+                            PARTITION BY "Survey_Result__c_13"."__ppsc_flow_row"
+                            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                          ),
+                          0
+                        ) <= 1,
                         "Survey_Result__c_13"."FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c",
                         CAST(NULL AS TIMESTAMP)
                       ) AS "FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c",
                       "Survey_Result__c_13"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id",
                       "Survey_Result__c_13"."__ppsc_match",
-                      "Survey_Result__c_13"."__ppsc_lookup_known",
                       COALESCE(
                         SUM("Survey_Result__c_13"."__ppsc_match") OVER (
                           PARTITION BY "Survey_Result__c_13"."__ppsc_flow_row"
@@ -496,26 +487,20 @@ FROM (
                         0
                       ) AS "FlowRecordLookup.Pediatric_Permission_For_Assent.match_count",
                       ROW_NUMBER() OVER (PARTITION BY "Survey_Result__c_13"."__ppsc_flow_row") - 1 AS "__ppsc_rank",
-                      TRUE
-                      AND (
-                        COALESCE(
-                          SUM("Survey_Result__c_13"."__ppsc_match") OVER (
-                            PARTITION BY "Survey_Result__c_13"."__ppsc_flow_row"
-                            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                          ),
-                          0
-                        ) <= 1
-                      ) AS "__known.FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c",
-                      TRUE
-                      AND (
-                        COALESCE(
-                          SUM("Survey_Result__c_13"."__ppsc_match") OVER (
-                            PARTITION BY "Survey_Result__c_13"."__ppsc_flow_row"
-                            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                          ),
-                          0
-                        ) <= 1
-                      ) AS "__known.FlowRecordLookup.Pediatric_Permission_For_Assent.Id"
+                      COALESCE(
+                        SUM("Survey_Result__c_13"."__ppsc_match") OVER (
+                          PARTITION BY "Survey_Result__c_13"."__ppsc_flow_row"
+                          ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                        ),
+                        0
+                      ) <= 1 AS "__known.FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c",
+                      COALESCE(
+                        SUM("Survey_Result__c_13"."__ppsc_match") OVER (
+                          PARTITION BY "Survey_Result__c_13"."__ppsc_flow_row"
+                          ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                        ),
+                        0
+                      ) <= 1 AS "__known.FlowRecordLookup.Pediatric_Permission_For_Assent.Id"
                     FROM (
                       SELECT
                         "Survey_Result__c_12"."Id",
@@ -556,10 +541,9 @@ FROM (
                         "Survey_Result__c_12"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
                         "Survey_Result__c_12"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.match_count",
                         "Survey_Result__c_12"."__known.FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
-                        "Get_Permission_1007_2"."California_Signature__c" AS "FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c",
-                        "Get_Permission_1007_2"."Id" AS "FlowRecordLookup.Pediatric_Permission_For_Assent.Id",
-                        "Get_Permission_1007_2"."__ppsc_match",
-                        TRUE AS "__ppsc_lookup_known"
+                        "FlowRecordLookup.Pediatric_Permission_For_Assent_2"."California_Signature__c" AS "FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c",
+                        "FlowRecordLookup.Pediatric_Permission_For_Assent_2"."Id" AS "FlowRecordLookup.Pediatric_Permission_For_Assent.Id",
+                        "FlowRecordLookup.Pediatric_Permission_For_Assent_2"."__ppsc_match"
                       FROM (
                         SELECT
                           "Survey_Result__c_11"."Id",
@@ -642,7 +626,6 @@ FROM (
                               "Survey_Result__c_9"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
                               "Survey_Result__c_9"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
                               "Survey_Result__c_9"."__ppsc_match",
-                              "Survey_Result__c_9"."__ppsc_lookup_known",
                               COALESCE(
                                 SUM("Survey_Result__c_9"."__ppsc_match") OVER (
                                   PARTITION BY "Survey_Result__c_9"."__ppsc_flow_row"
@@ -654,16 +637,13 @@ FROM (
                                 PARTITION BY "Survey_Result__c_9"."__ppsc_flow_row"
                                 ORDER BY "Survey_Result__c_9"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c" ASC NULLS FIRST
                               ) - 1 AS "__ppsc_rank",
-                              TRUE
-                              AND (
-                                COALESCE(
-                                  SUM("Survey_Result__c_9"."__ppsc_match") OVER (
-                                    PARTITION BY "Survey_Result__c_9"."__ppsc_flow_row", "Survey_Result__c_9"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c"
-                                    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                                  ),
-                                  0
-                                ) <= 1
-                              ) AS "__known.FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id"
+                              COALESCE(
+                                SUM("Survey_Result__c_9"."__ppsc_match") OVER (
+                                  PARTITION BY "Survey_Result__c_9"."__ppsc_flow_row", "Survey_Result__c_9"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c"
+                                  ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                                ),
+                                0
+                              ) <= 1 AS "__known.FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id"
                             FROM (
                               SELECT
                                 "Survey_Result__c_8"."Id",
@@ -700,10 +680,9 @@ FROM (
                                 "Survey_Result__c_8"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
                                 "Survey_Result__c_8"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.match_count",
                                 "Survey_Result__c_8"."__known.FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-                                "getEarliestEgetEarliestEHRConsentHRConsent_2"."Consent_Status_Timestamp__c" AS "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
-                                "getEarliestEgetEarliestEHRConsentHRConsent_2"."Id" AS "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
-                                "getEarliestEgetEarliestEHRConsentHRConsent_2"."__ppsc_match",
-                                TRUE AS "__ppsc_lookup_known"
+                                "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent_2"."Consent_Status_Timestamp__c" AS "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Consent_Status_Timestamp__c",
+                                "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent_2"."Id" AS "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id",
+                                "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent_2"."__ppsc_match"
                               FROM (
                                 SELECT
                                   "Survey_Result__c_7"."Id",
@@ -778,7 +757,6 @@ FROM (
                                       "Survey_Result__c_5"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
                                       "Survey_Result__c_5"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
                                       "Survey_Result__c_5"."__ppsc_match",
-                                      "Survey_Result__c_5"."__ppsc_lookup_known",
                                       COALESCE(
                                         SUM("Survey_Result__c_5"."__ppsc_match") OVER (
                                           PARTITION BY "Survey_Result__c_5"."__ppsc_flow_row"
@@ -790,16 +768,13 @@ FROM (
                                         PARTITION BY "Survey_Result__c_5"."__ppsc_flow_row"
                                         ORDER BY "Survey_Result__c_5"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c" ASC NULLS FIRST
                                       ) - 1 AS "__ppsc_rank",
-                                      TRUE
-                                      AND (
-                                        COALESCE(
-                                          SUM("Survey_Result__c_5"."__ppsc_match") OVER (
-                                            PARTITION BY "Survey_Result__c_5"."__ppsc_flow_row", "Survey_Result__c_5"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c"
-                                            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-                                          ),
-                                          0
-                                        ) <= 1
-                                      ) AS "__known.FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id"
+                                      COALESCE(
+                                        SUM("Survey_Result__c_5"."__ppsc_match") OVER (
+                                          PARTITION BY "Survey_Result__c_5"."__ppsc_flow_row", "Survey_Result__c_5"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c"
+                                          ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+                                        ),
+                                        0
+                                      ) <= 1 AS "__known.FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id"
                                     FROM (
                                       SELECT
                                         "Survey_Result__c_4"."Id",
@@ -832,10 +807,9 @@ FROM (
                                         "Survey_Result__c_4"."Participant__r.Account.Environmental_Exposures_Date_Time__c",
                                         "Survey_Result__c_4"."Participant__r.Account.Social_Determinants_of_Health_Completion__c",
                                         "Survey_Result__c_4"."__ppsc_flow_row",
-                                        "getEarliestPrimaryConsent_2"."Consent_Status_Timestamp__c" AS "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
-                                        "getEarliestPrimaryConsent_2"."Id" AS "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
-                                        "getEarliestPrimaryConsent_2"."__ppsc_match",
-                                        TRUE AS "__ppsc_lookup_known"
+                                        "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent_2"."Consent_Status_Timestamp__c" AS "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Consent_Status_Timestamp__c",
+                                        "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent_2"."Id" AS "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id",
+                                        "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent_2"."__ppsc_match"
                                       FROM (
                                         SELECT
                                           "Survey_Result__c_3"."Id",
@@ -918,40 +892,43 @@ FROM (
                                       ) AS "Survey_Result__c_4"
                                       LEFT OUTER JOIN (
                                         SELECT
-                                          "getEarliestPrimaryConsent"."Id",
-                                          "getEarliestPrimaryConsent"."Participant__c",
-                                          "getEarliestPrimaryConsent"."Survey_Index_Number__c",
-                                          "getEarliestPrimaryConsent"."Completion_Status__c",
-                                          "getEarliestPrimaryConsent"."Consent_Status__c",
-                                          "getEarliestPrimaryConsent"."Consent_Revoked__c",
-                                          "getEarliestPrimaryConsent"."Completion_Status_Timestamp__c",
-                                          "getEarliestPrimaryConsent"."Consent_Status_Timestamp__c",
-                                          "getEarliestPrimaryConsent"."California_Signature__c",
-                                          "getEarliestPrimaryConsent"."valid_from",
-                                          "getEarliestPrimaryConsent"."valid_to",
-                                          "getEarliestPrimaryConsent"."is_current",
-                                          "getEarliestPrimaryConsent"."loaded_at",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."Id",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."Participant__c",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."Survey_Index_Number__c",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."Completion_Status__c",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."Consent_Status__c",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."Consent_Revoked__c",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."Completion_Status_Timestamp__c",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."Consent_Status_Timestamp__c",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."California_Signature__c",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."valid_from",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."valid_to",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."is_current",
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"."loaded_at",
                                           1 AS "__ppsc_match"
-                                        FROM "getEarliestPrimaryConsent" AS "getEarliestPrimaryConsent"
-                                      ) AS "getEarliestPrimaryConsent_2"
-                                        ON (
-                                          COALESCE("getEarliestPrimaryConsent_2"."Survey_Index_Number__c" = '1001', FALSE)
-                                          OR COALESCE("getEarliestPrimaryConsent_2"."Survey_Index_Number__c" = '1002', FALSE)
-                                        )
-                                        AND COALESCE(
-                                          "getEarliestPrimaryConsent_2"."Participant__c" = "Survey_Result__c_4"."Participant__c",
+                                        FROM "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent" AS "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent"
+                                      ) AS "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent_2"
+                                        ON COALESCE(
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent_2"."Survey_Index_Number__c" IN ('1001', '1002'),
                                           FALSE
                                         )
-                                        AND COALESCE("getEarliestPrimaryConsent_2"."Consent_Status__c" = 'Yes', FALSE)
-                                        AND COALESCE("getEarliestPrimaryConsent_2"."Id" <> "Survey_Result__c_4"."Id", FALSE)
+                                        AND COALESCE(
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent_2"."Consent_Status__c" = 'Yes',
+                                          FALSE
+                                        )
+                                        AND COALESCE(
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent_2"."Participant__c" = "Survey_Result__c_4"."Participant__c",
+                                          FALSE
+                                        )
+                                        AND COALESCE(
+                                          "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent_2"."Id" <> "Survey_Result__c_4"."Id",
+                                          FALSE
+                                        )
                                         AND COALESCE("Survey_Result__c_4"."Completion_Status__c" = 'Complete', FALSE)
                                         AND NOT (
                                           FALSE
                                         )
-                                        AND (
-                                          COALESCE("Survey_Result__c_4"."Survey_Index_Number__c" = '1001', FALSE)
-                                          OR COALESCE("Survey_Result__c_4"."Survey_Index_Number__c" = '1002', FALSE)
-                                        )
+                                        AND COALESCE("Survey_Result__c_4"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
                                         AND COALESCE("Survey_Result__c_4"."Consent_Status__c" = 'Yes', FALSE)
                                     ) AS "Survey_Result__c_5"
                                   ) AS "Survey_Result__c_6"
@@ -961,56 +938,47 @@ FROM (
                               ) AS "Survey_Result__c_8"
                               LEFT OUTER JOIN (
                                 SELECT
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Id",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Participant__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Survey_Index_Number__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Completion_Status__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Consent_Status__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Consent_Revoked__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Completion_Status_Timestamp__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."Consent_Status_Timestamp__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."California_Signature__c",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."valid_from",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."valid_to",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."is_current",
-                                  "getEarliestEgetEarliestEHRConsentHRConsent"."loaded_at",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."Id",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."Participant__c",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."Survey_Index_Number__c",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."Completion_Status__c",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."Consent_Status__c",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."Consent_Revoked__c",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."Completion_Status_Timestamp__c",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."Consent_Status_Timestamp__c",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."California_Signature__c",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."valid_from",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."valid_to",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."is_current",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"."loaded_at",
                                   1 AS "__ppsc_match"
-                                FROM "getEarliestEgetEarliestEHRConsentHRConsent" AS "getEarliestEgetEarliestEHRConsentHRConsent"
-                              ) AS "getEarliestEgetEarliestEHRConsentHRConsent_2"
-                                ON (
-                                  COALESCE(
-                                    "getEarliestEgetEarliestEHRConsentHRConsent_2"."Survey_Index_Number__c" = '1003',
-                                    FALSE
-                                  )
-                                  OR COALESCE(
-                                    "getEarliestEgetEarliestEHRConsentHRConsent_2"."Survey_Index_Number__c" = '1004',
-                                    FALSE
-                                  )
-                                )
-                                AND COALESCE(
-                                  "getEarliestEgetEarliestEHRConsentHRConsent_2"."Participant__c" = "Survey_Result__c_8"."Participant__c",
+                                FROM "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent" AS "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent"
+                              ) AS "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent_2"
+                                ON COALESCE(
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent_2"."Survey_Index_Number__c" IN ('1003', '1004'),
                                   FALSE
                                 )
-                                AND COALESCE("getEarliestEgetEarliestEHRConsentHRConsent_2"."Consent_Status__c" = 'Yes', FALSE)
                                 AND COALESCE(
-                                  "getEarliestEgetEarliestEHRConsentHRConsent_2"."Id" <> "Survey_Result__c_8"."Id",
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent_2"."Consent_Status__c" = 'Yes',
+                                  FALSE
+                                )
+                                AND COALESCE(
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent_2"."Participant__c" = "Survey_Result__c_8"."Participant__c",
+                                  FALSE
+                                )
+                                AND COALESCE(
+                                  "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent_2"."Id" <> "Survey_Result__c_8"."Id",
                                   FALSE
                                 )
                                 AND COALESCE("Survey_Result__c_8"."Completion_Status__c" = 'Complete', FALSE)
                                 AND NOT (
                                   FALSE
                                   OR (
-                                    (
-                                      COALESCE("Survey_Result__c_8"."Survey_Index_Number__c" = '1001', FALSE)
-                                      OR COALESCE("Survey_Result__c_8"."Survey_Index_Number__c" = '1002', FALSE)
-                                    )
+                                    COALESCE("Survey_Result__c_8"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
                                     AND COALESCE("Survey_Result__c_8"."Consent_Status__c" = 'Yes', FALSE)
                                   )
                                 )
-                                AND (
-                                  COALESCE("Survey_Result__c_8"."Survey_Index_Number__c" = '1003', FALSE)
-                                  OR COALESCE("Survey_Result__c_8"."Survey_Index_Number__c" = '1004', FALSE)
-                                )
+                                AND COALESCE("Survey_Result__c_8"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
                                 AND COALESCE("Survey_Result__c_8"."Consent_Status__c" = 'Yes', FALSE)
                             ) AS "Survey_Result__c_9"
                           ) AS "Survey_Result__c_10"
@@ -1020,53 +988,53 @@ FROM (
                       ) AS "Survey_Result__c_12"
                       LEFT OUTER JOIN (
                         SELECT
-                          "Get_Permission_1007"."Id",
-                          "Get_Permission_1007"."Participant__c",
-                          "Get_Permission_1007"."Survey_Index_Number__c",
-                          "Get_Permission_1007"."Completion_Status__c",
-                          "Get_Permission_1007"."Consent_Status__c",
-                          "Get_Permission_1007"."Consent_Revoked__c",
-                          "Get_Permission_1007"."Completion_Status_Timestamp__c",
-                          "Get_Permission_1007"."Consent_Status_Timestamp__c",
-                          "Get_Permission_1007"."California_Signature__c",
-                          "Get_Permission_1007"."valid_from",
-                          "Get_Permission_1007"."valid_to",
-                          "Get_Permission_1007"."is_current",
-                          "Get_Permission_1007"."loaded_at",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."Id",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."Participant__c",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."Survey_Index_Number__c",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."Completion_Status__c",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."Consent_Status__c",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."Consent_Revoked__c",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."Completion_Status_Timestamp__c",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."Consent_Status_Timestamp__c",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."California_Signature__c",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."valid_from",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."valid_to",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."is_current",
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent"."loaded_at",
                           1 AS "__ppsc_match"
-                        FROM "Get_Permission_1007" AS "Get_Permission_1007"
-                      ) AS "Get_Permission_1007_2"
-                        ON COALESCE("Get_Permission_1007_2"."Survey_Index_Number__c" = '1007', FALSE)
-                        AND COALESCE("Get_Permission_1007_2"."Consent_Status__c" = 'Yes', FALSE)
-                        AND COALESCE(
-                          "Get_Permission_1007_2"."Participant__c" = "Survey_Result__c_12"."Participant__c",
+                        FROM "FlowRecordLookup.Pediatric_Permission_For_Assent" AS "FlowRecordLookup.Pediatric_Permission_For_Assent"
+                      ) AS "FlowRecordLookup.Pediatric_Permission_For_Assent_2"
+                        ON COALESCE(
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent_2"."Survey_Index_Number__c" IN ('1007'),
                           FALSE
                         )
-                        AND COALESCE("Get_Permission_1007_2"."Id" <> "Survey_Result__c_12"."Id", FALSE)
+                        AND COALESCE(
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent_2"."Consent_Status__c" = 'Yes',
+                          FALSE
+                        )
+                        AND COALESCE(
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent_2"."Participant__c" = "Survey_Result__c_12"."Participant__c",
+                          FALSE
+                        )
+                        AND COALESCE(
+                          "FlowRecordLookup.Pediatric_Permission_For_Assent_2"."Id" <> "Survey_Result__c_12"."Id",
+                          FALSE
+                        )
                         AND COALESCE("Survey_Result__c_12"."Completion_Status__c" = 'Complete', FALSE)
                         AND NOT (
                           FALSE
                           OR (
-                            (
-                              COALESCE("Survey_Result__c_12"."Survey_Index_Number__c" = '1001', FALSE)
-                              OR COALESCE("Survey_Result__c_12"."Survey_Index_Number__c" = '1002', FALSE)
-                            )
+                            COALESCE("Survey_Result__c_12"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
                             AND COALESCE("Survey_Result__c_12"."Consent_Status__c" = 'Yes', FALSE)
                           )
                           OR (
-                            (
-                              COALESCE("Survey_Result__c_12"."Survey_Index_Number__c" = '1003', FALSE)
-                              OR COALESCE("Survey_Result__c_12"."Survey_Index_Number__c" = '1004', FALSE)
-                            )
+                            COALESCE("Survey_Result__c_12"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
                             AND COALESCE("Survey_Result__c_12"."Consent_Status__c" = 'Yes', FALSE)
                           )
                           OR COALESCE("Survey_Result__c_12"."Survey_Index_Number__c" = '1005', FALSE)
                         )
                         AND COALESCE("Survey_Result__c_12"."Survey_Index_Number__c" = '1008', FALSE)
-                        AND (
-                          COALESCE("Survey_Result__c_12"."Consent_Status__c" = 'Yes', FALSE)
-                          OR COALESCE("Survey_Result__c_12"."Consent_Status__c" = 'N/A', FALSE)
-                        )
+                        AND COALESCE("Survey_Result__c_12"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
                     ) AS "Survey_Result__c_13"
                   ) AS "Survey_Result__c_14"
                   WHERE
@@ -1075,60 +1043,48 @@ FROM (
               ) AS "Survey_Result__c_16"
               LEFT OUTER JOIN (
                 SELECT
-                  "getFirstPhysicalMeasurement"."Id",
-                  "getFirstPhysicalMeasurement"."Participant__c",
-                  "getFirstPhysicalMeasurement"."Survey_Index_Number__c",
-                  "getFirstPhysicalMeasurement"."Completion_Status__c",
-                  "getFirstPhysicalMeasurement"."Consent_Status__c",
-                  "getFirstPhysicalMeasurement"."Consent_Revoked__c",
-                  "getFirstPhysicalMeasurement"."Completion_Status_Timestamp__c",
-                  "getFirstPhysicalMeasurement"."Consent_Status_Timestamp__c",
-                  "getFirstPhysicalMeasurement"."California_Signature__c",
-                  "getFirstPhysicalMeasurement"."valid_from",
-                  "getFirstPhysicalMeasurement"."valid_to",
-                  "getFirstPhysicalMeasurement"."is_current",
-                  "getFirstPhysicalMeasurement"."loaded_at",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."Id",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."Participant__c",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."Survey_Index_Number__c",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."Completion_Status__c",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."Consent_Status__c",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."Consent_Revoked__c",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."Completion_Status_Timestamp__c",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."Consent_Status_Timestamp__c",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."California_Signature__c",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."valid_from",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."valid_to",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."is_current",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement"."loaded_at",
                   1 AS "__ppsc_match"
-                FROM "getFirstPhysicalMeasurement" AS "getFirstPhysicalMeasurement"
-              ) AS "getFirstPhysicalMeasurement_2"
-                ON COALESCE("getFirstPhysicalMeasurement_2"."Survey_Index_Number__c" = '2009', FALSE)
+                FROM "FlowRecordLookup.First_Remote_Physical_Measurement" AS "FlowRecordLookup.First_Remote_Physical_Measurement"
+              ) AS "FlowRecordLookup.First_Remote_Physical_Measurement_2"
+                ON COALESCE(
+                  "FlowRecordLookup.First_Remote_Physical_Measurement_2"."Survey_Index_Number__c" = '2009',
+                  FALSE
+                )
                 AND COALESCE(
-                  "getFirstPhysicalMeasurement_2"."Participant__c" = "Survey_Result__c_16"."Participant__c",
+                  "FlowRecordLookup.First_Remote_Physical_Measurement_2"."Participant__c" = "Survey_Result__c_16"."Participant__c",
                   FALSE
                 )
                 AND COALESCE("Survey_Result__c_16"."Completion_Status__c" = 'Complete', FALSE)
                 AND NOT (
                   FALSE
                   OR (
-                    (
-                      COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '1001', FALSE)
-                      OR COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '1002', FALSE)
-                    )
+                    COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
                     AND COALESCE("Survey_Result__c_16"."Consent_Status__c" = 'Yes', FALSE)
                   )
                   OR (
-                    (
-                      COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '1003', FALSE)
-                      OR COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '1004', FALSE)
-                    )
+                    COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
                     AND COALESCE("Survey_Result__c_16"."Consent_Status__c" = 'Yes', FALSE)
                   )
                   OR COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '1005', FALSE)
                   OR (
                     COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '1008', FALSE)
-                    AND (
-                      COALESCE("Survey_Result__c_16"."Consent_Status__c" = 'Yes', FALSE)
-                      OR COALESCE("Survey_Result__c_16"."Consent_Status__c" = 'N/A', FALSE)
-                    )
+                    AND COALESCE("Survey_Result__c_16"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
                   )
-                  OR (
-                    COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '2001', FALSE)
-                    OR COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '2002', FALSE)
-                  )
-                  OR (
-                    COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '2003', FALSE)
-                    OR COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '2004', FALSE)
-                  )
+                  OR COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+                  OR COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
                   OR COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '2005', FALSE)
                   OR COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '2006', FALSE)
                   OR COALESCE("Survey_Result__c_16"."Survey_Index_Number__c" = '2007', FALSE)
@@ -1156,14 +1112,8 @@ FROM (
         FALSE
       )
       AND (
-        (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-        )
+        COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
         AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-      )
-      AND NOT (
-        FALSE
       )
       AND (
         "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NOT NULL
@@ -1174,92 +1124,60 @@ FROM (
         FALSE
       )
       AND (
-        (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-        )
+        COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
         AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
       )
-      AND NOT (
-        FALSE
-        OR (
-          "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NOT NULL
-        )
+      AND (
+        "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NULL
       )
       THEN CAST("Flow_Context"."FlowFormula_Age_At_Execution" AS DECIMAL(3, 0))
       WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
       )
       AND (
         COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-        AND (
-          COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-          OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-        )
-      )
-      AND NOT (
-        FALSE
+        AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
       )
       AND (
+        "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
+      )
+      AND (
+        "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
+      )
+      THEN CAST("Flow_Context"."FlowFormula_Age_At_Execution" AS DECIMAL(3, 0))
+      WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
+      AND NOT (
+        FALSE
+        OR (
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
+          AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
+        )
+        OR (
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
+          AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
+        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
+      )
+      AND (
+        COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
+        AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
+      )
+      AND NOT (
         (
           "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
         )
         AND (
           "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
-        )
-      )
-      THEN CAST("Flow_Context"."FlowFormula_Age_At_Execution" AS DECIMAL(3, 0))
-      WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
-      AND NOT (
-        FALSE
-        OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
-          AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-        )
-        OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
-          AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-        )
-        OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
-      )
-      AND (
-        COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-        AND (
-          COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-          OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-        )
-      )
-      AND NOT (
-        FALSE
-        OR (
-          (
-            "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
-          )
-          AND (
-            "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
-          )
         )
       )
       THEN CAST("Flow_Context"."FlowFormula_Age_At_Execution" AS DECIMAL(3, 0))
@@ -1271,14 +1189,8 @@ FROM (
         FALSE
       )
       AND (
-        (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-        )
+        COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
         AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-      )
-      AND NOT (
-        FALSE
       )
       AND (
         "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NOT NULL
@@ -1289,92 +1201,60 @@ FROM (
         FALSE
       )
       AND (
-        (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-        )
+        COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
         AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
       )
-      AND NOT (
-        FALSE
-        OR (
-          "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NOT NULL
-        )
+      AND (
+        "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NULL
       )
       THEN "Flow_Context"."California_Signature__c"
       WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
       )
       AND (
         COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-        AND (
-          COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-          OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-        )
-      )
-      AND NOT (
-        FALSE
+        AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
       )
       AND (
-        (
-          "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
-        )
-        AND (
-          "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
-        )
+        "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
+      )
+      AND (
+        "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
       )
       THEN "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c"
       WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
       )
       AND (
         COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-        AND (
-          COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-          OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-        )
+        AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
       )
       AND NOT (
-        FALSE
-        OR (
-          (
-            "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
-          )
-          AND (
-            "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
-          )
+        (
+          "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
+        )
+        AND (
+          "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
         )
       )
       THEN "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c"
@@ -1386,54 +1266,36 @@ FROM (
         FALSE
       )
       AND (
-        (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-        )
+        COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
         AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
       )
-      AND NOT (
-        FALSE
-        OR (
-          "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NOT NULL
-        )
+      AND (
+        "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NULL
       )
       THEN "Flow_Context"."Completion_Status_Timestamp__c"
       WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
       )
       AND (
         COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-        AND (
-          COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-          OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-        )
+        AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
       )
       AND NOT (
-        FALSE
-        OR (
-          (
-            "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
-          )
-          AND (
-            "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
-          )
+        (
+          "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
+        )
+        AND (
+          "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
         )
       )
       THEN "Flow_Context"."Completion_Status_Timestamp__c"
@@ -1445,14 +1307,8 @@ FROM (
         FALSE
       )
       AND (
-        (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-        )
+        COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
         AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-      )
-      AND NOT (
-        FALSE
       )
       AND (
         "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NOT NULL
@@ -1463,92 +1319,60 @@ FROM (
         FALSE
       )
       AND (
-        (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-        )
+        COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
         AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
       )
-      AND NOT (
-        FALSE
-        OR (
-          "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NOT NULL
-        )
+      AND (
+        "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NULL
       )
       THEN "Flow_Context"."Completion_Status_Timestamp__c"
       WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
       )
       AND (
         COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-        AND (
-          COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-          OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-        )
-      )
-      AND NOT (
-        FALSE
+        AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
       )
       AND (
+        "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
+      )
+      AND (
+        "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
+      )
+      THEN "Flow_Context"."Completion_Status_Timestamp__c"
+      WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
+      AND NOT (
+        FALSE
+        OR (
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
+          AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
+        )
+        OR (
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
+          AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
+        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
+      )
+      AND (
+        COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
+        AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
+      )
+      AND NOT (
         (
           "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
         )
         AND (
           "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
-        )
-      )
-      THEN "Flow_Context"."Completion_Status_Timestamp__c"
-      WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
-      AND NOT (
-        FALSE
-        OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
-          AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-        )
-        OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
-          AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-        )
-        OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
-      )
-      AND (
-        COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-        AND (
-          COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-          OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-        )
-      )
-      AND NOT (
-        FALSE
-        OR (
-          (
-            "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
-          )
-          AND (
-            "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
-          )
         )
       )
       THEN "Flow_Context"."Completion_Status_Timestamp__c"
@@ -1559,25 +1383,16 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
       )
       AND (
-        (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-        )
+        COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
         AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
       )
-      AND NOT (
-        FALSE
-        OR (
-          "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id" IS NOT NULL
-        )
+      AND (
+        "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id" IS NULL
       )
       THEN "Flow_Context"."Completion_Status_Timestamp__c"
       ELSE "Flow_Context"."Participant__r.Account.EHR_Consent_Date_Time__c"
@@ -1587,22 +1402,13 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
       )
       AND (
-        (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-        )
+        COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
         AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-      )
-      AND NOT (
-        FALSE
       )
       AND (
         "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_EHR_Consent.Id" IS NOT NULL
@@ -1615,17 +1421,11 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
       )
@@ -1638,32 +1438,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
       )
-      AND (
-        COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-        OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-      )
+      AND COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
       THEN "Flow_Context"."Completion_Status_Timestamp__c"
       ELSE "Flow_Context"."Participant__r.Account.Basics_Date_Time__c"
     END AS "Basics_Date_Time__c",
@@ -1672,36 +1460,21 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
       )
-      AND (
-        COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-        OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-      )
+      AND COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
       THEN "Flow_Context"."Completion_Status_Timestamp__c"
       ELSE "Flow_Context"."Participant__r.Account.Overall_Health_Date_Time__c"
     END AS "Overall_Health_Date_Time__c",
@@ -1710,35 +1483,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
       )
       AND COALESCE("Flow_Context"."Survey_Index_Number__c" = '2005', FALSE)
       THEN "Flow_Context"."Completion_Status_Timestamp__c"
@@ -1749,35 +1507,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2005', FALSE)
       )
       AND COALESCE("Flow_Context"."Survey_Index_Number__c" = '2006', FALSE)
@@ -1789,35 +1532,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2005', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2006', FALSE)
       )
@@ -1830,35 +1558,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2005', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2006', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2007', FALSE)
@@ -1872,35 +1585,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2005', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2006', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2007', FALSE)
@@ -1915,35 +1613,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2005', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2006', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2007', FALSE)
@@ -1958,35 +1641,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2005', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2006', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2007', FALSE)
@@ -2002,35 +1670,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2005', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2006', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2007', FALSE)
@@ -2047,35 +1700,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2005', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2006', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2007', FALSE)
@@ -2093,35 +1731,20 @@ FROM (
       AND NOT (
         FALSE
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-          )
+          COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
           AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
         )
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         OR (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2001', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2002', FALSE)
-        )
-        OR (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '2003', FALSE)
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2004', FALSE)
-        )
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2001', '2002'), FALSE)
+        OR COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('2003', '2004'), FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2005', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2006', FALSE)
         OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '2007', FALSE)
@@ -2136,118 +1759,23 @@ FROM (
       ELSE "Flow_Context"."Participant__r.Account.Social_Determinants_of_Health_Completion__c"
     END AS "Social_Determinants_of_Health_Completion__c",
     COALESCE(
-      TRUE
-      AND CASE
-        WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
-        AND NOT (
-          FALSE
-        )
-        AND (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
-          AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-        )
-        AND NOT (
-          FALSE
-        )
-        AND (
-          "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NOT NULL
-        )
-        THEN TRUE
-        WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
-        AND NOT (
-          FALSE
-        )
-        AND (
-          (
-            COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-            OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-          )
-          AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-        )
-        AND NOT (
-          FALSE
-          OR (
-            "Flow_Context"."FlowRecordLookup.Earliest_Other_Yes_Primary_Consent.Id" IS NOT NULL
-          )
-        )
-        THEN TRUE
+      CASE
         WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
         AND NOT (
           FALSE
           OR (
-            (
-              COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-              OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-            )
+            COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1001', '1002'), FALSE)
             AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
           )
           OR (
-            (
-              COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-              OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-            )
+            COALESCE("Flow_Context"."Survey_Index_Number__c" IN ('1003', '1004'), FALSE)
             AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
           )
           OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
         )
         AND (
           COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
-        )
-        AND NOT (
-          FALSE
-        )
-        AND (
-          (
-            "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
-          )
-          AND (
-            "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
-          )
-        )
-        THEN "Flow_Context"."__known.FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c"
-        WHEN COALESCE("Flow_Context"."Completion_Status__c" = 'Complete', FALSE)
-        AND NOT (
-          FALSE
-          OR (
-            (
-              COALESCE("Flow_Context"."Survey_Index_Number__c" = '1001', FALSE)
-              OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1002', FALSE)
-            )
-            AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-          )
-          OR (
-            (
-              COALESCE("Flow_Context"."Survey_Index_Number__c" = '1003', FALSE)
-              OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1004', FALSE)
-            )
-            AND COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-          )
-          OR COALESCE("Flow_Context"."Survey_Index_Number__c" = '1005', FALSE)
-        )
-        AND (
-          COALESCE("Flow_Context"."Survey_Index_Number__c" = '1008', FALSE)
-          AND (
-            COALESCE("Flow_Context"."Consent_Status__c" = 'Yes', FALSE)
-            OR COALESCE("Flow_Context"."Consent_Status__c" = 'N/A', FALSE)
-          )
-        )
-        AND NOT (
-          FALSE
-          OR (
-            (
-              "Flow_Context"."FlowRecordLookup.Pediatric_Permission_For_Assent.Id" IS NOT NULL
-            )
-            AND (
-              "Flow_Context"."Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c" IS NOT NULL
-            )
-          )
+          AND COALESCE("Flow_Context"."Consent_Status__c" IN ('Yes', 'N/A'), FALSE)
         )
         THEN "Flow_Context"."__known.FlowRecordLookup.Pediatric_Permission_For_Assent.California_Signature__c"
         ELSE TRUE

@@ -1,3 +1,5 @@
+> Historical review of the previous ODCS/compiler integration. Current behavior is documented in [standalone definitions](metadata-compiler.md).
+
 # Verified compilation snapshot
 
 Follow-up to the cached-metadata finding in the October 24 Spaces plan. The

@@ -3,8 +3,10 @@
 Compute expected Account values from Survey Result history with Ibis, then compare
 them with independently observed Account values using native Great Expectations
 (GX) suites. Run the same query builders against Athena or bounded local DuckDB
-data. A pinned ODCS input profile and native Flow metadata drive the Flow
-projections; Python owns bindings, history, rollups and native GX suite builders.
+data. Athena DDL profiles supply input schemas; reviewed local Ibis builders own
+Flow projections, bindings, history and rollups. Python owns native GX suites.
+Salesforce tooling is an optional offline authoring producer; neither it nor ODCS
+is an installation or execution dependency.
 SQL and suite JSON are generated review and run-audit artifacts.
 
 The first implementation covers the Survey Result completion Flow and 19 Account
@@ -12,7 +14,7 @@ survey rollups. It preserves the relationship
 `Survey_Result__c.Participant__c -> Contact.Id -> Contact.AccountId -> Account.Id`,
 missing parents, duplicate matches, assigned NULLs and unchanged prior values.
 
-The compiler integration is provisional and pins QA2 Flow version
+The local Flow definition is provisional and pins QA2 Flow version
 `301SL00000dpJqKYAU`. See [metadata compilation](docs/metadata-compiler.md) for the
 artifact boundary, native behavior changes and remaining local acceptance work.
 
@@ -44,6 +46,7 @@ Credential-free checks remain available for CI and bounded synthetic verificatio
 uv run poe check
 uv run poe check-queries
 uv run poe check-synthetic
+uv run poe check-standalone
 uv run poe suite-diagrams
 ```
 
@@ -55,28 +58,35 @@ registered suites, exact SQL, Data Docs and the manifest. Outputs use fresh path
 under `build/checks/`; existing destinations are rejected. To choose a destination,
 run `python -m scripts.check_validation compile|synthetic --output PATH`.
 These are development scripts and are excluded from the installed package.
+`check-standalone` builds a wheel, verifies its installed origin in an isolated
+environment without producer packages, and runs the same compilation and complete
+synthetic-report checks. `author-salesforce` is a separately invoked optional
+producer; see [definition authoring](docs/metadata-compiler.md).
 
 ## Organization
 
 ```text
 src/ppsc_ops_data_quality/
     account_to_survey_results/
-        metadata.py             # Verified version selection and explicit bindings
+        metadata.py             # Verified definition receipt and detached evidence
+        flow.py                 # Reviewed native Ibis Flow builders
+        input_schemas.py        # Native composition of Athena DDL input profiles
+        inputs/                 # Schema-only Athena declarations
+        history.py              # Explicit domain history/catalog bindings
+        validation.py           # Account/Survey application orchestration
         metadata/               # Pinned native Flow, catalog and manifest
         queries.py              # Ibis history/comparisons and existing rollups
         gx.py                   # Authoritative native GX suite builders
         lineage.py              # Field, branch and original-source provenance
         schemas.py              # Schemas inferred from actual queries
     core/
-        schemas/                # ODCS-derived inputs and native history composition
-        queries/                # Pure snapshots, unbound history, optional SQL lineage
+        schemas/                # Domain-independent Athena DDL conversion
+        queries/                # Pure snapshots and optional SQL lineage
         configuration.py        # Shared YAML loader; rejects duplicate keys
     runtime/
         glue.py                 # Argument handling and role-based bootstrap
         resources.py            # Injected S3 retrieval and checksum verification
         configuration.py        # Pydantic runtime input contracts
-        validation.py           # Shared Athena orchestration and result contract
-        data_access.py          # Backend catalog discovery
         athena.py, duckdb.py     # Separate native GX preparation adapters
         runner.py, reports.py   # Engine-independent execution and publication
         report_schemas.py       # Athena-discoverable report projections
@@ -100,7 +110,7 @@ receipts; expressions, dataframes and GX objects retain their native interfaces.
 
 ```python
 from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_query
-from ppsc_ops_data_quality.core.queries import history_tables
+from ppsc_ops_data_quality.account_to_survey_results.history import history_tables
 
 history = history_tables(
     account_database="account_database",
@@ -120,7 +130,7 @@ Comparison = flow_account_query(
 `history_tables()` returns unbound Ibis relations for tables named `history` in
 three explicitly configured databases. Supply catalog-verified schema overrides
 when types differ. An existing backend can instead discover tables through
-`runtime.data_access.bind_history_tables()`. For combined history, construct explicitly scoped
+`account_to_survey_results.history.bind_history_tables()`. For combined history, construct explicitly scoped
 Ibis relations upstream. Neither binding path infers object discriminators or
 silently fixes column casing.
 
@@ -208,8 +218,8 @@ LEFT JOINs so the suites can detect them.
 Schemas are ordinary `ibis.Schema` definitions, with full declarations for their
 named validation-input projections. Derived schemas come from actual expressions.
 Arrow is an interchange conversion, not a second authored schema. Source fields
-stay nullable so GX can detect invalid raw values. Numeric precision and field
-provenance follow the supplied Salesforce workbook where available.
+stay nullable so GX can detect invalid raw values. The schema-only DDL profiles retain the prior precision and field types.
+Field provenance remains separate from the input-type authority.
 
 Original FlowDecision, FlowRecordLookup, formula and field IDs remain in the
 independent lineage mapping. SQLGlot metadata is attached after Ibis composition

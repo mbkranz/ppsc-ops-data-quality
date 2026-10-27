@@ -1,19 +1,9 @@
 """Prepared evidence remains independent of observations and records NULL coverage."""
 
-import json
-import shutil
-from decimal import Decimal
-from hashlib import sha256
-from pathlib import Path
-
 import great_expectations as gx
 import ibis
 import pytest
-import yaml
 from ibis.common.exceptions import IntegrityError
-from ppsc_metadata.artifacts import load_metadata_bundle
-from ppsc_metadata.contracts import contract_yaml
-from ppsc_metadata.sources.salesforce_rollup import RollupRequest
 from test_account_to_survey_results_expectations import NEW, OLD, flow_inputs
 
 from ppsc_ops_data_quality.account_to_survey_results import queries
@@ -22,8 +12,6 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
     rollup_account_suite,
 )
 from ppsc_ops_data_quality.account_to_survey_results.metadata import (
-    COMPILER_WHEEL_SHA256,
-    expected_value_contract,
     metadata_inputs,
 )
 
@@ -170,132 +158,25 @@ def test_both_null_native_pair_coverage_is_recorded(backend):
     assert pair.result["unexpected_count"] == 0
 
 
-def test_expected_contract_has_stable_before_references_and_native_source_paths():
+def test_detached_lineage_retains_native_source_pointers():
     source = metadata_inputs()
-    before = source.contract.model_dump(mode="json", by_alias=True, exclude_unset=True)
-    contract = expected_value_contract()
-    assert source.contract.model_dump(mode="json", by_alias=True, exclude_unset=True) == before
-    expected = next(obj for obj in contract.schema_ if obj.name == "AccountExpected")
-    for prop in expected.properties:
-        assert prop.physicalName == f"expected__{prop.name}"
-        definitions = prop.authoritativeDefinitions
-        assert any(item.type == "transformationImplementation" for item in definitions)
-        assert any(
-            item.type == "fieldReference" and "/AccountBefore/" in item.url for item in definitions
-        )
-        for item in definitions:
-            if item.type == "transformationImplementation":
-                pointer = item.url.split("#", 1)[1]
-                value = source.flow
-                for token in pointer.strip("/").split("/"):
-                    value = value[int(token)] if isinstance(value, list) else value[token]
-                assert value is not None
-    root = Path(__file__).resolve().parents[1]
+    for entry in source.lineage["ACCOUNT_FIELD_LINEAGE"].values():
+        assert entry["source_paths"]
+        for pointer in entry["source_paths"]:
+            value = source.flow
+            for token in pointer.strip("/").split("/"):
+                value = value[int(token)] if isinstance(value, list) else value[token]
+            assert value is not None
+    suite = flow_account_suite()
+    assert "expected_value_contract" not in suite.meta
     assert (
-        sha256(
-            (root / "vendor/1eedb2ab/ppsc_metadata-0.2.0-py3-none-any.whl").read_bytes()
-        ).hexdigest()
-        == COMPILER_WHEEL_SHA256
-    )
-
-
-@pytest.mark.parametrize(
-    "operation,empty,expected",
-    [
-        ("count", 0, [2, 0]),
-        ("sum", 0, [Decimal("0.30"), Decimal("0.00")]),
-        ("min", None, [Decimal("0.10"), None]),
-        ("max", None, [Decimal("0.20"), None]),
-    ],
-)
-def test_selected_rollup_handoff_is_loaded_and_executed(
-    tmp_path, backend, operation, empty, expected
-):
-    root = Path(__file__).resolve().parents[1] / "src/ppsc_ops_data_quality"
-    copied = tmp_path / "package"
-    shutil.copytree(root, copied)
-    contract = metadata_inputs().contract
-    document = yaml.safe_load(contract_yaml(contract))
-    document["schema"][0]["properties"].append(
-        {
-            "id": "NativeValue",
-            "name": "NativeValue",
-            "logicalType": "number",
-            "customProperties": [
-                {"vendor": "ppsc", "property": "decimal", "value": {"precision": 12, "scale": 2}}
-            ],
-        }
-    )
-    contract_path = copied / "core/schemas/validation-inputs.odcs.yaml"
-    contract_path.write_text(yaml.safe_dump(document))
-    path = copied / "account_to_survey_results/metadata/rollups.json"
-    path.write_text(
-        json.dumps(
-            {
-                "Account.NativeValue": {
-                    "summaryOperation": operation,
-                    "summaryForeignKey": "Child.parent",
-                    "summarizedField": "Child.amount",
-                }
-            }
-        )
-    )
-    manifest_path = copied / "account_to_survey_results/metadata/manifest.json"
-    manifest = json.loads(manifest_path.read_bytes())
-    manifest["artifacts"][0]["sha256"] = sha256(contract_path.read_bytes()).hexdigest()
-    manifest["artifacts"].append(
-        {
-            "path": str(path.relative_to(copied)),
-            "role": "rollup",
-            "sha256": sha256(path.read_bytes()).hexdigest(),
-        }
-    )
-    manifest_path.write_text(json.dumps(manifest))
-    inputs = load_metadata_bundle(copied, manifest_path)
-    parent = ibis.memtable({"Id": ["p1", "p2"]})
-    child = ibis.memtable(
-        {"parent": ["p1", "p1"], "amount": [Decimal("0.10"), Decimal("0.20")]},
-        schema={"parent": "string", "amount": "decimal(12,2)"},
-    )
-    observed = parent.mutate(
-        NativeValue=ibis.literal(Decimal("0.30")).cast(
-            {
-                "count": "int64",
-                "sum": "decimal(38,2)",
-                "min": "decimal(12,2)",
-                "max": "decimal(12,2)",
-            }[operation]
-        )
-    )
-    result = queries.native_rollup_comparison(
-        parent,
-        child,
-        observed,
-        RollupRequest(output_field="NativeValue", child_object="Child", empty_value=empty),
-        source_field="Account.NativeValue",
-        inputs=inputs,
+        suite.meta["projection_lineage"]["expected__Basics_Date_Time__c"]["comparison_role"]
+        == "expected"
     )
     assert (
-        backend.to_pyarrow(result.order_by("validation_record_id"))[
-            "expected__NativeValue"
-        ].to_pylist()
-        == expected
+        suite.meta["projection_lineage"]["observed__Basics_Date_Time__c"]["comparison_role"]
+        == "observed"
     )
-
-
-def test_missing_native_rollup_has_no_workbook_fallback():
-    parent = ibis.table({"Id": "string"}, name="Parent")
-    with pytest.raises(ValueError, match="No verified native rollup selected"):
-        queries.native_rollup_comparison(
-            parent,
-            parent,
-            parent,
-            RollupRequest(
-                output_field="Count_of_Completed_EHR_Auth__pc", child_object="Child", empty_value=0
-            ),
-            source_field="Account.Count_of_Completed_EHR_Auth__pc",
-            inputs=metadata_inputs(),
-        )
 
 
 def test_source_parent_duplicates_cannot_disappear_in_rollup_aggregation(backend):

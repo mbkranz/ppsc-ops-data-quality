@@ -1,176 +1,174 @@
-"""The provisional pinned QA2 evidence and explicit compatibility bindings."""
+"""Verify definition artifacts and detached provenance; never interpret a Flow."""
 
 from functools import cache
 from hashlib import sha256
 from importlib.metadata import version
 from importlib.resources import files
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+from typing import Any, Literal
 
-from open_data_contract_standard.model import OpenDataContractStandard
-from ppsc_metadata.artifacts import MetadataBundle, MetadataReceipt, load_metadata_bundle
-from ppsc_metadata.contracts import validate_contract
-from ppsc_metadata.definitions import ProjectionDefinitionsRequest, add_projection_definitions
-from ppsc_metadata.sources.salesforce_flow import FlowRequest, flow_lineage
-from pydantic import Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from ppsc_ops_data_quality.core.schemas.contracts import normalize_foreign_keys
-
-COMPILER_SOURCE_REVISION = "1eedb2abcf5cac6471fb6cc45e5a40c007982854"
-COMPILER_WHEEL_SHA256 = "fd0934ef5b8234554446358aa4471c8be1257d9e0fb8b6f9ae3ec408e4d502b8"
-
-FLOW_FIELDS = (
-    "Age_at_Time_of_Consent__pc",
-    "CABOR_Completion_Date__c",
-    "Earliest_Primary_Consent_Date_for_Report__c",
-    "Latest_Primary_Consent_Date_for_Report__c",
-    "EHR_Consent_Date_Time__c",
-    "EHR_Reconsent_Date_Time__c",
-    "Update_to_Primary_Consent_Completed__c",
-    "Basics_Date_Time__c",
-    "Overall_Health_Date_Time__c",
-    "Lifestyle_Date_Time__c",
-    "Personal_and_Family_History_Complete__c",
-    "HC_Access_Date_Time__c",
-    "Life_Functioning_Date_Time__c",
-    "First_Physical_Measurement_Date_Time__c",
-    "Last_Physical_Measurement_Date_Time__c",
-    "EH_Date_Time__c",
-    "Behavioral_Health_Completion__c",
-    "Environmental_Exposures_Date_Time__c",
-    "Social_Determinants_of_Health_Completion__c",
-)
-
-# Output aliases preserve existing comparison/suite identities. These mappings
-# bind source identities; decisions, filters and assignments come from metadata.
-FLOW_REQUEST = FlowRequest(
-    object_name="Account",
-    fields=FLOW_FIELDS,
-    before_prefix="Participant__r.Account.",
-    target_reference="$Record.Participant__r.AccountId",
-    resource_aliases={
-        "getEarliestPrimaryConsent": "FlowRecordLookup.Earliest_Other_Yes_Primary_Consent",
-        "getEarliestEgetEarliestEHRConsentHRConsent": "FlowRecordLookup.Earliest_Other_Yes_EHR_Consent",
-        "getFirstPhysicalMeasurement": "FlowRecordLookup.First_Remote_Physical_Measurement",
-        "Get_Permission_1007": "FlowRecordLookup.Pediatric_Permission_For_Assent",
-    },
-    formula_aliases={"formAgeCalculation": "FlowFormula_Age_At_Execution"},
-)
+from ppsc_ops_data_quality.core.configuration import parse_yaml
 
 
-def _read_inputs() -> MetadataBundle:
-    root = Path(str(files("ppsc_ops_data_quality")))
-    bundle = load_metadata_bundle(root, root / "account_to_survey_results/metadata/manifest.json")
-    relationships = normalize_foreign_keys(bundle.contract)
-    # These are the application's explicit join bindings, checked against ODCS.
-    for source, field, target in (
-        ("Survey_Result__c", "Participant__c", "Contact.Id"),
-        ("Contact", "AccountId", "Account.Id"),
-        ("Account", "PersonContactId", "Contact.Id"),
-    ):
-        selected = [
-            f"{key.target_object}.{key.target_fields[0]}"
-            for key in relationships
-            if key.source_object == source and key.source_fields == (field,)
-        ]
-        if selected != [target]:
-            raise ValueError(
-                f"ODCS relationship does not match join binding {source}.{field} -> {target}"
-            )
-    return bundle
+class DefinitionModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
-class CompilationReceipt(MetadataReceipt):
-    """Producer receipt plus the consumer configuration actually used to compile."""
+class Artifact(DefinitionModel):
+    path: str = Field(min_length=1)
+    role: Literal["flow", "source", "schema", "selection", "lineage", "code"]
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 
-    flow_request_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    compiler_source_revision: str = Field(pattern=r"^[0-9a-f]{40}$")
-    compiler_wheel_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    @model_validator(mode="after")
+    def safe_path(self) -> "Artifact":
+        path = PurePosixPath(self.path)
+        if path.is_absolute() or ".." in path.parts or "\\" in self.path or str(path) != self.path:
+            raise ValueError("Definition artifact must be a relative package path")
+        return self
+
+
+class DefinitionManifest(DefinitionModel):
+    version: Literal["ops-definitions/v2"]
+    org: str = Field(min_length=1)
+    flow_name: str = Field(min_length=1)
+    flow_version_id: Literal["301SL00000dpJqKYAU"]
+    source_revision: str = Field(pattern=r"^[0-9a-f]{40}$")
+    producer_revision: str = Field(pattern=r"^[0-9a-f]{40}$")
+    provisional: bool
+    coverage: str = Field(min_length=1)
+    artifacts: tuple[Artifact, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def unique_artifacts(self) -> "DefinitionManifest":
+        if len({item.path for item in self.artifacts}) != len(self.artifacts):
+            raise ValueError("Duplicate definition artifact paths")
+        for role in ("flow", "source", "selection", "lineage"):
+            if sum(item.role == role for item in self.artifacts) != 1:
+                raise ValueError(f"Expected exactly one {role} artifact")
+        if not {"schema", "code"} <= {item.role for item in self.artifacts}:
+            raise ValueError("Definition manifest must include schemas and executable builders")
+        required = {
+            "account_to_survey_results/flow.py": "code",
+            "account_to_survey_results/queries.py": "code",
+            "account_to_survey_results/input_schemas.py": "code",
+            "account_to_survey_results/history.py": "code",
+            "account_to_survey_results/lineage.py": "code",
+            "account_to_survey_results/metadata.py": "code",
+            "core/projection.py": "code",
+            "core/configuration.py": "code",
+            "core/schemas/ddl.py": "code",
+            "core/queries/snapshot.py": "code",
+            "core/comparison.py": "code",
+            **{
+                f"account_to_survey_results/inputs/{name}.sql": "schema"
+                for name in ("account", "contact", "survey_results", "history")
+            },
+        }
+        declared = {a.path: a.role for a in self.artifacts}
+        if any(declared.get(path) != role for path, role in required.items()):
+            raise ValueError("Definition manifest omits a required executable/schema artifact")
+        return self
+
+
+class FlowSelection(DefinitionModel):
+    """Authoring receipt for the supported local builder, not executable instructions."""
+
+    object_name: Literal["Account"]
+    fields: tuple[str, ...] = Field(min_length=1)
+    before_prefix: Literal["Participant__r.Account."]
+    target_reference: Literal["$Record.Participant__r.AccountId"]
+    path_type: Literal["AsyncAfterCommit"]
+    resource_aliases: dict[str, str]
+    formula_aliases: dict[str, str]
+
+    @model_validator(mode="after")
+    def unique_fields(self) -> "FlowSelection":
+        if len(set(self.fields)) != len(self.fields) or any(not f.strip() for f in self.fields):
+            raise ValueError("Selected fields must be nonempty and unique")
+        return self
+
+
+class DefinitionReceipt(DefinitionModel):
+    manifest: DefinitionManifest
+    manifest_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    selection_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    implementation_version: str = Field(min_length=1)
+
+
+class MetadataInputs(DefinitionModel):
+    manifest: DefinitionManifest
+    manifest_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    selection: FlowSelection
+    flow: dict[str, Any]
+    lineage: dict[str, dict[str, Any]]
+    schemas: dict[str, str]
+
+
+def load_definition_inputs(root: Path) -> MetadataInputs:
+    """Read a verified package snapshot. Native metadata is retained only as evidence."""
+    manifest_path = root / "account_to_survey_results/metadata/manifest.json"
+    raw = manifest_path.read_bytes()
+    manifest = DefinitionManifest.model_validate_json(raw)
+    payloads = {}
+    schemas = {}
+    for artifact in manifest.artifacts:
+        path = (root / artifact.path).resolve()
+        if not path.is_relative_to(root.resolve()):
+            raise ValueError("Definition artifact escapes package root")
+        content = path.read_bytes()
+        if sha256(content).hexdigest() != artifact.sha256:
+            raise ValueError(f"Definition artifact hash mismatch: {artifact.path}")
+        if artifact.role == "schema":
+            schemas[artifact.path] = content.decode("utf-8")
+        elif artifact.role != "code":
+            payloads[artifact.role] = content
+    import json
+
+    flow = json.loads(payloads["flow"])
+    if flow.get("Id") != manifest.flow_version_id or flow.get("FullName") != manifest.flow_name:
+        raise ValueError("Saved Flow identity does not match definition manifest")
+    selection = FlowSelection.model_validate(parse_yaml(payloads["selection"].decode("utf-8")))
+    lineage = json.loads(payloads["lineage"])
+    if set(lineage["ACCOUNT_FIELD_LINEAGE"]) != {f"Account.{f}" for f in selection.fields}:
+        raise ValueError("Detached lineage does not cover the selected fields")
+    return MetadataInputs(
+        manifest=manifest,
+        manifest_sha256=sha256(raw).hexdigest(),
+        selection=selection,
+        flow=flow,
+        lineage=lineage,
+        schemas=schemas,
+    )
 
 
 @cache
-def _compilation_inputs() -> tuple[str, str, str]:
-    # Strings cannot be changed through a returned nested dict or ODCS model.
-    return (
-        _read_inputs().model_dump_json(by_alias=True, exclude_unset=True),
-        FLOW_REQUEST.model_dump_json(),
-        version("ppsc-metadata"),
-    )
+def _snapshot() -> tuple[str, str]:
+    root = Path(str(files("ppsc_ops_data_quality")))
+    return load_definition_inputs(root).model_dump_json(), version("ppsc-ops-data-quality")
 
 
-def metadata_inputs() -> MetadataBundle:
-    """Return a fresh parse of the verified compilation snapshot."""
-    return MetadataBundle.model_validate_json(_compilation_inputs()[0])
+def metadata_inputs() -> MetadataInputs:
+    """Return a fresh copy; caller mutation cannot alter the verified definition snapshot."""
+    return MetadataInputs.model_validate_json(_snapshot()[0])
 
 
-def metadata_request() -> FlowRequest:
-    """Return the same request used by lineage and every compilation stage."""
-    return FlowRequest.model_validate_json(_compilation_inputs()[1])
+def metadata_request() -> FlowSelection:
+    return metadata_inputs().selection
 
 
-def metadata_receipt() -> CompilationReceipt:
-    """Reverify installed artifacts before a run, including the compiled snapshot."""
-    current = _read_inputs()
-    _, request_json, compiler_version = _compilation_inputs()
-    if (
-        current.manifest_sha256 != metadata_inputs().manifest_sha256
-        or FLOW_REQUEST.model_dump_json() != request_json
-        or version("ppsc-metadata") != compiler_version
-    ):
-        raise ValueError("Metadata inputs changed after query construction")
-    return CompilationReceipt(
+def metadata_receipt() -> DefinitionReceipt:
+    """Reverify installed source, DDL and lineage before each run or suite serialization."""
+    original = metadata_inputs()
+    current = load_definition_inputs(Path(str(files("ppsc_ops_data_quality"))))
+    if current != original or version("ppsc-ops-data-quality") != _snapshot()[1]:
+        raise ValueError("Definition inputs changed after query construction")
+    return DefinitionReceipt(
         manifest=current.manifest,
         manifest_sha256=current.manifest_sha256,
-        compiler_version=compiler_version,
-        contract_id=current.contract.id,
-        contract_version=current.contract.version,
-        flow_request_sha256=sha256(request_json.encode("utf-8")).hexdigest(),
-        compiler_source_revision=COMPILER_SOURCE_REVISION,
-        compiler_wheel_sha256=COMPILER_WHEEL_SHA256,
-    )
-
-
-def expected_value_contract() -> OpenDataContractStandard:
-    """Attach native source definitions with separate BEFORE and expected identities.
-
-    The supplied authored profile stays intact. Derived object copies describe
-    roles in this comparison; they do not certify org policy or physical bindings.
-    Content-addressed source definitions resolve through the verified manifest.
-    """
-    bundle = metadata_inputs()
-    request = metadata_request()
-    document = bundle.contract.model_dump(mode="json", by_alias=True, exclude_unset=True)
-    account = next(obj for obj in bundle.contract.schema_ if obj.name == "Account")
-    for name in ("AccountBefore", "AccountExpected"):
-        if any(obj["name"] == name for obj in document["schema"]):
-            raise ValueError(f"Derived contract object already exists: {name}")
-        obj = account.model_dump(mode="json", by_alias=True, exclude_unset=True)
-        obj.update(id=name, name=name)
-        if name == "AccountExpected":
-            obj["properties"] = [
-                prop for prop in obj["properties"] if prop["name"] in request.fields
-            ]
-            for prop in obj["properties"]:
-                prop["physicalName"] = f"expected__{prop['name']}"
-            obj.pop("relationships", None)
-        document["schema"].append(obj)
-    contract = validate_contract(document)
-    artifact = next(item for item in bundle.manifest.artifacts if item.role == "flow")
-    bindings = {f"Account.{field}": f"AccountBefore.{field}" for field in request.fields}
-    bindings.update(
-        {
-            "Survey_Result__c.Participant__r.AccountId": "Contact.AccountId",
-            "Survey_Result__c.Participant__r.Birthdate": "Contact.Birthdate",
-            "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c": "AccountBefore.Earliest_Primary_Consent_Date_for_Report__c",
-        }
-    )
-    return add_projection_definitions(
-        contract,
-        ProjectionDefinitionsRequest(
-            source_url=f"urn:sha256:{artifact.sha256}",
-            field_bindings=bindings,
-            target_bindings={
-                f"Account.{field}": f"AccountExpected.{field}" for field in request.fields
-            },
+        selection_sha256=next(
+            a.sha256 for a in current.manifest.artifacts if a.role == "selection"
         ),
-        lineage=flow_lineage(bundle.flow["Metadata"], request),
+        implementation_version=_snapshot()[1],
     )

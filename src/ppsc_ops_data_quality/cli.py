@@ -4,8 +4,10 @@ import argparse
 import sys
 from pathlib import Path
 
-from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
-from ppsc_ops_data_quality.runtime.validation import run_validation
+from ppsc_ops_data_quality.account_to_survey_results.configuration import (
+    load_validation_configuration,
+)
+from ppsc_ops_data_quality.account_to_survey_results.validation import run_validation
 
 
 def main(argv: list[str] | None = None) -> int:

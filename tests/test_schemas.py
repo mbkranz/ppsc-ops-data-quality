@@ -15,13 +15,8 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
     flow_account_suite,
     rollup_account_suite,
 )
-from ppsc_ops_data_quality.account_to_survey_results.queries import (
-    flow_account_query,
-    rollup_account_query,
-)
-from ppsc_ops_data_quality.core.queries import history_tables
-from ppsc_ops_data_quality.core.queries.snapshot import snapshot
-from ppsc_ops_data_quality.core.schemas import (
+from ppsc_ops_data_quality.account_to_survey_results.history import history_tables
+from ppsc_ops_data_quality.account_to_survey_results.input_schemas import (
     ACCOUNT_HISTORY_VALIDATION_INPUT,
     ACCOUNT_VALIDATION_INPUT,
     CONTACT_HISTORY_VALIDATION_INPUT,
@@ -29,6 +24,11 @@ from ppsc_ops_data_quality.core.schemas import (
     SURVEY_RESULT_HISTORY_VALIDATION_INPUT,
     SURVEY_RESULT_VALIDATION_INPUT,
 )
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
+    flow_account_query,
+    rollup_account_query,
+)
+from ppsc_ops_data_quality.core.queries.snapshot import snapshot
 from ppsc_ops_data_quality.gx_queries import query_asset_sql
 from ppsc_ops_data_quality.views import create_view_sql
 

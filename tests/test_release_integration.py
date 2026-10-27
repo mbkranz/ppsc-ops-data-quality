@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 def git(root, *arguments):
     return subprocess.check_output(["git", "-C", str(root), *arguments], text=True).strip()
@@ -39,6 +41,21 @@ def test_reproducible_build_and_verified_fresh_publication(tmp_path):
         if key.startswith("AWS_"):
             env.pop(key)
     env["AWS_EC2_METADATA_DISABLED"] = "true"
+    compatibility = subprocess.run(
+        [
+            str(producer / "bin/python"),
+            "-c",
+            "from scripts.build_release import compatible_producer; raise SystemExit(0 if compatible_producer() else 1)",
+        ],
+        cwd=source,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+    if compatibility.returncode:
+        pytest.skip(
+            "Release integration requires the prepared Linux tools: Python 3.11.17, uv 0.12.23, pip 25.3"
+        )
 
     def run(*command, cwd=root, success=True):
         result = subprocess.run(
@@ -53,7 +70,7 @@ def test_reproducible_build_and_verified_fresh_publication(tmp_path):
     def dvc(*args, cwd=root, success=True):
         return run(str(source / ".venv-release/bin/dvc"), *args, cwd=cwd, success=success)
 
-    run("poe", "build-release")
+    run("poe", "build-release", "--backend", "local")
     wheel = next((root / "build/release/project").glob("*.whl"))
     original = wheel.read_bytes()
     stale = root / "build/lib/ppsc_ops_data_quality/deleted.py"

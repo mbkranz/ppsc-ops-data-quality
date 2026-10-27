@@ -229,3 +229,11 @@ Core contains no domain or runtime imports. Domain orchestration supplies
 `account_to_survey_results.lineage.PROJECTION_LINEAGE` explicitly through Athena
 preparation and Query Asset registration. Generic queries/views omit annotations
 unless the caller supplies `projection_lineage=`. Run metadata is a separate input.
+
+## Application ownership
+
+The Account/Survey application chooses its schemas, source/history bindings,
+definition receipt and validation workflow in `account_to_survey_results`.
+`cli.py` and the Glue host invoke that explicit domain workflow. Runtime keeps
+generic Athena/DuckDB preparation, native GX execution and reporting. Other
+applications can supply their own Ibis comparisons and native suites directly.

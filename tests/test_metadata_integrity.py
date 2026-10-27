@@ -1,100 +1,77 @@
-"""Compilation must consume the verified snapshot, never a caller's mutable copy."""
+"""Definition receipts bind immutable source, executable code, DDL and lineage."""
 
 import json
 import shutil
-from copy import deepcopy
-from hashlib import sha256
 from pathlib import Path
 
-import ibis
 import pytest
-from test_account_to_survey_results_expectations import flow_inputs
 
 from ppsc_ops_data_quality.account_to_survey_results import metadata
 from ppsc_ops_data_quality.account_to_survey_results.metadata import (
     metadata_inputs,
     metadata_receipt,
-    metadata_request,
 )
-from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_comparison
 
 
-def comparison_sql(record, observed):
-    return str(ibis.to_sql(flow_account_comparison(record, observed), dialect="duckdb"))
-
-
-def test_mutating_returned_metadata_cannot_change_receipted_compilation():
-    record, observed = flow_inputs()
-    expected_sql = comparison_sql(record, observed)
-    receipt = metadata_receipt()
-    bundle = metadata_inputs()
-    original = deepcopy(bundle.flow)
-    try:
-        assignment = next(
-            node
-            for node in bundle.flow["Metadata"]["recordUpdates"]
-            if node["name"] == "updateAccount2001"
-        )
-        assignment["inputAssignments"][0]["value"] = {"dateTimeValue": None}
-        assert metadata_receipt() == receipt
-        assert comparison_sql(record, observed) == expected_sql
-    finally:
-        bundle.flow.clear()
-        bundle.flow.update(original)
-
-
-def test_repeated_loads_and_configuration_return_independent_objects():
+def test_public_metadata_reads_are_independent_and_do_not_drive_execution():
     first, second = metadata_inputs(), metadata_inputs()
-    assert first == second and first is not second
-    first.contract.schema_[0].properties[0].description = "caller changed this"
-    first.flow["Metadata"]["decisions"].clear()
+    first.flow["Metadata"]["recordUpdates"].clear()
+    first.selection.resource_aliases.clear()
+    first.lineage["ACCOUNT_FIELD_LINEAGE"].clear()
+    first.schemas.clear()
     assert metadata_inputs() == second
-    request = metadata_request()
-    request.resource_aliases.clear()
-    assert metadata_request().resource_aliases
-    receipt = metadata_receipt()
-    assert (
-        receipt.flow_request_sha256
-        == sha256(metadata_request().model_dump_json().encode()).hexdigest()
-    )
-
-
-def test_configuration_change_rejects_receipt_without_changing_compilation(monkeypatch):
-    record, observed = flow_inputs()
-    expected_sql = comparison_sql(record, observed)
-    monkeypatch.setitem(
-        metadata.FLOW_REQUEST.resource_aliases, "getFirstPhysicalMeasurement", "bad"
-    )
-    assert comparison_sql(record, observed) == expected_sql
-    with pytest.raises(ValueError, match="changed after query construction"):
-        metadata_receipt()
+    assert metadata_receipt().manifest_sha256 == second.manifest_sha256
 
 
 @pytest.mark.parametrize("replace_manifest", [False, True])
-def test_artifact_replacement_under_same_name_rejects_receipt(
-    tmp_path, monkeypatch, replace_manifest
+@pytest.mark.parametrize(
+    "artifact",
+    [
+        "account_to_survey_results/metadata/flow.json",
+        "account_to_survey_results/metadata/lineage.json",
+        "account_to_survey_results/flow.py",
+        "account_to_survey_results/inputs/account.sql",
+    ],
+)
+def test_changed_source_code_schema_or_lineage_rejects_receipt(
+    tmp_path, monkeypatch, replace_manifest, artifact
 ):
+    from hashlib import sha256
+
     root = Path(__file__).resolve().parents[1] / "src/ppsc_ops_data_quality"
     copied = tmp_path / "package"
     shutil.copytree(root, copied)
     monkeypatch.setattr(metadata, "files", lambda _: copied)
-    metadata_receipt()  # Unchanged verified bytes can be reused.
-    flow_path = copied / "account_to_survey_results/metadata/flow.json"
-    flow = json.loads(flow_path.read_bytes())
-    flow["Metadata"]["description"] = "same filename, different content"
-    flow_path.write_text(json.dumps(flow))
+    metadata_receipt()
+    target = copied / artifact
+    target.write_bytes(target.read_bytes() + b"\n")
     if replace_manifest:
         path = copied / "account_to_survey_results/metadata/manifest.json"
         manifest = json.loads(path.read_bytes())
-        artifact = next(a for a in manifest["artifacts"] if a["role"] == "flow")
-        artifact["sha256"] = sha256(flow_path.read_bytes()).hexdigest()
+        selected = next(a for a in manifest["artifacts"] if a["path"] == artifact)
+        selected["sha256"] = sha256(target.read_bytes()).hexdigest()
         path.write_text(json.dumps(manifest))
     with pytest.raises(ValueError, match="changed after query construction|hash mismatch"):
         metadata_receipt()
 
 
-def test_changed_compiler_version_rejects_receipt(monkeypatch):
+def test_changed_implementation_version_rejects_receipt(monkeypatch):
     metadata_receipt()
-    monkeypatch.setattr(metadata, "version", lambda _: "different-compiler")
+    monkeypatch.setattr(metadata, "version", lambda _: "different-implementation")
     with pytest.raises(ValueError, match="changed after query construction"):
         metadata_receipt()
+
+
+def test_artifact_paths_reject_escape_and_duplicate_declarations():
+    from ppsc_ops_data_quality.account_to_survey_results.metadata import (
+        Artifact,
+        DefinitionManifest,
+    )
+
+    for path in ("../outside", "/absolute", "sub\\outside"):
+        with pytest.raises(ValueError, match="relative package path"):
+            Artifact(path=path, role="code", sha256="0" * 64)
+    document = metadata_receipt().manifest.model_dump(mode="json")
+    document["artifacts"].append(document["artifacts"][0])
+    with pytest.raises(ValueError, match="Duplicate"):
+        DefinitionManifest.model_validate(document)

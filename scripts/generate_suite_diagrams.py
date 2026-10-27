@@ -18,6 +18,7 @@ import ibis.expr.operations as ops
 import ibis.expr.types as ir
 from ibis.expr.visualize import to_graph
 
+from ppsc_ops_data_quality.account_to_survey_results.history import history_tables
 from ppsc_ops_data_quality.account_to_survey_results.lineage import (
     FLOW_ENTITY_LINEAGE,
     PROJECTION_LINEAGE,
@@ -30,7 +31,7 @@ from ppsc_ops_data_quality.account_to_survey_results.queries import (
     join_account,
     rollup_account_comparison,
 )
-from ppsc_ops_data_quality.core.queries import history_tables, snapshot
+from ppsc_ops_data_quality.core.queries import snapshot
 
 SHARED_PARENT = "Shared / query mechanics"
 PARENT_COLORS = {

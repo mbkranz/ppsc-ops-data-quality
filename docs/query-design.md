@@ -21,13 +21,13 @@ compiles expressions locally; it does not execute SQL or contact AWS.
 | File | Responsibility |
 |---|---|
 | `runtime/` | Athena/DuckDB adapters, native GX runner, and SQL-file metadata TODO |
-| `core/schemas/` | Reusable validation-input/history schemas |
+| `core/schemas/` | Generic Athena DDL-to-Ibis conversion |
 | `account_to_survey_results/schemas.py` | Domain schemas inferred from actual queries |
 | `core/queries/sql.py` | Generic Athena compilation with optional explicit lineage |
-| `runtime/data_access.py` | Backend catalog binding |
+| `account_to_survey_results/history.py` | Backend catalog binding |
 | `core/queries/snapshot.py` | Composable SCD2 snapshot expression |
 | `gx_queries.py` | Compile Athena SELECT and register a native GX Query Asset |
-| `account_to_survey_results/queries.py` | Shared metadata compiler calls, application joins/history and existing rollups |
+| `account_to_survey_results/queries.py` | Local Ibis builders, application joins/history and existing rollups |
 | `account_to_survey_results/lineage.py` | Generated native Flow pointers, retained rollup evidence and output aliases |
 | `account_to_survey_results/gx.py` | Native GX suite builders, independent of dataset construction |
 | `views.py` | Optional publishing of a final query as an Athena view |
@@ -43,7 +43,7 @@ Data Source. `core.queries.history_tables()` binds the explicit input profiles w
 a backend. Supply catalog-verified schemas through its schema arguments when
 available. Credentials and connection configuration remain outside these modules.
 See `core/schemas/README.md` for field coverage, workbook provenance and physical-type
-assumptions. `runtime.data_access.bind_history_tables()` remains available for catalog discovery
+assumptions. `account_to_survey_results.history.bind_history_tables()` remains available for catalog discovery
 through an existing backend. For Athena, configure the
 GX SQL Data Source with the PyAthena SQLAlchemy dialect and temporary-table
 creation disabled. The adapter itself never creates a Context or datasource.
@@ -51,7 +51,7 @@ creation disabled. The adapter itself never creates a Context or datasource.
 ```python
 from datetime import date, datetime
 from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_query
-from ppsc_ops_data_quality.core.queries import history_tables
+from ppsc_ops_data_quality.account_to_survey_results.history import history_tables
 from ppsc_ops_data_quality.gx_queries import query_batch_definition
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
 from ppsc_ops_data_quality.account_to_survey_results.gx import flow_account_suite
@@ -96,7 +96,7 @@ result = batch.validate(flow_account_suite(expected_row_count=1))
 The query selects one triggering survey record, uses all survey records at
 execution for FlowRecordLookups, and joins Contact at execution to Account BEFORE.
 Expected values follow the pinned native Flow decisions and assignments through
-the shared compiler. See [metadata compilation](metadata-compiler.md) for the
+the reviewed local Ibis builders. See [metadata compilation](metadata-compiler.md) for the
 provisional profile and semantic changes. Observed
 values come from the independently supplied Account AFTER time and are explicitly
 associated with the selected survey event. The final LEFT JOIN uses both Account

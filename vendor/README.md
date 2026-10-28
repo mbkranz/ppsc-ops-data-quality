@@ -27,9 +27,11 @@ SOURCE_DATE_EPOCH=315532800 /PATH/TO/SALESFORCE/.venv/bin/python -m build --whee
 ```
 
 Two independent clean exports produced the hash above. All 164 packaged source
-and template files were compared byte-for-byte with the pinned source. Ops'
-installed distribution must have this wheel's `direct_url.json` path, matching
-lockfile/archive hash and byte-identical installed package files; version alone is insufficient.
+and template files were compared byte-for-byte with the pinned source. Installed
+compiler identity is established by the matching lockfile/archive hash and
+byte-identical installed package files; version alone is insufficient. A
+`direct_url.json` wheel path is additional development-install evidence when
+present. The index-free release installation has no `direct_url.json`.
 
 For a reviewed compiler update, use a new source-revision directory, update the
 requirement and lock without upgrading unrelated packages, regenerate affected

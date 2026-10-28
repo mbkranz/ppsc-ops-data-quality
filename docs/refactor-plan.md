@@ -225,7 +225,7 @@ git diff --check
 
 Use the repository's locked dependency setup. `poe check` includes lint, format and tests. The compilation and synthetic commands create fresh run directories; do not fabricate their outputs or repeatedly rerun completed checks without a new concern.
 
-Additional existing commands are `uv run poe render-queries` and `uv run poe suite-diagrams`. Run them only when the corresponding output changes are in scope. SQL example rendering does not currently refresh tracked suite JSON by itself; inspect existing generation/serialization paths.
+Additional existing commands are `uv run poe render-queries` and `uv run poe suite-diagrams`. Run them only when the corresponding output changes are in scope. `render-queries` refreshes both tracked SQL and suite JSON through the authoritative Python builders and existing native suite serializer.
 
 Phase 1 should preserve relevant CLI, configuration, runtime, reporting and deployment tests and add only meaningful coverage for changed boundaries. Later comparison phases must exercise:
 
@@ -303,9 +303,10 @@ Counts supplement readability and correctness; they do not justify removing requ
   `635ee8ac99d375cb318e33d809e6a6efac8a7e96707a3292a08a1637435a9ba0`.
   All **164** packaged source/template files match the exact source export and
   installed files, both in Ops development and the isolated release smoke.
-  Imports in the latter resolve inside its site-packages. uv's local-wheel
-  `direct_url.json` records the wheel path but omits archive hashes; acceptance
-  also checked the actual archive SHA256 and lockfile, not version alone.
+  Imports in the latter resolve inside its site-packages. The development
+  install's `direct_url.json` records the wheel path but omits archive hashes;
+  the index-free release install has no `direct_url.json`. Acceptance checked
+  the actual archive SHA256, lockfile and installed files, not version alone.
 - Only the Salesforce package/requirement/path/hash changed in `uv.lock`;
   all unrelated package entries are identical. Removed the superseded wheel.
   The only compatibility code edit updates the installed-smoke compiler version
@@ -315,6 +316,11 @@ Counts supplement readability and correctness; they do not justify removing requ
   **27 -> 29**, rollups **24 -> 25**. Scope/computation completeness and source
   parent validity are now present. Upstream original-fragment lineage explains
   most of the generated Flow JSON growth; it is deliberately retained.
+  Existing equality checks also gained the authoritative builders' row conditions:
+  Flow equality requires valid keys, deterministic computation and a known
+  assignment state (including False, which retains BEFORE), while rollup equality
+  requires valid keys. These conditions affect comparison denominators;
+  regeneration brings stale examples into alignment with existing runtime policy.
   `poe render-queries` produced byte-identical illustrative SQL.
   `poe suite-diagrams` completed; all 14 labeled directed graph fingerprints,
   node/edge counts and labels matched (eight refinement rounds). Retained the
@@ -419,8 +425,9 @@ Counts supplement readability and correctness; they do not justify removing requ
 ### Final measured complexity
 
 Text counts below use `git diff --numstat --find-renames=50%`: Phase 0 from
-`87ec1b0` to `2d5b497`, Phase 1 from that checkpoint, and combined from the
-handoff. Columns report added / deleted / net lines. Renames retain unchanged
+`87ec1b0` to `2d5b497`, Phase 1 from that checkpoint to `ad7db32`, and combined
+from the handoff to `ad7db32`, excluding subsequent documentation corrections.
+Columns report added / deleted / net lines. Renames retain unchanged
 lines rather than charging the entire workflow as a delete/add. Generated
 locks and suites are separated from authored code; binary wheel bytes are not
 text lines. No Salesforce repository source changed (81 production modules

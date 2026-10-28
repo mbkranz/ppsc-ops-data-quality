@@ -21,8 +21,8 @@ stages:
       size: 458601
     - path: vendor
       hash: md5
-      md5: 65b5b000f99f3d3f51e55999f9a0790d.dir
-      size: 188627
+      md5: 7282ad944392a7d0cdecdc994063b0e8.dir
+      size: 188752
       nfiles: 2
     outs:
     - path: build/release/requirements/requirements.txt
@@ -46,8 +46,8 @@ stages:
       size: 62897
     - path: vendor
       hash: md5
-      md5: 65b5b000f99f3d3f51e55999f9a0790d.dir
-      size: 188627
+      md5: 7282ad944392a7d0cdecdc994063b0e8.dir
+      size: 188752
       nfiles: 2
     outs:
     - path: build/release/dependencies

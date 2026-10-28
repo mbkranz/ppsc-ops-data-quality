@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Python Contracts"
+  short_description: "Explicit Python functions with Pydantic contracts"
+  default_prompt: "Use $design-python-contracts to implement or review this Python operation with explicit inputs, dependencies, outputs, and workflow steps."

@@ -15,7 +15,7 @@
 - Use synthetic fixtures in CI. Local checks do not establish live Athena/Glue acceptance.
 - Run `uv run poe check`, `uv run poe check-queries` and `uv run poe check-synthetic` before proposing changes.
 
-- Follow the PPSC agent design reference: validated structured public inputs/results, explicit functions and visible workflows; keep native expressions and frames.
+- For Python module design, substantial refactoring and architecture review, use $design-python-contracts: [installed PPSC agent design reference](.agents/skills/design-python-contracts/SKILL.md). Keep validated structured public inputs/results, explicit functions and visible workflows, and native expressions and frames. Apply it within this repository's constraints and compatibility requirements.
 - Keep core domain-independent. Supply projection lineage explicitly at orchestration.
 - Use YAML for runtime/environment settings; use data-migration-dev for local AWS operations (explicit overrides allowed).
 

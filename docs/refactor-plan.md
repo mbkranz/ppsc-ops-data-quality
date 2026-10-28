@@ -1,6 +1,6 @@
 # Salesforce and Ops data quality refactoring plan
 
-Status: Ready for Phase 1 implementation.
+Status: Ready for Phase 0 compiler alignment, followed by Phase 1 implementation.
 Prepared: October 27, 2026.
 Canonical plan: `ppsc-ops-data-quality/docs/refactor-plan.md`.
 
@@ -19,11 +19,12 @@ This file is the self-contained implementation handoff. Read the applicable repo
 | Salesforce integration | `mbkranz/ppsc-salesforce`, branch `codex/native-athena-products`, PR #7, commit `a534c63353680e41d12e3b55997a125ba703c675` |
 | Salesforce default branch | `dev`, commit `2ac94684e3ff3be798ef73b2d45e250413f3d170` |
 | Salesforce wheel actually consumed by Ops | `vendor/1d59b5b8/ppsc_salesforce-0.1.0-py3-none-any.whl`, built from Salesforce commit `1d59b5b87b69e2b7da52c3c0bdb008c2af37c200` |
-| Pinned wheel SHA256 | `7d588d32c56c1890a5b2988b3d7b4981042aa6ee1de5b829d58e936c93b240ec` |
+| Starting wheel SHA256 | `7d588d32c56c1890a5b2988b3d7b4981042aa6ee1de5b829d58e936c93b240ec` |
+| Required compiler baseline | Tip of Salesforce PR #7, resolved once at task start and pinned by exact commit; currently `a534c63353680e41d12e3b55997a125ba703c675` |
 
 The documentation handoff branch starts from the Ops integration commit above. Establish actual checked-out revisions and baseline status before implementation. If revisions have advanced, inspect the relevant diff and reconcile this plan against current consumers. Do not reset or overwrite intervening work.
 
-The latest Salesforce source and the implementation in the pinned Ops wheel are different baselines. Do not silently replace the wheel with the latest source or treat package version `0.1.0` as sufficient source identity.
+The latest Salesforce source and the implementation in the starting Ops wheel are different baselines. The coordinated cleanup must first align Ops with the Salesforce PR tip through Phase 0. Resolve that tip to an exact commit and build/pin its wheel; do not depend on a mutable branch or treat package version `0.1.0` as sufficient source identity. Freeze the newly verified compiler baseline during the subsequent Ops-only refactor.
 
 ## Binding refactoring constraints
 
@@ -119,13 +120,38 @@ During consolidation, compare old/new values, evidence flags, findings and row m
 9. Salesforce `flows/queries.py` repeats selected-path analysis for context, assignments and lineage. Exact native field identity handling also repeats across adapters.
 10. Workbook-authored rollups are still provisional. Do not assume verified native rollup metadata is already available.
 
-## Phase 1 — Baseline, generated suites and workflow ownership
+## Phase 0 — Align the consumer with the Salesforce PR tip
 
-Implement only this phase for the first Codex Cloud task.
+Complete this dependency-alignment phase before the Ops refactor. It is part of the first Codex Cloud task.
 
 ### Scope
 
-- Work in Ops. Salesforce is read-only context; keep the pinned wheel and lockfile unchanged.
+- Check out Salesforce PR #7's head branch, `codex/native-athena-products`, resolve its current tip once and record the exact source commit. At handoff correction it is `a534c63353680e41d12e3b55997a125ba703c675`.
+- Inspect changes since the starting Ops wheel's source commit `1d59b5b87b69e2b7da52c3c0bdb008c2af37c200`. Identify consumer-facing changes before packaging.
+- Build a reproducible wheel from the selected exact Salesforce commit using the existing repository/vendor build instructions. A source checkout may support investigation; editable source installation is not acceptance evidence for the packaged Ops consumer.
+- Add the wheel under a new source-revision directory in Ops `vendor/`. Update `pyproject.toml`, `uv.lock` and `vendor/README.md` to identify the new source revision and wheel SHA256. Preserve unrelated dependency versions and remove the superseded wheel if it has no actual remaining consumer.
+- Verify that the installed distribution is the new wheel. Package version `0.1.0` alone is insufficient to distinguish builds.
+- Run relevant Salesforce producer tests and the Ops required checks against the newly installed wheel. Inspect source-compatibility and behavior differences. Make only necessary consumer compatibility fixes in this phase, with observed evidence; do not mix in the structural cleanup.
+- Regenerate affected illustrative SQL, suite examples and diagrams using existing commands/builders. Retain saved native Salesforce evidence. Update generated input representations only if compiler compatibility requires it, and record why; do not retrieve fresh live metadata or silently change the selected Flow version.
+- Measure the new base SQL and inspect final GX metric SQL where existing offline hooks allow it. Earlier query-size measurements may no longer apply.
+- Perform applicable deterministic packaging/release and installed-smoke checks under existing producer instructions. Keep DVC hashes grounded in real outputs, without publication or deployment.
+- Record the aligned source commit, wheel hash, minimal dependency/consumer changes, regenerated outputs and observed checks as a distinct baseline checkpoint before the workflow refactor.
+
+### Acceptance
+
+- Ops consumes a reproducible wheel from the resolved Salesforce PR-tip commit, with a verified source revision/hash and updated dependency lock.
+- Unrelated dependency upgrades and speculative compiler changes are absent.
+- Required producer/consumer checks and applicable installed-artifact verification establish the new baseline. Explain any compiler-driven result/output changes using actual source differences.
+- Do not proceed to Phase 1 if compiler alignment or required compatibility checks are failing or blocked. Report the exact unmet prerequisite rather than silently retaining the old compiler or presenting a refactor as verified.
+- No live AWS/Salesforce access, metadata refresh, DVC publication or deployment is required or authorized.
+
+## Phase 1 — Baseline, generated suites and workflow ownership
+
+After Phase 0 passes, implement this phase in the first Codex Cloud task. Do not start Phases 2–5.
+
+### Scope
+
+- Work in Ops using the verified Phase 0 compiler baseline. During this structural phase, keep the newly aligned wheel and dependency lock unchanged. Salesforce source changes are outside this phase.
 - Read `AGENTS.md`, `pyproject.toml`, `poe_tasks.yaml`, `vendor/README.md`, runtime configuration/validation, CLI/Glue entry points and their actual tests/callers.
 - Record starting revision, dependency/wheel identity, baseline check results and production module count before changes.
 - Establish current generated-suite drift. Use authoritative native Python builders to refresh the existing tracked suite examples. Reuse existing serialization/generation functions; do not create a parallel suite format.
@@ -140,7 +166,7 @@ Implement only this phase for the first Codex Cloud task.
 
 ### Non-goals
 
-No comparison algorithm migration, general module registry, schema-wrapper cleanup beyond imports needed for the move, compiler rewrite, wheel refresh, dependency upgrade, new package, new engine, materialization, deployment or live AWS validation. Do not start later phases automatically.
+No comparison algorithm migration, general module registry, schema-wrapper cleanup beyond imports needed for the move, compiler rewrite, further wheel/dependency changes beyond Phase 0, new package, new engine, materialization, deployment or live AWS validation. Do not start later phases automatically.
 
 ### Acceptance
 
@@ -149,7 +175,7 @@ No comparison algorithm migration, general module registry, schema-wrapper clean
 - Existing YAML and public CLI behavior remain compatible; report creation and partial-result behavior survive.
 - Tracked suite examples match the authoritative current builders and retain the required integrity/completeness checks.
 - Required checks below pass, or pre-existing/environment failures are documented with exact commands and errors. Do not report blocked checks as passing.
-- The Salesforce wheel, dependency lock and source metadata are unchanged.
+- The Salesforce wheel and dependency lock match the verified Phase 0 baseline; saved native source metadata remains unchanged.
 - Final diff contains only Phase 1 changes and necessary tests/docs/generated suite output.
 - Complexity assessment explains any module or authored-line increase and its simplest alternative.
 
@@ -252,6 +278,7 @@ Counts supplement readability and correctness; they do not justify removing requ
 ## Progress
 
 - Planning: complete.
-- Phase 1 implementation: not started.
+- Phase 0 compiler alignment: not started.
+- Phase 1 implementation: not started; depends on verified Phase 0 alignment.
 - Phase 2–5 implementation: not started.
 - Repository tests/live validation for this planning-only commit: not run.

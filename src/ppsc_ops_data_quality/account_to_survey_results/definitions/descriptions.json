@@ -1,0 +1,17 @@
+{
+  "account": {
+    "Id": {
+      "description": "Provisional lake record identifier; confirm physical lineage before live acceptance."
+    }
+  },
+  "contact": {
+    "Id": {
+      "description": "Provisional lake record identifier; confirm physical lineage before live acceptance."
+    }
+  },
+  "survey_result": {
+    "Id": {
+      "description": "Provisional lake record identifier; confirm physical lineage before live acceptance."
+    }
+  }
+}

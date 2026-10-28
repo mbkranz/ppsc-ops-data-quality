@@ -14,3 +14,5 @@ credentials*
 glue/environments.local.yaml
 
 .venv-release/
+
+/lake/snapshots/

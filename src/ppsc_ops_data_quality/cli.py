@@ -4,6 +4,8 @@ import argparse
 import sys
 from pathlib import Path
 
+import boto3
+
 from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
 from ppsc_ops_data_quality.runtime.validation import run_validation
 
@@ -17,7 +19,13 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         configuration = load_validation_configuration(args.config)
-        outcome = run_validation(configuration, run_directory=args.run_dir)
+        outcome = run_validation(
+            configuration,
+            run_directory=args.run_dir,
+            athena_client_factory=lambda: boto3.Session(
+                profile_name=configuration.athena.connection_options.get("profile_name")
+            ).client("athena", region_name=configuration.athena.region),
+        )
     except Exception as error:
         print(f"{type(error).__name__}: {error}", file=sys.stderr)
         return 2

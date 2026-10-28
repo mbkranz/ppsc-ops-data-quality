@@ -22,11 +22,8 @@ from ppsc_ops_data_quality.account_to_survey_results.lineage import (
     FLOW_ENTITY_LINEAGE,
     PROJECTION_LINEAGE,
 )
+from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_inputs
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
-    FlowRecordLookup_Earliest_Other_Yes_EHR_Consent,
-    FlowRecordLookup_Earliest_Other_Yes_Primary_Consent,
-    FlowRecordLookup_First_Remote_Physical_Measurement,
-    FlowRecordLookup_Pediatric_Permission_For_Assent,
     add_flow_context,
     expected_account_values,
     expected_survey_rollups,
@@ -173,11 +170,7 @@ def _cut_input(expression: ir.Table, original: ir.Table, boundary: ir.Table) -> 
 
 def illustrative_parts() -> dict[str, list[DiagramPart]]:
     """Stop each native graph at schema-preserving, diagram-only table inputs."""
-    sources = history_tables(
-        account_database="example_account",
-        contact_database="example_contact",
-        survey_result_database="example_survey_result",
-    )
+    sources = history_tables(inputs=metadata_inputs())
     history = {
         name: ibis.table(table.schema(), name=f"{name}_History") for name, table in sources.items()
     }
@@ -214,20 +207,7 @@ def illustrative_parts() -> dict[str, list[DiagramPart]]:
         flow, "Joined_Record", "join_account", join_account(Trigger, Contact, AccountBefore)
     )
     Context = add_flow_context(Record, Survey, flow_run_date=ibis.literal(date(2026, 10, 21)))
-    previous = Record
-    boundary = Record
-    for name, lookup in (
-        ("Record_With_Primary_Consent", FlowRecordLookup_Earliest_Other_Yes_Primary_Consent),
-        ("Record_With_EHR_Consent", FlowRecordLookup_Earliest_Other_Yes_EHR_Consent),
-        ("Record_With_Physical_Measurement", FlowRecordLookup_First_Remote_Physical_Measurement),
-        ("Record_With_Pediatric_Permission", FlowRecordLookup_Pediatric_Permission_For_Assent),
-    ):
-        result = lookup(previous, Survey)
-        boundary = _add_part(flow, name, lookup.__name__, _cut_input(result, previous, boundary))
-        previous = result
-    Context = _add_part(
-        flow, "Flow_Context", "add_flow_context", _cut_input(Context, previous, boundary)
-    )
+    Context = _add_part(flow, "Flow_Context", "add_flow_context", Context)
     _add_part(flow, "Expected_Account", "expected_account_values", expected_account_values(Context))
     AccountAfter = _add_part(
         flow, "Account_After", "snapshot", snapshot(history["Account"], as_of=after_at)

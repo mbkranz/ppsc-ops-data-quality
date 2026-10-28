@@ -1,0 +1,12 @@
+# Replace all placeholders deliberately; discovery never selects a default account.
+aws_accounts:
+  "000000000000":
+    environment: qa2
+    catalog: "<athena-catalog>"
+    database: "<athena-database>"
+    # Optional: region and workgroup. Otherwise use normal AWS configuration.
+
+# Table names map explicitly to saved Salesforce API names.
+# Example: participants: {object: Account, fields: {participant_id: Id}}
+# Fields without overrides use unique case-insensitive exact API-name matching.
+table_mappings: {}

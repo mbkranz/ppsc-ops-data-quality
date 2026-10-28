@@ -192,16 +192,15 @@
       "meta": {
         "check_id": "permission_lookup_is_deterministic",
         "ppsc": {
-          "source_entity": "FlowRecordLookup.Get_Permission_1007",
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
-          "workbook_tab": "processing-Flow-elements",
-          "workbook_row": 14500,
-          "entity_type": "FlowRecordLookup",
           "rule_id": "CABOR_Completion_Date__c_is_deterministic",
-          "description": "Signature lookup has at most one candidate on the assent route",
+          "entity_type": "FlowRecordLookup",
+          "description": "The selected native assignment has deterministic lookup evidence",
           "source_entities": [
             "FlowRecordLookup.Get_Permission_1007"
-          ]
+          ],
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908"
         }
       },
       "description": "The permission lookup resolves a reproducible expected CABOR value.",
@@ -224,53 +223,106 @@
       "meta": {
         "check_id": "observed_Age_at_Time_of_Consent__pc_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Age_at_Time_of_Consent__pc",
           "source_entities": [
             "FlowRecordUpdate.updateAccount1001_Positive",
             "FlowRecordUpdate.updateAccount1001_Negative",
             "FlowRecordUpdate.Update_Account_1007_Positive",
-            "FlowRecordUpdate.Update_Account_1007_Negative",
-            "FlowFormula.formAgeCalculation"
+            "FlowRecordUpdate.Update_Account_1007_Negative"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount1001_Positive,\nFlowRecordUpdate.updateAccount1001_Negative, FlowRecordUpdate.Update_Account_1007_Positive,\nFlowRecordUpdate.Update_Account_1007_Negative, FlowFormula.formAgeCalculation.\n\nFlow updates rows 14488,14490,14503,14504 -> Account.Age_at_Time_of_Consent__pc.\n\nBoth primary-consent branches and both assent branches assign the translated\nFlowFormula.Age_At_Execution value. Other routes retain the Account BEFORE value. This is\nexecution-date age.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/4/inputAssignments/0",
+            "/Metadata/decisions/3",
+            "/Metadata/decisions/2",
+            "/Metadata/recordUpdates/3/inputAssignments/0",
+            "/Metadata/recordUpdates/2/inputAssignments/0",
+            "/Metadata/decisions/0",
+            "/Metadata/recordUpdates/1/inputAssignments/0"
+          ],
+          "description": "Native Flow assignments to Account.Age_at_Time_of_Consent__pc; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount1001_Positive/Age_at_Time_of_Consent__pc",
+              "source_path": "/Metadata/recordUpdates/4/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 0
+                },
+                {
+                  "element": "Previous_Primary_Consent_Exists",
+                  "rule": 0
+                }
+              ]
+            },
+            {
+              "rule_id": "updateAccount1001_Negative/Age_at_Time_of_Consent__pc",
+              "source_path": "/Metadata/recordUpdates/3/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 0
+                },
+                {
+                  "element": "Previous_Primary_Consent_Exists",
+                  "rule": null
+                }
+              ]
+            },
+            {
+              "rule_id": "Update_Account_1007_Positive/Age_at_Time_of_Consent__pc",
+              "source_path": "/Metadata/recordUpdates/2/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 3
+                },
+                {
+                  "element": "Decision_4",
+                  "rule": 0
+                }
+              ]
+            },
+            {
+              "rule_id": "Update_Account_1007_Negative/Age_at_Time_of_Consent__pc",
+              "source_path": "/Metadata/recordUpdates/1/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 3
+                },
+                {
+                  "element": "Decision_4",
+                  "rule": null
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "formAgeCalculation",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c",
+            "getEarliestPrimaryConsent.Id",
+            "Get_Permission_1007.Id",
+            "$Record.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Age_at_Time_of_Consent__pc",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14488,
             14490,
             14503,
-            14504,
-            14573
+            14504
           ],
-          "expression": "age_at_flow_execution",
-          "branches": [
-            {
-              "rule_id": "set_age_at_flow_execution",
-              "output_fields": [
-                "Account.Age_at_Time_of_Consent__pc"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount1001_Positive",
-                "FlowRecordUpdate.updateAccount1001_Negative",
-                "FlowRecordUpdate.Update_Account_1007_Positive",
-                "FlowRecordUpdate.Update_Account_1007_Negative",
-                "FlowFormula.formAgeCalculation"
-              ],
-              "workbook_rows": [
-                14488,
-                14490,
-                14503,
-                14504,
-                14573
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "age_at_flow_execution",
-          "target_field": "Account.Age_at_Time_of_Consent__pc",
-          "description": "Age at flow execution"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Age_at_Time_of_Consent__pc equals its expected AFTER value.",
@@ -306,66 +358,107 @@
       "meta": {
         "check_id": "observed_CABOR_Completion_Date__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.CABOR_Completion_Date__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount1001_Positive",
             "FlowRecordUpdate.updateAccount1001_Negative",
             "FlowRecordUpdate.Update_Account_1007_Positive",
-            "FlowRecordUpdate.Update_Account_1007_Negative",
-            "FlowRecordLookup.Get_Permission_1007"
+            "FlowRecordUpdate.Update_Account_1007_Negative"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount1001_Positive,\nFlowRecordUpdate.updateAccount1001_Negative, FlowRecordUpdate.Update_Account_1007_Positive,\nFlowRecordUpdate.Update_Account_1007_Negative, FlowRecordLookup.Get_Permission_1007.\n\nRows 14488,14490,14503,14504 -> Account.CABOR_Completion_Date__c.\n\nPrimary uses Record.California_Signature__c; assent uses the 1007 lookup's\nCalifornia_Signature__c, including an assigned NULL when no permission exists. An unordered\nmulti-match also returns NULL, distinguished by the output flag.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/4/inputAssignments/1",
+            "/Metadata/decisions/3",
+            "/Metadata/decisions/2",
+            "/Metadata/recordUpdates/3/inputAssignments/1",
+            "/Metadata/recordUpdates/2/inputAssignments/1",
+            "/Metadata/decisions/0",
+            "/Metadata/recordUpdates/1/inputAssignments/1"
+          ],
+          "description": "Native Flow assignments to Account.CABOR_Completion_Date__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount1001_Positive/CABOR_Completion_Date__c",
+              "source_path": "/Metadata/recordUpdates/4/inputAssignments/1",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 0
+                },
+                {
+                  "element": "Previous_Primary_Consent_Exists",
+                  "rule": 0
+                }
+              ]
+            },
+            {
+              "rule_id": "updateAccount1001_Negative/CABOR_Completion_Date__c",
+              "source_path": "/Metadata/recordUpdates/3/inputAssignments/1",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 0
+                },
+                {
+                  "element": "Previous_Primary_Consent_Exists",
+                  "rule": null
+                }
+              ]
+            },
+            {
+              "rule_id": "Update_Account_1007_Positive/CABOR_Completion_Date__c",
+              "source_path": "/Metadata/recordUpdates/2/inputAssignments/1",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 3
+                },
+                {
+                  "element": "Decision_4",
+                  "rule": 0
+                }
+              ]
+            },
+            {
+              "rule_id": "Update_Account_1007_Negative/CABOR_Completion_Date__c",
+              "source_path": "/Metadata/recordUpdates/1/inputAssignments/1",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 3
+                },
+                {
+                  "element": "Decision_4",
+                  "rule": null
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.California_Signature__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c",
+            "getEarliestPrimaryConsent.Id",
+            "Get_Permission_1007.California_Signature__c",
+            "Get_Permission_1007.Id",
+            "$Record.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/CABOR_Completion_Date__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14488,
             14490,
-            14500,
             14503,
             14504
           ],
-          "expression": "california_signature_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_california_signature_from_primary_consent",
-              "output_fields": [
-                "Account.CABOR_Completion_Date__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount1001_Positive",
-                "FlowRecordUpdate.updateAccount1001_Negative"
-              ],
-              "workbook_rows": [
-                14488,
-                14490
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            },
-            {
-              "rule_id": "set_california_signature_from_pediatric_permission",
-              "output_fields": [
-                "Account.CABOR_Completion_Date__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.Update_Account_1007_Positive",
-                "FlowRecordUpdate.Update_Account_1007_Negative",
-                "FlowRecordLookup.Get_Permission_1007"
-              ],
-              "workbook_rows": [
-                14500,
-                14503,
-                14504
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "california_signature_timestamp",
-          "target_field": "Account.CABOR_Completion_Date__c",
-          "description": "California signature timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.CABOR_Completion_Date__c equals its expected AFTER value.",
@@ -388,41 +481,72 @@
       "meta": {
         "check_id": "observed_Earliest_Primary_Consent_Date_for_Report__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Earliest_Primary_Consent_Date_for_Report__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount1001_Negative",
             "FlowRecordUpdate.Update_Account_1007_Negative"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount1001_Negative,\nFlowRecordUpdate.Update_Account_1007_Negative.\n\nRows 14490,14504 -> Account.Earliest_Primary_Consent_Date_for_Report__c.\n\nFlowRecordUpdate.Primary_Consent_With_Prior_Yes writes the triggering completion timestamp\nwhen another Yes primary consent exists.\nFlowRecordUpdate.Assent_With_Permission_Or_Primary_Date also writes the triggering\ntimestamp. Positive branches leave this field unchanged. This is the authored assignment,\nnot MIN(consent timestamps).",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/3/inputAssignments/2",
+            "/Metadata/decisions/3",
+            "/Metadata/decisions/2",
+            "/Metadata/recordUpdates/1/inputAssignments/2",
+            "/Metadata/decisions/0"
+          ],
+          "description": "Native Flow assignments to Account.Earliest_Primary_Consent_Date_for_Report__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount1001_Negative/Earliest_Primary_Consent_Date_for_Report__c",
+              "source_path": "/Metadata/recordUpdates/3/inputAssignments/2",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 0
+                },
+                {
+                  "element": "Previous_Primary_Consent_Exists",
+                  "rule": null
+                }
+              ]
+            },
+            {
+              "rule_id": "Update_Account_1007_Negative/Earliest_Primary_Consent_Date_for_Report__c",
+              "source_path": "/Metadata/recordUpdates/1/inputAssignments/2",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 3
+                },
+                {
+                  "element": "Decision_4",
+                  "rule": null
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c",
+            "getEarliestPrimaryConsent.Id",
+            "Get_Permission_1007.Id",
+            "$Record.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Earliest_Primary_Consent_Date_for_Report__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14490,
             14504
           ],
-          "expression": "earliest_primary_consent_report_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_earliest_primary_consent_report_timestamp",
-              "output_fields": [
-                "Account.Earliest_Primary_Consent_Date_for_Report__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount1001_Negative",
-                "FlowRecordUpdate.Update_Account_1007_Negative"
-              ],
-              "workbook_rows": [
-                14490,
-                14504
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "earliest_primary_consent_report_timestamp",
-          "target_field": "Account.Earliest_Primary_Consent_Date_for_Report__c",
-          "description": "Earliest primary consent report timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Earliest_Primary_Consent_Date_for_Report__c equals its expected AFTER value.",
@@ -445,49 +569,106 @@
       "meta": {
         "check_id": "observed_Latest_Primary_Consent_Date_for_Report__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Latest_Primary_Consent_Date_for_Report__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount1001_Positive",
             "FlowRecordUpdate.updateAccount1001_Negative",
             "FlowRecordUpdate.Update_Account_1007_Positive",
             "FlowRecordUpdate.Update_Account_1007_Negative"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount1001_Positive,\nFlowRecordUpdate.updateAccount1001_Negative, FlowRecordUpdate.Update_Account_1007_Positive,\nFlowRecordUpdate.Update_Account_1007_Negative.\n\nRows 14488,14490,14503,14504 -> Account.Latest_Primary_Consent_Date_for_Report__c.\n\nBoth primary-consent and assent routes assign Record.Completion_Status_Timestamp__c. Lineage\nis the triggering record, not MAX of all participant completion dates.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/4/inputAssignments/2",
+            "/Metadata/decisions/3",
+            "/Metadata/decisions/2",
+            "/Metadata/recordUpdates/3/inputAssignments/3",
+            "/Metadata/recordUpdates/2/inputAssignments/2",
+            "/Metadata/decisions/0",
+            "/Metadata/recordUpdates/1/inputAssignments/3"
+          ],
+          "description": "Native Flow assignments to Account.Latest_Primary_Consent_Date_for_Report__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount1001_Positive/Latest_Primary_Consent_Date_for_Report__c",
+              "source_path": "/Metadata/recordUpdates/4/inputAssignments/2",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 0
+                },
+                {
+                  "element": "Previous_Primary_Consent_Exists",
+                  "rule": 0
+                }
+              ]
+            },
+            {
+              "rule_id": "updateAccount1001_Negative/Latest_Primary_Consent_Date_for_Report__c",
+              "source_path": "/Metadata/recordUpdates/3/inputAssignments/3",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 0
+                },
+                {
+                  "element": "Previous_Primary_Consent_Exists",
+                  "rule": null
+                }
+              ]
+            },
+            {
+              "rule_id": "Update_Account_1007_Positive/Latest_Primary_Consent_Date_for_Report__c",
+              "source_path": "/Metadata/recordUpdates/2/inputAssignments/2",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 3
+                },
+                {
+                  "element": "Decision_4",
+                  "rule": 0
+                }
+              ]
+            },
+            {
+              "rule_id": "Update_Account_1007_Negative/Latest_Primary_Consent_Date_for_Report__c",
+              "source_path": "/Metadata/recordUpdates/1/inputAssignments/3",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 3
+                },
+                {
+                  "element": "Decision_4",
+                  "rule": null
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c",
+            "getEarliestPrimaryConsent.Id",
+            "Get_Permission_1007.Id",
+            "$Record.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Latest_Primary_Consent_Date_for_Report__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14488,
             14490,
             14503,
             14504
           ],
-          "expression": "latest_primary_consent_report_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_latest_primary_consent_report_timestamp",
-              "output_fields": [
-                "Account.Latest_Primary_Consent_Date_for_Report__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount1001_Positive",
-                "FlowRecordUpdate.updateAccount1001_Negative",
-                "FlowRecordUpdate.Update_Account_1007_Positive",
-                "FlowRecordUpdate.Update_Account_1007_Negative"
-              ],
-              "workbook_rows": [
-                14488,
-                14490,
-                14503,
-                14504
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "latest_primary_consent_report_timestamp",
-          "target_field": "Account.Latest_Primary_Consent_Date_for_Report__c",
-          "description": "Latest primary consent report timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Latest_Primary_Consent_Date_for_Report__c equals its expected AFTER value.",
@@ -510,37 +691,52 @@
       "meta": {
         "check_id": "observed_EHR_Consent_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.EHR_Consent_Date_Time__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount1003_NegativeSF"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount1003_NegativeSF.\n\nFlowRecordUpdate.EHR_Consent_With_Prior_Yes, row 14496 -> Account.EHR_Consent_Date_Time__c.\n\nAnother Yes EHR consent exists: assign Record.Completion_Status_Timestamp__c. The no-prior\nbranch writes EHR_Reconsent_Date_Time__c instead, as authored.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/5/inputAssignments/0",
+            "/Metadata/decisions/3",
+            "/Metadata/decisions/1"
+          ],
+          "description": "Native Flow assignments to Account.EHR_Consent_Date_Time__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount1003_NegativeSF/EHR_Consent_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/5/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 1
+                },
+                {
+                  "element": "Previous_EHR_Exists",
+                  "rule": null
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c",
+            "getEarliestEgetEarliestEHRConsentHRConsent.Id"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/EHR_Consent_Date_Time__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14496
           ],
-          "expression": "ehr_consent_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_ehr_consent_timestamp",
-              "output_fields": [
-                "Account.EHR_Consent_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount1003_NegativeSF"
-              ],
-              "workbook_rows": [
-                14496
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "ehr_consent_timestamp",
-          "target_field": "Account.EHR_Consent_Date_Time__c",
-          "description": "Ehr consent timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.EHR_Consent_Date_Time__c equals its expected AFTER value.",
@@ -563,37 +759,52 @@
       "meta": {
         "check_id": "observed_EHR_Reconsent_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.EHR_Reconsent_Date_Time__c",
           "source_entities": [
             "FlowRecordUpdate.Copy_1_of_updateAccount1003_PositiveSF"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.Copy_1_of_updateAccount1003_PositiveSF.\n\nFlowRecordUpdate.EHR_Consent_Without_Prior_Yes, row 14495 ->\nAccount.EHR_Reconsent_Date_Time__c.\n\nNo other Yes EHR consent exists: assign Record.Completion_Status_Timestamp__c. This\ncounterintuitive source mapping is preserved rather than renamed.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/0/inputAssignments/0",
+            "/Metadata/decisions/3",
+            "/Metadata/decisions/1"
+          ],
+          "description": "Native Flow assignments to Account.EHR_Reconsent_Date_Time__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "Copy_1_of_updateAccount1003_PositiveSF/EHR_Reconsent_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/0/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 1
+                },
+                {
+                  "element": "Previous_EHR_Exists",
+                  "rule": 0
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c",
+            "getEarliestEgetEarliestEHRConsentHRConsent.Id"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/EHR_Reconsent_Date_Time__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14495
           ],
-          "expression": "ehr_reconsent_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_ehr_reconsent_timestamp",
-              "output_fields": [
-                "Account.EHR_Reconsent_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.Copy_1_of_updateAccount1003_PositiveSF"
-              ],
-              "workbook_rows": [
-                14495
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "ehr_reconsent_timestamp",
-          "target_field": "Account.EHR_Reconsent_Date_Time__c",
-          "description": "Ehr reconsent timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.EHR_Reconsent_Date_Time__c equals its expected AFTER value.",
@@ -616,37 +827,46 @@
       "meta": {
         "check_id": "observed_Update_to_Primary_Consent_Completed__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Update_to_Primary_Consent_Completed__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount1005"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount1005.\n\nFlowRecordUpdate.Primary_Consent_Update_Completion, row 14498: index 1005 -> triggering\ncompletion timestamp.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/6/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.Update_to_Primary_Consent_Completed__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount1005/Update_to_Primary_Consent_Completed__c",
+              "source_path": "/Metadata/recordUpdates/6/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 2
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Update_to_Primary_Consent_Completed__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14498
           ],
-          "expression": "primary_consent_update_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_primary_consent_update_timestamp",
-              "output_fields": [
-                "Account.Update_to_Primary_Consent_Completed__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount1005"
-              ],
-              "workbook_rows": [
-                14498
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "primary_consent_update_timestamp",
-          "target_field": "Account.Update_to_Primary_Consent_Completed__c",
-          "description": "Primary consent update timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Update_to_Primary_Consent_Completed__c equals its expected AFTER value.",
@@ -669,37 +889,46 @@
       "meta": {
         "check_id": "observed_Basics_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Basics_Date_Time__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2001"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2001.\n\nFlowRecordUpdate.Basics_Completion, row 14506: indexes 2001/2002 -> triggering completion\ntimestamp.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/7/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.Basics_Date_Time__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2001/Basics_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/7/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 4
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Basics_Date_Time__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14506
           ],
-          "expression": "basics_completion_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_basics_completion_timestamp",
-              "output_fields": [
-                "Account.Basics_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2001"
-              ],
-              "workbook_rows": [
-                14506
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "basics_completion_timestamp",
-          "target_field": "Account.Basics_Date_Time__c",
-          "description": "Basics completion timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Basics_Date_Time__c equals its expected AFTER value.",
@@ -722,37 +951,46 @@
       "meta": {
         "check_id": "observed_Overall_Health_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Overall_Health_Date_Time__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2003"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2003.\n\nFlowRecordUpdate.Overall_Health_Completion, row 14508: indexes 2003/2004 -> triggering\ncompletion timestamp.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/8/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.Overall_Health_Date_Time__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2003/Overall_Health_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/8/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 5
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Overall_Health_Date_Time__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14508
           ],
-          "expression": "overall_health_completion_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_overall_health_completion_timestamp",
-              "output_fields": [
-                "Account.Overall_Health_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2003"
-              ],
-              "workbook_rows": [
-                14508
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "overall_health_completion_timestamp",
-          "target_field": "Account.Overall_Health_Date_Time__c",
-          "description": "Overall health completion timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Overall_Health_Date_Time__c equals its expected AFTER value.",
@@ -775,37 +1013,46 @@
       "meta": {
         "check_id": "observed_Lifestyle_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Lifestyle_Date_Time__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2005"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2005.\n\nFlowRecordUpdate.Lifestyle_Completion, row 14510: index 2005 -> triggering completion\ntimestamp.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/9/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.Lifestyle_Date_Time__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2005/Lifestyle_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/9/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 6
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Lifestyle_Date_Time__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14510
           ],
-          "expression": "lifestyle_completion_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_lifestyle_completion_timestamp",
-              "output_fields": [
-                "Account.Lifestyle_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2005"
-              ],
-              "workbook_rows": [
-                14510
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "lifestyle_completion_timestamp",
-          "target_field": "Account.Lifestyle_Date_Time__c",
-          "description": "Lifestyle completion timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Lifestyle_Date_Time__c equals its expected AFTER value.",
@@ -828,37 +1075,46 @@
       "meta": {
         "check_id": "observed_Personal_and_Family_History_Complete__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Personal_and_Family_History_Complete__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2006"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2006.\n\nFlowRecordUpdate.Personal_And_Family_History_Completion, row 14512: index 2006 -> triggering\ncompletion timestamp.\n\nThis Flow assignment does not implement the migration's retired-survey PFHH derivation;\nthose are different sources and must be authored separately.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/10/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.Personal_and_Family_History_Complete__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2006/Personal_and_Family_History_Complete__c",
+              "source_path": "/Metadata/recordUpdates/10/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 7
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Personal_and_Family_History_Complete__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14512
           ],
-          "expression": "personal_and_family_history_completion_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_personal_and_family_history_completion_timestamp",
-              "output_fields": [
-                "Account.Personal_and_Family_History_Complete__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2006"
-              ],
-              "workbook_rows": [
-                14512
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "personal_and_family_history_completion_timestamp",
-          "target_field": "Account.Personal_and_Family_History_Complete__c",
-          "description": "Personal and family history completion timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Personal_and_Family_History_Complete__c equals its expected AFTER value.",
@@ -881,37 +1137,46 @@
       "meta": {
         "check_id": "observed_HC_Access_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.HC_Access_Date_Time__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2007"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2007.\n\nFlowRecordUpdate.Healthcare_Access_Completion, row 14514: index 2007 -> triggering\ncompletion timestamp.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/11/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.HC_Access_Date_Time__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2007/HC_Access_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/11/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 8
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/HC_Access_Date_Time__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14514
           ],
-          "expression": "healthcare_access_completion_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_healthcare_access_completion_timestamp",
-              "output_fields": [
-                "Account.HC_Access_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2007"
-              ],
-              "workbook_rows": [
-                14514
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "healthcare_access_completion_timestamp",
-          "target_field": "Account.HC_Access_Date_Time__c",
-          "description": "Healthcare access completion timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.HC_Access_Date_Time__c equals its expected AFTER value.",
@@ -934,37 +1199,46 @@
       "meta": {
         "check_id": "observed_Life_Functioning_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Life_Functioning_Date_Time__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2008"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2008.\n\nFlowRecordUpdate.Life_Functioning_Completion, row 14516: index 2008 -> triggering completion\ntimestamp.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/12/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.Life_Functioning_Date_Time__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2008/Life_Functioning_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/12/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 9
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Life_Functioning_Date_Time__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14516
           ],
-          "expression": "life_functioning_completion_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_life_functioning_completion_timestamp",
-              "output_fields": [
-                "Account.Life_Functioning_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2008"
-              ],
-              "workbook_rows": [
-                14516
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "life_functioning_completion_timestamp",
-          "target_field": "Account.Life_Functioning_Date_Time__c",
-          "description": "Life functioning completion timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Life_Functioning_Date_Time__c equals its expected AFTER value.",
@@ -987,41 +1261,46 @@
       "meta": {
         "check_id": "observed_First_Physical_Measurement_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.First_Physical_Measurement_Date_Time__c",
           "source_entities": [
-            "FlowRecordUpdate.updateAccount2009",
-            "FlowRecordLookup.getFirstPhysicalMeasurement"
+            "FlowRecordUpdate.updateAccount2009"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2009, FlowRecordLookup.getFirstPhysicalMeasurement.\n\nFlowRecordUpdate.Remote_Physical_Measurement_Completion, row 14519 ->\nFlowRecordLookup_First_Remote_Physical_Measurement completion timestamp.\n\nFirst value comes from the sorted lookup; it can be NULL if the earliest matching record has\na NULL completion timestamp. No coalescing is applied.",
-          "workbook_tab": "processing-Flow-elements",
-          "workbook_rows": [
-            14518,
-            14519
+          "source_paths": [
+            "/Metadata/recordUpdates/13/inputAssignments/0",
+            "/Metadata/decisions/3"
           ],
-          "expression": "first_remote_physical_measurement_timestamp",
+          "description": "Native Flow assignments to Account.First_Physical_Measurement_Date_Time__c; retain BEFORE when unassigned",
           "branches": [
             {
-              "rule_id": "set_first_remote_physical_measurement_timestamp",
-              "output_fields": [
-                "Account.First_Physical_Measurement_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2009",
-                "FlowRecordLookup.getFirstPhysicalMeasurement"
-              ],
-              "workbook_rows": [
-                14518,
-                14519
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
+              "rule_id": "updateAccount2009/First_Physical_Measurement_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/13/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 10
+                }
+              ]
             }
           ],
+          "dependencies": [
+            "getFirstPhysicalMeasurement.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/First_Physical_Measurement_Date_Time__c",
           "entity_type": "AccountField",
-          "rule_id": "first_remote_physical_measurement_timestamp",
-          "target_field": "Account.First_Physical_Measurement_Date_Time__c",
-          "description": "First remote physical measurement timestamp"
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
+          "workbook_rows": [
+            14519
+          ],
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.First_Physical_Measurement_Date_Time__c equals its expected AFTER value.",
@@ -1044,37 +1323,46 @@
       "meta": {
         "check_id": "observed_Last_Physical_Measurement_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Last_Physical_Measurement_Date_Time__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2009"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2009.\n\nFlowRecordUpdate.Remote_Physical_Measurement_Completion, row 14519 -> triggering completion\ntimestamp, not MAX.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/13/inputAssignments/1",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.Last_Physical_Measurement_Date_Time__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2009/Last_Physical_Measurement_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/13/inputAssignments/1",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 10
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Last_Physical_Measurement_Date_Time__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14519
           ],
-          "expression": "latest_processed_remote_physical_measurement_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_latest_processed_remote_physical_measurement_timestamp",
-              "output_fields": [
-                "Account.Last_Physical_Measurement_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2009"
-              ],
-              "workbook_rows": [
-                14519
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "latest_processed_remote_physical_measurement_timestamp",
-          "target_field": "Account.Last_Physical_Measurement_Date_Time__c",
-          "description": "Latest processed remote physical measurement timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Last_Physical_Measurement_Date_Time__c equals its expected AFTER value.",
@@ -1097,37 +1385,46 @@
       "meta": {
         "check_id": "observed_EH_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.EH_Date_Time__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2010"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2010.\n\nFlowRecordUpdate.Emotional_Health_Completion, row 14521: index 2010 -> triggering completion\ntimestamp.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/14/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.EH_Date_Time__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2010/EH_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/14/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 11
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/EH_Date_Time__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14521
           ],
-          "expression": "emotional_health_completion_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_emotional_health_completion_timestamp",
-              "output_fields": [
-                "Account.EH_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2010"
-              ],
-              "workbook_rows": [
-                14521
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "emotional_health_completion_timestamp",
-          "target_field": "Account.EH_Date_Time__c",
-          "description": "Emotional health completion timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.EH_Date_Time__c equals its expected AFTER value.",
@@ -1150,37 +1447,46 @@
       "meta": {
         "check_id": "observed_Behavioral_Health_Completion__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Behavioral_Health_Completion__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2011"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2011.\n\nFlowRecordUpdate.Behavioral_Health_Completion, row 14523: index 2011 -> triggering\ncompletion timestamp.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/15/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.Behavioral_Health_Completion__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2011/Behavioral_Health_Completion__c",
+              "source_path": "/Metadata/recordUpdates/15/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 12
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Behavioral_Health_Completion__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14523
           ],
-          "expression": "behavioral_health_completion_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_behavioral_health_completion_timestamp",
-              "output_fields": [
-                "Account.Behavioral_Health_Completion__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2011"
-              ],
-              "workbook_rows": [
-                14523
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "behavioral_health_completion_timestamp",
-          "target_field": "Account.Behavioral_Health_Completion__c",
-          "description": "Behavioral health completion timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Behavioral_Health_Completion__c equals its expected AFTER value.",
@@ -1203,37 +1509,46 @@
       "meta": {
         "check_id": "observed_Environmental_Exposures_Date_Time__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Environmental_Exposures_Date_Time__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2012"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2012.\n\nFlowRecordUpdate.Environmental_Exposures_Completion, row 14525: index 2012 -> triggering\ncompletion timestamp.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/16/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.Environmental_Exposures_Date_Time__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2012/Environmental_Exposures_Date_Time__c",
+              "source_path": "/Metadata/recordUpdates/16/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 13
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Environmental_Exposures_Date_Time__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14525
           ],
-          "expression": "environmental_exposures_completion_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_environmental_exposures_completion_timestamp",
-              "output_fields": [
-                "Account.Environmental_Exposures_Date_Time__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2012"
-              ],
-              "workbook_rows": [
-                14525
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "environmental_exposures_completion_timestamp",
-          "target_field": "Account.Environmental_Exposures_Date_Time__c",
-          "description": "Environmental exposures completion timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Environmental_Exposures_Date_Time__c equals its expected AFTER value.",
@@ -1256,37 +1571,46 @@
       "meta": {
         "check_id": "observed_Social_Determinants_of_Health_Completion__c_equals_expected",
         "ppsc": {
-          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "target_field": "Account.Social_Determinants_of_Health_Completion__c",
           "source_entities": [
             "FlowRecordUpdate.updateAccount2013"
           ],
-          "source_notes": "Sources: FlowRecordUpdate.updateAccount2013.\n\nFlowRecordUpdate.Social_Determinants_Completion, row 14527: index 2013 -> triggering\ncompletion timestamp.",
-          "workbook_tab": "processing-Flow-elements",
+          "source_paths": [
+            "/Metadata/recordUpdates/17/inputAssignments/0",
+            "/Metadata/decisions/3"
+          ],
+          "description": "Native Flow assignments to Account.Social_Determinants_of_Health_Completion__c; retain BEFORE when unassigned",
+          "branches": [
+            {
+              "rule_id": "updateAccount2013/Social_Determinants_of_Health_Completion__c",
+              "source_path": "/Metadata/recordUpdates/17/inputAssignments/0",
+              "decision_path": [
+                {
+                  "element": "Survey_Index",
+                  "rule": 14
+                }
+              ]
+            }
+          ],
+          "dependencies": [
+            "$Record.Completion_Status_Timestamp__c",
+            "$Record.Survey_Index_Number__c",
+            "$Record.Consent_Status__c"
+          ],
+          "rule_id": "301SL00000dpJqKYAU/Social_Determinants_of_Health_Completion__c",
+          "entity_type": "AccountField",
+          "source_flow": "Survey_Result_Survey_Completion_Updates",
+          "flow_version_id": "301SL00000dpJqKYAU",
+          "source_file": "account_to_survey_results/metadata/flow.json",
+          "source_sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794",
+          "metadata_manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+          "contract_id": "ppsc-ops-provisional-validation-inputs",
+          "contract_version": "0.1.0",
+          "provisional": true,
           "workbook_rows": [
             14527
           ],
-          "expression": "social_determinants_completion_timestamp",
-          "branches": [
-            {
-              "rule_id": "set_social_determinants_completion_timestamp",
-              "output_fields": [
-                "Account.Social_Determinants_of_Health_Completion__c"
-              ],
-              "source_entities": [
-                "FlowRecordUpdate.updateAccount2013"
-              ],
-              "workbook_rows": [
-                14527
-              ],
-              "entity_type": "AccountField",
-              "workbook_tab": "processing-Flow-elements",
-              "source_flow": "Survey_Result_Survey_Completion_Updates"
-            }
-          ],
-          "entity_type": "AccountField",
-          "rule_id": "social_determinants_completion_timestamp",
-          "target_field": "Account.Social_Determinants_of_Health_Completion__c",
-          "description": "Social determinants completion timestamp"
+          "workbook_reference_role": "supplemental navigation; native metadata is authoritative"
         }
       },
       "description": "Observed Account.Social_Determinants_of_Health_Completion__c equals its expected AFTER value.",
@@ -1294,6 +1618,38 @@
     }
   ],
   "meta": {
+    "metadata_inputs": {
+      "manifest": {
+        "version": "projection-inputs/v1",
+        "org": "qa2",
+        "flow_name": "Survey_Result_Survey_Completion_Updates",
+        "flow_version_id": "301SL00000dpJqKYAU",
+        "source_revision": "d769cb047a80d5ff22a011ece2d6671b71fb0646",
+        "provisional": true,
+        "coverage": "Pinned active QA2 Flow and matching source identity/relationship catalog. Input types are the existing ops validation profile; production contracts, event eligibility and deployed lake bindings remain unverified.",
+        "artifacts": [
+          {
+            "path": "core/schemas/validation-inputs.odcs.yaml",
+            "role": "contract",
+            "sha256": "b52d7e9cd420c6e5d259ba42819a41b9436b1f80f0bf55c0ebc8969e9fbcef1f"
+          },
+          {
+            "path": "account_to_survey_results/metadata/flow.json",
+            "role": "flow",
+            "sha256": "ecbdd2ec457614470af0feae04425f1818ac7b33a6d2fa80363b6242aa303794"
+          },
+          {
+            "path": "account_to_survey_results/metadata/source_catalog.json",
+            "role": "source",
+            "sha256": "537f3d43f5df58671b2ed0d9bca685c9bde1f5b5d5e5ddf34d9b9988570fcd13"
+          }
+        ]
+      },
+      "manifest_sha256": "eb422ece2fe1259ca013e2021c6bd5863942593fdcae206598b3be118b373908",
+      "compiler_version": "0.2.0",
+      "contract_id": "ppsc-ops-provisional-validation-inputs",
+      "contract_version": "0.1.0"
+    },
     "grain": "survey_event",
     "expected_state": "Account BEFORE plus one Flow event",
     "observed_state": "independent Account AFTER the same event",

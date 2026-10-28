@@ -10,8 +10,8 @@ example, `Account`, `Contact`, `Flow_Context`, and `Account_Snapshot`) using nat
 Ibis aliases. The shared Athena renderer replaces compiler-generated `tN` source
 references with those relation names, adding numeric suffixes where necessary.
 Renaming is SQL-scope-aware and does not change physical table bindings, output
-column names, lineage, or literal values. The shared renderer inlines named
-relations as derived tables; they do not publish database views.
+column names, lineage, or literal values. The shared renderer preserves shared named CTEs inside one input subquery with
+an explicit SELECT list. It does not publish database views.
 
 Regenerate both illustrative SQL files with `uv run poe render-queries`. This only
 compiles expressions locally; it does not execute SQL or contact AWS.
@@ -21,14 +21,14 @@ compiles expressions locally; it does not execute SQL or contact AWS.
 | File | Responsibility |
 |---|---|
 | `runtime/` | Athena/DuckDB adapters, native GX runner, and SQL-file metadata TODO |
-| `core/schemas/` | Reusable validation-input/history schemas |
+| `account_to_survey_results/inputs.py` | Domain-owned physical/schema/history bindings |
 | `account_to_survey_results/schemas.py` | Domain schemas inferred from actual queries |
 | `core/queries/sql.py` | Generic Athena compilation with optional explicit lineage |
 | `runtime/data_access.py` | Backend catalog binding |
 | `core/queries/snapshot.py` | Composable SCD2 snapshot expression |
 | `gx_queries.py` | Compile Athena SELECT and register a native GX Query Asset |
-| `account_to_survey_results/queries.py` | Existing named Ibis Flow decisions, formulas, derived fields and rollups |
-| `account_to_survey_results/lineage.py` | Original metadata IDs, workbook rows, branch lineage and output-alias mappings |
+| `account_to_survey_results/queries.py` | Shared metadata compiler calls, application joins/history and existing rollups |
+| `account_to_survey_results/lineage.py` | Generated native Flow pointers, retained rollup evidence and output aliases |
 | `account_to_survey_results/gx.py` | Native GX suite builders, independent of dataset construction |
 | `views.py` | Optional publishing of a final query as an Athena view |
 | `account_to_survey_results.sql` | Two illustrative expected-value SELECTs over history |
@@ -39,10 +39,12 @@ compiles expressions locally; it does not execute SQL or contact AWS.
 ## Validate one verified Flow event
 
 Supply Ibis history relations with real catalog schemas and your existing GX SQL
-Data Source. `core.queries.history_tables()` binds the explicit input profiles without
-a backend. Supply catalog-verified schemas through its schema arguments when
-available. Credentials and connection configuration remain outside these modules.
-See `core/schemas/README.md` for field coverage, workbook provenance and physical-type
+Data Source. `core.queries.history_tables()` builds explicitly selected APMP
+physical relations and aliases without a backend. Supply the selected Ops definitions and native evidence
+and declared catalog/database/relation locations. Credentials and connection
+configuration remain outside these expression modules. Runtime performs explicit
+preflight and applies selected data versions before executing GX queries.
+See `docs/metadata-compiler.md` for source coverage, provenance and physical-type
 assumptions. `runtime.data_access.bind_history_tables()` remains available for catalog discovery
 through an existing backend. For Athena, configure the
 GX SQL Data Source with the PyAthena SQLAlchemy dialect and temporary-table
@@ -56,11 +58,7 @@ from ppsc_ops_data_quality.gx_queries import query_batch_definition
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
 from ppsc_ops_data_quality.account_to_survey_results.gx import flow_account_suite
 
-history = history_tables(
-    account_database="your_account_database",
-    contact_database="your_contact_database",
-    survey_result_database="your_survey_result_database",
-)
+history = history_tables(inputs=verified_inputs, locations=selected_locations)
 
 # Illustrative values: replace with independently verified event timing.
 before_at = datetime(2026, 10, 21, 11, 59, 59)
@@ -95,7 +93,9 @@ result = batch.validate(flow_account_suite(expected_row_count=1))
 
 The query selects one triggering survey record, uses all survey records at
 execution for FlowRecordLookups, and joins Contact at execution to Account BEFORE.
-Expected values follow the existing Flow decisions and CASE expressions. Observed
+Expected values follow the pinned native Flow decisions and assignments through
+the shared compiler. See [metadata compilation](metadata-compiler.md) for the
+provisional profile and semantic changes. Observed
 values come from the independently supplied Account AFTER time and are explicitly
 associated with the selected survey event. The final LEFT JOIN uses both Account
 and survey event identity; missing observations and duplicates remain visible.
@@ -111,20 +111,22 @@ Context. The adapter deliberately lets GX reject an existing asset name; it does
 not silently replace a query another run may be validating. `metadata` records
 run facts and does not substitute SQL parameters or filter rows.
 
-If you do not use an Ibis backend to discover schemas, author unbound relations
-from your catalog-derived Ibis schemas. Compilation still targets Athena:
+The shared APMP adapter derives physical types from verified Athena DDL and then
+executes physical-to-native aliases. A caller can select one relation explicitly:
 
 ```python
-import ibis
+from ppsc_ops_data_quality.sources.apmp import source_relation
 
-history = {
-    "Account": ibis.table(account_schema, name="history", database="your_account_database"),
-    "Contact": ibis.table(contact_schema, name="history", database="your_contact_database"),
-    "Survey_Result__c": ibis.table(
-        survey_schema, name="history", database="your_survey_result_database"
-    ),
-}
+AccountHistory = source_relation(
+    verified_inputs,
+    selected_account_dataset_id,
+    location=selected_locations[selected_account_dataset_id],
+)
 ```
+
+These selections carry reviewed or explicitly provisional definition identities.
+An independently edited Python schema is not an alternative authority for a live
+run. See the runtime entry point for preflight, version application and reporting.
 
 ## Validate snapshot rollups
 
@@ -177,8 +179,9 @@ Date bounds require a date; timestamp bounds retain datetime precision. A date
 against timestamp bounds means midnight in the column's time zone. Column names
 can be mapped explicitly through `valid_from=`, `valid_to=` and `is_current=`.
 Map catalog column casing and scope combined-object history upstream if needed.
-`bind_history_tables()` assumes one table named `history` in each explicitly
-configured object database; a mapping of your own Ibis relations works equally.
+`bind_history_tables()` accepts explicit APMP bindings and locations. It discovers
+the actual named relations and projects their declared aliases; it invents no
+`history` table name. A mapping of supplied native Ibis relations also works.
 
 GX batch parameters select configured partitions. They are not arbitrary SQL
 bindings for BEFORE, execution, AFTER, survey event IDs, or SCD2 interval predicates.
@@ -211,10 +214,10 @@ Observed fields do not inherit expected calculation branches.
 
 Each comparison is one executable SELECT statement with an explicit final
 projection, not an additional `SELECT *` wrapper. GX 1.24 requires SELECT followed
-by whitespace at the start of query text; the renderer satisfies this by inlining
-Ibis CTEs as derived tables. Internal SELECTs remain necessary for history
-snapshots, lookup ranking, and observation row identities. The final `expected__*`
-projections contain the resolved CASE expressions (SUM of CASE for rollups).
+by whitespace at the start of query text; the renderer satisfies this by keeping
+shared Ibis CTEs inside a SELECT-first input relation. Internal SELECTs remain necessary for history
+snapshots, lookup ranking, and observation row identities. Stable `expected__*` projections name the native CASE outputs (SUM of CASE for
+rollups); their definitions can remain in the defining input subquery.
 Rollup grouping includes an internal observed-row identity so even identical
 duplicate observations survive; this identity is not an output column.
 SQL text contains readable comments; structured SQLGlot meta remains in the AST/canonical mapping.
@@ -297,7 +300,7 @@ uv sync --locked
 uv run poe check
 ```
 
-Verified with GX Core 1.24.0, Ibis 12.0.0 and SQLAlchemy 2.1.6. The 64 tests cover
+Verified with GX Core 1.24.0, Ibis 12.0.0 and SQLAlchemy 2.1.6. The offline tests cover
 source schema types and conversions, catalog overrides, SCD2 boundaries/types,
 duplicate preservation, direct history-to-comparison
 execution on DuckDB, missing relationships, NULL semantics, ambiguous lookups,

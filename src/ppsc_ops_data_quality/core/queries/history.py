@@ -1,35 +1,29 @@
-"""Bind explicit history schemas to Athena names without a live backend."""
+"""Build explicitly selected APMP history relations without a live backend."""
 
-import ibis
+from collections.abc import Mapping
+
 import ibis.expr.types as ir
 
-from ppsc_ops_data_quality.core.schemas.account import ACCOUNT_HISTORY_VALIDATION_INPUT
-from ppsc_ops_data_quality.core.schemas.contact import CONTACT_HISTORY_VALIDATION_INPUT
-from ppsc_ops_data_quality.core.schemas.survey_results import SURVEY_RESULT_HISTORY_VALIDATION_INPUT
+from ppsc_ops_data_quality.sources.apmp import RelationLocation, source_relation
 
 
 def history_tables(
     *,
-    account_database: str,
-    contact_database: str,
-    survey_result_database: str,
-    account_schema: ibis.Schema = ACCOUNT_HISTORY_VALIDATION_INPUT,
-    contact_schema: ibis.Schema = CONTACT_HISTORY_VALIDATION_INPUT,
-    survey_result_schema: ibis.Schema = SURVEY_RESULT_HISTORY_VALIDATION_INPUT,
+    inputs: dict,
+    locations: Mapping[str, RelationLocation] | None = None,
 ) -> dict[str, ir.Table]:
-    """Return unbound history relations used directly by queries.py builders.
+    """Project real physical names through the supplied reviewed or provisional input set.
 
-    Defaults are documented validation-input profiles, not discovered physical
-    schemas. Supply catalog-verified Ibis schemas to preserve actual precision,
-    time zones and additional columns. Convert Arrow schemas with
-    ibis.Schema.from_pyarrow() before passing them. No database calls, casts or
-    renaming occur here. To discover types through an existing backend, use
-    runtime.data_access.bind_history_tables() instead.
+    No schema, database or relation is invented here. Offline examples deliberately
+    supply their pinned fixture bundle. Runtime separately verifies the exact
+    selection, live catalog compatibility and chosen data versions before GX.
     """
+    bindings = inputs["tables"]
+    if locations is not None and set(locations) != set(bindings):
+        raise ValueError("Locations must match the selected APMP dataset IDs")
     return {
-        "Account": ibis.table(account_schema, name="history", database=account_database),
-        "Contact": ibis.table(contact_schema, name="history", database=contact_database),
-        "Survey_Result__c": ibis.table(
-            survey_result_schema, name="history", database=survey_result_database
-        ),
+        binding["native_object"]: source_relation(
+            inputs, dataset_id, location=locations[dataset_id] if locations is not None else None
+        )
+        for dataset_id, binding in bindings.items()
     }

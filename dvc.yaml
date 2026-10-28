@@ -12,6 +12,7 @@ stages:
       - pyproject.toml
       - uv.lock
       - .python-version
+      - vendor
     outs:
       - build/release/requirements/requirements.txt
   dependencies:
@@ -23,6 +24,7 @@ stages:
     deps:
       - build/release/requirements/requirements.txt
       - .python-version
+      - vendor
     outs:
       - build/release/dependencies
   wheel:

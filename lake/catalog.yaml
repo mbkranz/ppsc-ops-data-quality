@@ -1,0 +1,11 @@
+
+
+resources:
+  - name: data_lake_overview
+    title: APMP Data Lake Overview
+    kind: FeatureDocument
+    document_role: feature_overview
+    describes_system: apmp_data_lake
+    path: 'APMP Data Lake Overview.pdf'
+    sources:
+      - 'https://norc.sharepoint.com/:w:/r/sites/9877-IBM/Shared%20Documents/General/Analytics/Data%20Lake/APMP%20Data%20Lake%20Overview.docx?d=wdafab91167c04fab938578db88bb784d&csf=1&web=1&e=Fa4Rdg'

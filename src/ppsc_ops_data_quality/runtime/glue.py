@@ -54,6 +54,9 @@ def execute_glue(request: GlueArguments, *, s3_client: Any) -> ValidationOutcome
         return run_validation(
             configuration,
             run_directory=root / "run",
+            athena_client_factory=lambda: boto3.client(
+                "athena", region_name=configuration.athena.region
+            ),
             run_metadata={
                 "config_uri": resource.uri,
                 "config_sha256": resource.sha256,

@@ -3,13 +3,18 @@
 Compute expected Account values from Survey Result history with Ibis, then compare
 them with independently observed Account values using native Great Expectations
 (GX) suites. Run the same query builders against Athena or bounded local DuckDB
-data. Python expressions and suite builders are the authored source; SQL and suite
-JSON are generated review and run-audit artifacts.
+data. Pinned APMP Athena definitions and native Flow metadata drive the Flow
+projections; Python owns bindings, history, rollups and native GX suite builders.
+SQL and suite JSON are generated review and run-audit artifacts.
 
 The first implementation covers the Survey Result completion Flow and 19 Account
 survey rollups. It preserves the relationship
 `Survey_Result__c.Participant__c -> Contact.Id -> Contact.AccountId -> Account.Id`,
 missing parents, duplicate matches, assigned NULLs and unchanged prior values.
+
+The compiler integration is provisional and pins QA2 Flow version
+`301SL00000dpJqKYAU`. See [metadata compilation](docs/metadata-compiler.md) for the
+artifact boundary, native behavior changes and remaining local acceptance work.
 
 ## Development workflow
 
@@ -43,9 +48,9 @@ uv run poe suite-diagrams
 ```
 
 `check-queries` compiles illustrative Athena comparisons and serializes the native
-27/24-expectation baseline suites. `check-synthetic` validates independently authored
-DuckDB history, checks all 53 expectations (28 Flow + 25 rollup), and verifies
-53 uniquely identified expectation rows, two validation summaries, native results,
+29/25-expectation baseline suites. `check-synthetic` validates independently authored
+DuckDB history, checks all 56 expectations (30 Flow + 26 rollup), and verifies
+56 uniquely identified expectation rows, two validation summaries, native results,
 registered suites, exact SQL, Data Docs and the manifest. Outputs use fresh paths
 under `build/checks/`; existing destinations are rejected. To choose a destination,
 run `python -m scripts.check_validation compile|synthetic --output PATH`.
@@ -56,12 +61,14 @@ These are development scripts and are excluded from the installed package.
 ```text
 src/ppsc_ops_data_quality/
     account_to_survey_results/
-        queries.py              # Ibis derivations and history comparisons
+        metadata.py             # Verified version selection and explicit bindings
+        metadata/               # Generated tables and saved native inputs
+        queries.py              # Ibis history/comparisons and existing rollups
         gx.py                   # Authoritative native GX suite builders
         lineage.py              # Field, branch and original-source provenance
         schemas.py              # Schemas inferred from actual queries
     core/
-        schemas/                # Account, Contact, Survey Result and history inputs
+        schemas/                # APMP-derived inputs and native history composition
         queries/                # Pure snapshots, unbound history, optional SQL lineage
         configuration.py        # Shared YAML loader; rejects duplicate keys
     runtime/
@@ -95,11 +102,7 @@ receipts; expressions, dataframes and GX objects retain their native interfaces.
 from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_query
 from ppsc_ops_data_quality.core.queries import history_tables
 
-history = history_tables(
-    account_database="account_database",
-    contact_database="contact_database",
-    survey_result_database="survey_result_database",
-)
+history = history_tables(inputs=verified_inputs, locations=selected_locations)
 Comparison = flow_account_query(
     history,
     survey_result_id=verified_event_id,
@@ -110,12 +113,10 @@ Comparison = flow_account_query(
 )
 ```
 
-`history_tables()` returns unbound Ibis relations for tables named `history` in
-three explicitly configured databases. Supply catalog-verified schema overrides
-when types differ. An existing backend can instead discover tables through
-`runtime.data_access.bind_history_tables()`. For combined history, construct explicitly scoped
-Ibis relations upstream. Neither binding path infers object discriminators or
-silently fixes column casing.
+`history_tables()` constructs real physical relations from an explicitly selected
+verified APMP input bundle, then executes the physical-to-native aliases. Locations
+include catalog, database and relation identity. Runtime types and transformations
+come from the pinned definitions; nonempty legacy type overrides are rejected.
 
 The Flow query selects one verified triggering event, looks up related surveys at
 execution, derives expected Account AFTER values from Account BEFORE, and compares
@@ -129,7 +130,9 @@ including zero-child Accounts.
 `ppsc-dq validate` provides the packaged GX/SQLAlchemy runtime; the example script delegates to it:
 
 1. Copy `params.example.yaml` to ignored `params.local.yaml`.
-2. Bind the actual databases and verify the physical columns/types, validity
+2. Confirm the metadata org, exact Flow version and generated input selection match the
+   reviewed installed inputs. The runtime rejects a mismatched selection before
+   connecting. Bind the actual databases and verify the physical columns/types, validity
    intervals, deletion semantics and completed delivery/event timing.
 3. Set standard AWS credentials/profile outside the configuration file.
 4. Run with a new output directory:
@@ -144,8 +147,9 @@ The example uses an existing Athena workgroup/results location and a required
 result/configuration stores are written under the run directory. Reports are
 built locally and uploaded after every invocation, including ordinary failed
 expectations. Completed earlier results are also reported on an execution error.
-Schema overrides supplement the explicit input profiles; no automatic
-casting or case normalization is performed. The example rejects placeholder
+Explicit online catalog preflight checks selected types and partitions. Selected
+Iceberg snapshot IDs are probed and applied to every GX source query; mutable
+inputs require explicitly diagnostic mode and retain repeatability limitations. The example rejects placeholder
 bindings before connecting. Runtime adapters are also callable directly from your
 own job entrypoint; see their README for resource ownership.
 
@@ -166,10 +170,10 @@ the Glue driver does not initialize Spark.
 
 ## Rules, schemas and lineage
 
-The Flow suite has 27 built-in expectations and the rollup suite has 24, each with
+The Flow suite has 29 built-in expectations and the rollup suite has 25, each with
 an optional independent row-count check. They cover required columns, identity,
 unique grain, permission-lookup resolution and 19 expected/observed field pairs.
-The synthetic check supplies counts of one, yielding 28 and 25 expectations respectively.
+The synthetic check supplies counts of one, yielding 30 and 26 expectations respectively.
 
 Flow row checks use the named Ibis predicate
 `survey_completion_occurred_on_or_after_launch`, consumed by the GX
@@ -179,18 +183,20 @@ Flow row checks use the named Ibis predicate
 the query does not infer or convert it. The completion timestamp and predicate
 remain in the comparison, and no launch filter removes rows from the query.
 All Flow row checks, including the optional count, validate only that cohort;
-the required-columns check remains batch-wide. CABOR also requires a deterministic
+the required-columns and scope-completeness checks remain batch-wide. CABOR also requires a deterministic
 lookup. Rollup checks retain their separate snapshot contract.
 
 Pre-launch records and NULL completion timestamps remain available for profiling
-but are excluded from Flow row checks. A NULL timestamp gives a NULL predicate;
+but stay outside value equality. A NULL timestamp gives a NULL predicate and fails
+the completeness check;
 it is not classified as migrated. Migration reconciliation and independent
 timestamp/population coverage checks remain separate work. When supplied, the
 Flow `expected_row_count` must count post-launch source events independently.
 
 Two NULLs are excluded together by the pair equality policy; a one-sided NULL
 fails. Unresolved pediatric-permission lookups fail their determinism check; only
-CABOR equality is conditioned on resolution. Empty batches require an explicit
+each field comparison requires its own complete computation evidence. Assignment
+is provenance: unassigned fields still compare against retained BEFORE values. Empty batches require an explicit
 source count if they must fail. Duplicate observations and missing parents survive
 LEFT JOINs so the suites can detect them.
 
@@ -249,7 +255,8 @@ be byte-identical. CI verifies Ibis structure, parent ownership and boundary sch
 - [Rollup table graph](docs/suites/account_to_survey_results_rollups.md)
 
 - [Query composition and original sources](docs/query-design.md)
-- [Schema contracts and conversions](src/ppsc_ops_data_quality/core/schemas/README.md)
+- [Reusable comparison boundaries for other objects, mappings and surveys](docs/reusable-comparisons.md)
+- [Ops lake definitions and native source metadata](docs/metadata-compiler.md)
 - [Runtime setup and native definitions](src/ppsc_ops_data_quality/runtime/README.md)
 - [Authored SQL-file execution and metadata/comment standards TODO](src/ppsc_ops_data_quality/runtime/TODO.md)
 - [Build, deployment and Glue acceptance](docs/build-deployment.md)

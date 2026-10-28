@@ -8,6 +8,9 @@ from urllib.parse import urlsplit
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ppsc_ops_data_quality.core.configuration import load_yaml
+from ppsc_ops_data_quality.sources.apmp import RelationLocation
+
+from .preflight import DataVersionBinding
 
 Name = Annotated[str, Field(min_length=1)]
 
@@ -57,12 +60,6 @@ class ReportConfiguration(Configuration):
         return self
 
 
-class HistoryDatabases(Configuration):
-    account_database: Name
-    contact_database: Name
-    survey_result_database: Name
-
-
 class EventConfiguration(Configuration):
     survey_result_id: Name
     account_before_at: date | datetime
@@ -89,19 +86,47 @@ class RollupConfiguration(Configuration):
     as_of: date | datetime
 
 
-class SchemaOverrides(Configuration):
-    account: dict[str, str] = Field(default_factory=dict)
-    contact: dict[str, str] = Field(default_factory=dict)
-    survey_result: dict[str, str] = Field(default_factory=dict)
+class MetadataSelection(Configuration):
+    org: Name
+    flow_version_id: Name
 
 
 class ValidationConfiguration(Configuration):
+    metadata: MetadataSelection
     athena: AthenaConfiguration
     reports: ReportConfiguration
-    databases: HistoryDatabases
+    locations: dict[str, RelationLocation]
+    data_versions: dict[str, DataVersionBinding]
+    require_repeatable_reads: bool = True
     event: EventConfiguration
     rollups: RollupConfiguration
-    schema_overrides: SchemaOverrides = Field(default_factory=SchemaOverrides)
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_legacy_types(cls, values):
+        if not isinstance(values, dict):
+            return values
+        values = dict(values)
+        if "schema_overrides" in values:
+            overrides = values.pop("schema_overrides")
+            if not isinstance(overrides, dict) or any(overrides.values()):
+                raise ValueError(
+                    "schema_overrides is retired; change the reviewed Ops Athena definition and rebuild its pinned release"
+                )
+        if "databases" in values:
+            raise ValueError(
+                "Database-only history bindings are retired; supply explicit APMP dataset locations with catalog/database/relation"
+            )
+        return values
+
+    @model_validator(mode="after")
+    def validate_selected_locations(self) -> Self:
+        if not self.locations or set(self.locations) != set(self.data_versions):
+            raise ValueError("Select exactly one location and data-version binding per dataset")
+        identities = [location.identity for location in self.locations.values()]
+        if len(set(identities)) != len(identities):
+            raise ValueError("Selected dataset locations must be distinct")
+        return self
 
 
 def load_validation_configuration(path: Path) -> ValidationConfiguration:

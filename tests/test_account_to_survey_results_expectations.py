@@ -108,7 +108,7 @@ class BuiltInExpectations(unittest.TestCase):
 
     def test_valid_flow_passes_with_builtin_classes_only(self):
         suite = checks.flow_account_suite(expected_row_count=1)
-        self.assertEqual(len(suite.expectations), 28)
+        self.assertEqual(len(suite.expectations), 30)
         self.assertTrue(
             all(
                 type(e).__module__.startswith("great_expectations.expectations.core")
@@ -155,6 +155,8 @@ class BuiltInExpectations(unittest.TestCase):
                             "permission_lookup_is_deterministic",
                         },
                     )
+                elif eligible is None:
+                    self.assertEqual(self.failed_checks(result), {"flow_scope_is_known"})
                 else:
                     self.assertTrue(result.success)
 
@@ -164,6 +166,9 @@ class BuiltInExpectations(unittest.TestCase):
         serialized = restored.to_json_dict()["expectations"]
         for expectation in serialized:
             if expectation["type"] == "expect_table_columns_to_match_set":
+                continue
+            if expectation["meta"]["check_id"] == "flow_scope_is_known":
+                self.assertNotIn("row_condition", expectation["kwargs"])
                 continue
             condition = expectation["kwargs"]["row_condition"]
             self.assertIn("survey_completion_occurred_on_or_after_launch", json.dumps(condition))

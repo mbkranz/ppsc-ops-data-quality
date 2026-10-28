@@ -17,7 +17,16 @@ from ppsc_ops_data_quality.account_to_survey_results.gx import (
     flow_account_suite,
     rollup_account_suite,
 )
+from ppsc_ops_data_quality.account_to_survey_results.inputs import (
+    ACCOUNT_HISTORY_VALIDATION_INPUT,
+    CONTACT_HISTORY_VALIDATION_INPUT,
+    SURVEY_RESULT_HISTORY_VALIDATION_INPUT,
+)
 from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
+from ppsc_ops_data_quality.account_to_survey_results.metadata import (
+    metadata_inputs,
+    metadata_receipt,
+)
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ROLLUP_ACCOUNT_FIELDS,
     add_flow_context,
@@ -29,11 +38,6 @@ from ppsc_ops_data_quality.account_to_survey_results.queries import (
 )
 from ppsc_ops_data_quality.core.queries import history_tables, snapshot
 from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
-from ppsc_ops_data_quality.core.schemas import (
-    ACCOUNT_HISTORY_VALIDATION_INPUT,
-    CONTACT_HISTORY_VALIDATION_INPUT,
-    SURVEY_RESULT_HISTORY_VALIDATION_INPUT,
-)
 from ppsc_ops_data_quality.gx_queries import query_asset_sql
 from ppsc_ops_data_quality.runtime import run_validations_with_reports
 from ppsc_ops_data_quality.runtime.artifacts import save_suite
@@ -123,29 +127,21 @@ def synthetic_history_tables(backend):
 
 def compile_comparisons(output: Path):
     """Compile illustrative Athena comparisons and export native suite definitions."""
-    history = history_tables(
-        account_database="example_account",
-        contact_database="example_contact",
-        survey_result_database="example_survey_result",
-    )
+    history = history_tables(inputs=metadata_inputs())
     output.mkdir(parents=True, exist_ok=False)
     for name, query in comparisons(history).items():
         (output / f"{name}.sql").write_text(
             query_asset_sql(query, projection_lineage=PROJECTION_LINEAGE) + ";\n", encoding="utf-8"
         )
         suite = flow_account_suite() if name == "flow" else rollup_account_suite()
-        assert len(suite.expectations) == (27 if name == "flow" else 24)
+        assert len(suite.expectations) == (29 if name == "flow" else 25)
         save_suite(suite, output / f"{name}.suite.json")
     return {"mode": "compile", "output": str(output), "live_queries": False}
 
 
 def render_examples(output: Path):
     """Regenerate the checked-in illustrative expected and GX comparison SQL."""
-    history = history_tables(
-        account_database="example_account",
-        contact_database="example_contact",
-        survey_result_database="example_survey_result",
-    )
+    history = history_tables(inputs=metadata_inputs())
     event_id = "EXAMPLE_VERIFIED_SURVEY_EVENT"
     AccountBefore = snapshot(history["Account"], as_of=BEFORE_AT).alias("Account_Before")
     Contact = snapshot(history["Contact"], as_of=EXECUTION_AT).alias("Contact_At_Execution")
@@ -177,7 +173,7 @@ def render_examples(output: Path):
         "rollups": rollup_account_query(history, as_of=EXECUTION_AT),
     }
     header = (
-        "-- ILLUSTRATIVE bindings/event/times; source profiles are defined in core/schemas/.\n"
+        "-- ILLUSTRATIVE bindings/event/times; source profiles are defined in account_to_survey_results/definitions/.\n"
         "-- Direct SELECTs over history. Verify physical catalog types before execution.\n"
         "-- Execution: 2026-10-21 12:00; BEFORE: 11:59:59; settled AFTER: 12:05.\n\n"
     )
@@ -247,6 +243,7 @@ def validate_synthetic(run_directory: Path, *, s3_uri: str | None = None):
                 for name, query in queries.items()
             },
             run_metadata={
+                "metadata_inputs": metadata_receipt(),
                 "source": "synthetic_history",
                 "survey_result_id": EVENT_ID,
                 "account_before_at": BEFORE_AT.isoformat(),
@@ -298,15 +295,15 @@ def verify_synthetic_evidence(directory: Path) -> None:
     """Check the complete evidence contract, also when using an installed wheel."""
     reports = directory / "reports"
     rows = pq.read_table(reports / "analytics/expectations.parquet").to_pylist()
-    assert len(rows) == 53
+    assert len(rows) == 56
     assert (
         len({(r["run_id"], r["validation_definition_name"], r["expectation_index"]) for r in rows})
-        == 53
+        == 56
     )
     assert pq.read_table(reports / "analytics/validations.parquet").num_rows == 2
     assert (reports / "data_docs/index.html").is_file()
     assert (reports / "manifest.json").is_file()
-    for stem, count in (("000_flow", 28), ("001_rollups", 25)):
+    for stem, count in (("000_flow", 30), ("001_rollups", 26)):
         result = json.loads(gzip.decompress((reports / "results" / f"{stem}.json.gz").read_bytes()))
         assert result["success"] is True
         assert result["statistics"]["evaluated_expectations"] == count

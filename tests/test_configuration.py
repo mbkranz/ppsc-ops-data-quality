@@ -102,7 +102,7 @@ def test_importing_core_does_not_initialize_a_domain_or_runtime():
             "-c",
             """
 import sys
-import ppsc_ops_data_quality.core.schemas
+import ppsc_ops_data_quality.core.comparison
 import ppsc_ops_data_quality.core.queries
 import ppsc_ops_data_quality.core.queries.sql
 assert not any('.account_to_survey_results' in key or '.runtime' in key

@@ -7,11 +7,19 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
+from scripts.build_release import compatible_producer
+
 
 def git(root, *arguments):
     return subprocess.check_output(["git", "-C", str(root), *arguments], text=True).strip()
 
 
+@pytest.mark.skipif(
+    not compatible_producer(),
+    reason="Requires the pinned Linux release producer; tests must not dispatch remote builds",
+)
 def test_reproducible_build_and_verified_fresh_publication(tmp_path):
     source = Path(__file__).resolve().parents[1]
     root = tmp_path / "snapshot"

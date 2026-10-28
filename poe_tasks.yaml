@@ -84,3 +84,12 @@ tasks:
   check-synthetic:
     cmd: python -m scripts.check_validation synthetic
     help: Validate independently authored synthetic history and preserve native report evidence.
+
+  discover-lake:
+    cmd: python -m scripts.discover_lake --worker discover --profile ${profile}
+    args:
+      - {name: profile, options: [--profile], default: data-migration-dev}
+    help: Explicit online discovery using lake/params.yaml; never part of DVC release builds.
+  capture-lake:
+    cmd: python -m scripts.capture_lake
+    help: Explicit online capture of selected native Glue storage/view metadata.

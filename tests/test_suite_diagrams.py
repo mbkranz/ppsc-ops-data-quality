@@ -23,23 +23,7 @@ def test_parts_stop_at_named_inputs_and_preserve_schemas():
             "Survey_Results_At_Execution": {"Survey_Result__c_History"},
             "Trigger_Survey_Result": {"Survey_Results_At_Execution"},
             "Joined_Record": {"Trigger_Survey_Result", "Contact_At_Execution", "Account_Before"},
-            "Record_With_Primary_Consent": {
-                "Joined_Record",
-                "Survey_Results_At_Execution",
-            },
-            "Record_With_EHR_Consent": {
-                "Record_With_Primary_Consent",
-                "Survey_Results_At_Execution",
-            },
-            "Record_With_Physical_Measurement": {
-                "Record_With_EHR_Consent",
-                "Survey_Results_At_Execution",
-            },
-            "Record_With_Pediatric_Permission": {
-                "Record_With_Physical_Measurement",
-                "Survey_Results_At_Execution",
-            },
-            "Flow_Context": {"Record_With_Pediatric_Permission"},
+            "Flow_Context": {"Joined_Record", "Survey_Results_At_Execution"},
             "Expected_Account": {"Flow_Context"},
             "Account_After": {"Account_History"},
             "Account_After_By_Survey_Event": {"Account_After"},

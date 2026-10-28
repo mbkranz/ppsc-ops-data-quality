@@ -128,8 +128,10 @@ def test_count_adapter_and_source_neutral_projection_execute_without_salesforce_
 def test_live_metadata_mismatch_fails_before_creating_a_gx_context(tmp_path, monkeypatch):
     import re
 
-    from ppsc_ops_data_quality.runtime import validation
-    from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
+    from ppsc_ops_data_quality.account_to_survey_results import workflow as validation
+    from ppsc_ops_data_quality.account_to_survey_results.workflow import (
+        load_validation_configuration,
+    )
 
     example = Path(__file__).resolve().parents[1] / "params.example.yaml"
     path = tmp_path / "runtime.yaml"

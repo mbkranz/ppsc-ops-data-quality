@@ -18,3 +18,9 @@
 - Follow the PPSC agent design reference: validated structured public inputs/results, explicit functions and visible workflows; keep native expressions and frames.
 - Keep core domain-independent. Supply projection lineage explicitly at orchestration.
 - Use YAML for runtime/environment settings; use data-migration-dev for local AWS operations (explicit overrides allowed).
+
+- Prefer deletion and consolidation; try an existing function or direct call before adding abstractions.
+- Add no packages, registries or framework layers without a demonstrated second consumer.
+- Keep SQL/Ibis transformations independent of GX; suite builders consume prepared columns and workflows compose them.
+- Generalize only from concrete call sites, their differing needs and precisely shared behavior.
+- Assess module/line/dependency/indirection changes and the simplest viable alternative; preserve diagnostics and semantics.

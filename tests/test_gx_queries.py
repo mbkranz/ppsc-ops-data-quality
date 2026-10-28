@@ -1,5 +1,6 @@
 """Native GX Query Asset adapter, including an actual SQLAlchemy validation."""
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -159,11 +160,35 @@ class QueryAssetTests(unittest.TestCase):
         finally:
             backend.disconnect()
 
-    def test_checked_in_sql_examples_match_builders(self):
+    def test_checked_in_sql_and_suite_examples_match_builders(self):
         root = Path(__file__).resolve().parents[1]
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)
-            render_examples(output)
+            suite_output = output / "suites"
+            suite_output.mkdir()
+            (suite_output / "account_to_survey_results_flow.json").write_text("stale")
+            render_examples(output, suite_output=suite_output)
+            for name, required in (
+                ("flow", {"flow_scope_is_known", "flow_computation_is_complete"}),
+                ("rollups", {"rollup_source_parent_keys_are_valid"}),
+            ):
+                path = suite_output / f"account_to_survey_results_{name}.json"
+                self.assertEqual(path.read_bytes(), (root / "suites" / path.name).read_bytes())
+                checks = {
+                    e["meta"]["check_id"]: e for e in json.loads(path.read_text())["expectations"]
+                }
+                self.assertTrue(required <= checks.keys())
+                for check_id in required:
+                    if check_id == "flow_scope_is_known":
+                        self.assertEqual(
+                            checks[check_id]["type"], "expect_column_values_to_not_be_null"
+                        )
+                        self.assertEqual(
+                            checks[check_id]["kwargs"]["column"],
+                            "survey_completion_occurred_on_or_after_launch",
+                        )
+                    else:
+                        self.assertEqual(checks[check_id]["kwargs"]["value_set"], [True])
             for generated in output.glob("*.sql"):
                 sql = generated.read_text(encoding="utf-8")
                 self.assertEqual(sql, (root / "sql" / generated.name).read_text(encoding="utf-8"))

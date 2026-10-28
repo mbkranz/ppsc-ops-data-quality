@@ -9,9 +9,13 @@ from typing import Any
 import boto3
 from pydantic import BaseModel, ConfigDict, Field
 
-from .configuration import load_validation_configuration
+from ppsc_ops_data_quality.account_to_survey_results.workflow import (
+    ValidationOutcome,
+    load_validation_configuration,
+    run_validation,
+)
+
 from .resources import ConfigurationResource, read_configuration
-from .validation import ValidationOutcome, run_validation
 
 
 class GlueArguments(BaseModel):

@@ -48,7 +48,9 @@ uv run poe suite-diagrams
 ```
 
 `check-queries` compiles illustrative Athena comparisons and serializes the native
-29/25-expectation baseline suites. `check-synthetic` validates independently authored
+29/25-expectation baseline suites. `uv run poe render-queries` refreshes both
+the tracked SQL in `sql/` and native suite examples in `suites/` from their
+authoritative builders. `check-synthetic` validates independently authored
 DuckDB history, checks all 56 expectations (30 Flow + 26 rollup), and verifies
 56 uniquely identified expectation rows, two validation summaries, native results,
 registered suites, exact SQL, Data Docs and the manifest. Outputs use fresh paths
@@ -61,6 +63,7 @@ These are development scripts and are excluded from the installed package.
 ```text
 src/ppsc_ops_data_quality/
     account_to_survey_results/
+        workflow.py             # Account request models and explicit Athena orchestration
         metadata.py             # Verified version selection and explicit bindings
         metadata/               # Generated tables and saved native inputs
         queries.py              # Ibis history/comparisons and existing rollups
@@ -74,8 +77,7 @@ src/ppsc_ops_data_quality/
     runtime/
         glue.py                 # Argument handling and role-based bootstrap
         resources.py            # Injected S3 retrieval and checksum verification
-        configuration.py        # Pydantic runtime input contracts
-        validation.py           # Shared Athena orchestration and result contract
+        configuration.py        # Reusable Athena connection and report settings
         data_access.py          # Backend catalog discovery
         athena.py, duckdb.py     # Separate native GX preparation adapters
         runner.py, reports.py   # Engine-independent execution and publication

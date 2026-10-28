@@ -1,6 +1,6 @@
 # Salesforce and Ops data quality refactoring plan
 
-Status: Phase 0 verified and checkpointed; ready for Phase 1.
+Status: Phase 0 verified at `2d5b497`; Phase 1 complete. Phases 2–5 remain unstarted.
 Prepared: October 27, 2026.
 Canonical plan: `ppsc-ops-data-quality/docs/refactor-plan.md`.
 
@@ -279,7 +279,7 @@ Counts supplement readability and correctness; they do not justify removing requ
 
 - Planning: complete.
 - Phase 0 compiler alignment: complete; verified checkpoint immediately before Phase 1.
-- Phase 1 implementation: not started; depends on verified Phase 0 alignment.
+- Phase 1 implementation: complete against verified `2d5b497`; required checks and installed release passed.
 - Phase 2–5 implementation: not started.
 - Offline implementation checks: recorded below. Live validation: not run or authorized.
 
@@ -340,8 +340,108 @@ Counts supplement readability and correctness; they do not justify removing requ
   pip 25.3. `poe build-release --backend local`: passed, including all four real
   DVC producers and installed smoke. Separate isolated compiler file comparison,
   `dvc status dvc.yaml --quiet`, metadata-byte comparison and `git diff --check`
-  passed. No publication, deployment or live AWS/Salesforce operations ran.
+  passed. No external publication, deployment or live AWS/Salesforce operations ran.
   The initial release attempt encountered the same DVC cache path issue; the
   supported writable cache setting resolved it. `dvc.lock` contains real outputs.
 - Full Ops `uv run poe check`: **228 passed**, lint and formatting passed.
   This completes Phase 0 acceptance; no Phase 1 changes preceded this result.
+
+### Phase 1 implementation and review
+
+- Starts from the verified Phase 0 checkpoint
+  `2d5b497c5a0a1da3f9e2147deaa608dd6ad9b5bc`; the wheel, `uv.lock`,
+  `pyproject.toml` and all saved native input JSON remain byte-identical.
+- Moved `runtime/validation.py` to the existing Account package's `workflow.py`
+  and consolidated Event/Rollup/Metadata/Validation request models and the YAML
+  loader there. `runtime.configuration` retains the existing Athena/report
+  settings and common configuration primitives. The CLI and Glue host import
+  the workflow directly. Updated the actual APMP, metadata, deployment and
+  configuration test callers; no consumer required a compatibility shim.
+- All moved model/function bodies, plus CLI and Glue function/class bodies,
+  were compared through Python ASTs with Phase 0 and are identical. The complete
+  public configuration JSON schema is identical too. YAML shape, CLI options,
+  suite names, request validation, client-factory timing, report creation and
+  error/partial-result behavior retain their existing implementations.
+- Shared production runtime imports no Account query/suite/lineage builder and
+  owns no Account request model. Query modules, native GX builders, the shared
+  executor, report mechanisms, source adapter and comparison algorithms are
+  untouched. Import-time lineage preparation and comparison overlap remain
+  deliberately deferred to their planned later phases.
+- The existing `poe render-queries` now refreshes both tracked SQL and suite
+  examples using the authoritative Python builders and existing `save_suite`.
+  Its development script accepts an explicit `--suite-output` destination;
+  installed CLI options are unchanged. Example replacement does not change the
+  exclusive-create behavior of runtime audit snapshots. Regeneration produces
+  no SQL or suite-content diff from the verified Phase 0 baseline.
+- Extended the existing generation test to replace a stale example and compare
+  the complete serialized suite bytes, including required scope/computation and
+  source-parent check identities/semantics. Added a clean-process test proving
+  reusable backend/report settings load without initializing an Account module.
+  Existing tests continue to exercise YAML, CLI/Glue, runtime and reports.
+- Added permanent concise refactoring constraints to the existing `AGENTS.md`.
+- Production modules: **40 -> 40**, counting recursive `src/**/*.py` including
+  `__init__.py`. One orchestration module moved; none added net. Git recognizes
+  the workflow move at **71% similarity**; the larger apparent change is the
+  relocation of existing request models, not new model behavior.
+- No packages, registries, generalized domain interfaces, framework layers or
+  runtime dependencies were introduced. Removed the shared-domain ownership
+  overlap and the disconnected suite-example refresh workflow. No comparison
+  implementation or provenance representation was deleted: those still have
+  diagnostics and consumers, and belong to later phases.
+- Simplest alternative: leaving the Account workflow in shared runtime would
+  not meet ownership requirements. Splitting models into another configuration
+  file or adding a dispatcher would add modules/indirection without another
+  validation module. The cohesive workflow and direct host imports meet the
+  requirements with five net added production lines (imports/documentation).
+  A dedicated suite generator would duplicate existing development generation;
+  the existing render function and native serializer suffice. The same behavior
+  could be spelled with fewer line breaks; no substantive code reduction or
+  fewer production modules was identified within this phase without combining
+  unrelated responsibilities. No new generalized interface is justified by
+  actual consumers.
+- `poe render-queries`, `poe check-queries` and `poe check-synthetic`: passed;
+  the synthetic run passed all **56 expectations**. Fresh compile outputs are
+  byte-identical to Phase 0, with base SQL **260,813 / 30,565 bytes**. The Phase 0
+  offline wrapper observations apply to these unchanged queries/builders; no
+  new PyAthena or configured-snapshot measurement is claimed.
+- `poe build-release --backend local`: passed, including installed smoke. The
+  unchanged requirements/dependencies stages were skipped; only the real wheel
+  and bundle producers ran, and `dvc.lock` records their actual outputs.
+  Separate `python -I` verification matched all **47 installed Ops package files**
+  and **164 compiler files** against the built wheels, confirmed imports inside
+  site-packages, the unchanged installed configuration schema and absence of
+  `runtime.validation`. `dvc status dvc.yaml --quiet` passed; the two unchanged
+  stage records are identical to Phase 0.
+- Full `uv run poe check`: **229 passed**, 18 warnings; lint and formatting
+  passed. `git diff --check` passed. No checks remain failing or blocked.
+
+
+### Final measured complexity
+
+Text counts below use `git diff --numstat --find-renames=50%`: Phase 0 from
+`87ec1b0` to `2d5b497`, Phase 1 from that checkpoint, and combined from the
+handoff. Columns report added / deleted / net lines. Renames retain unchanged
+lines rather than charging the entire workflow as a delete/add. Generated
+locks and suites are separated from authored code; binary wheel bytes are not
+text lines. No Salesforce repository source changed (81 production modules
+before/after; zero changed lines).
+
+<!-- complexity-table -->
+| Category | Phase 0 | Phase 1 | Combined |
+| --- | --- | --- | --- |
+| Production Python | +0 / -0 / +0 | +99 / -94 / +5 | +99 / -94 / +5 |
+| Tests | +0 / -0 / +0 | +64 / -14 / +50 | +64 / -14 / +50 |
+| Tools/config | +3 / -3 / +0 | +20 / -5 / +15 | +23 / -8 / +15 |
+| Docs/guidance | +120 / -27 / +93 | +119 / -6 / +113 | +237 / -31 / +206 |
+| Generated suites | +49,910 / -390 / +49,520 | +0 / -0 / +0 | +49,910 / -390 / +49,520 |
+| Generated locks | +22 / -22 / +0 | +10 / -10 / +0 | +28 / -28 / +0 |
+| Total text | +50,055 / -442 / +49,613 | +312 / -129 / +183 | +50,361 / -565 / +49,796 |
+<!-- /complexity-table -->
+
+The sole binary replacement is the compiler wheel (Git reports 66% similarity),
+with exact source identity and archive hash recorded above. Generated suite growth
+retains upstream native evidence and the missing checks; it is not a new authored
+rule representation. Production Python grows by only five lines across the
+workflow/model relocation and direct host imports. Tests and development-tool
+changes enforce ownership and keep existing examples synchronized. No later
+refactoring phase, deployment, external publication or live AWS/Salesforce run was started.

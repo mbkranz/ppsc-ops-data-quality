@@ -8,6 +8,11 @@ and `params.example.yaml` for the active shape. Online preflight is separate fro
 local selection verification and occurs before GX queries. Library callers provide
 an explicit Athena client or factory; imports and local validation create none.
 
+The Account-specific request models, YAML loader and orchestration live in
+`account_to_survey_results.workflow`. The CLI and Glue host call that workflow
+directly. `runtime.configuration` retains reusable connection/report settings;
+query/suite/lineage construction belongs to the Account workflow, not the executor.
+
 # Runtime adapters and native GX validation execution
 
 Runtime inputs are already-composed Ibis comparison expressions. Athena compiles

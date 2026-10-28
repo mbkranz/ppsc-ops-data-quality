@@ -139,8 +139,8 @@ def compile_comparisons(output: Path):
     return {"mode": "compile", "output": str(output), "live_queries": False}
 
 
-def render_examples(output: Path):
-    """Regenerate the checked-in illustrative expected and GX comparison SQL."""
+def render_examples(output: Path, *, suite_output: Path):
+    """Regenerate illustrative SQL and native suite examples from their builders."""
     history = history_tables(inputs=metadata_inputs())
     event_id = "EXAMPLE_VERIFIED_SURVEY_EVENT"
     AccountBefore = snapshot(history["Account"], as_of=BEFORE_AT).alias("Account_Before")
@@ -193,7 +193,16 @@ def render_examples(output: Path):
             )
             statements.append(f"-- {name}\n{sql};\n")
         (output / filename).write_text(header + "\n".join(statements), encoding="utf-8")
-    return {"mode": "render", "output": str(output), "live_queries": False}
+    for suite in (flow_account_suite(), rollup_account_suite()):
+        path = suite_output / f"{suite.name}.json"
+        path.unlink(missing_ok=True)  # Review examples are replaceable; run snapshots are not.
+        save_suite(suite, path)
+    return {
+        "mode": "render",
+        "output": str(output),
+        "suite_output": str(suite_output),
+        "live_queries": False,
+    }
 
 
 def validate_synthetic(run_directory: Path, *, s3_uri: str | None = None):
@@ -316,9 +325,15 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Credential-free development verification")
     parser.add_argument("check", choices=["compile", "synthetic", "render"])
     parser.add_argument("--output", type=Path)
+    parser.add_argument(
+        "--suite-output",
+        type=Path,
+        default=Path("suites"),
+        help="Native suite example directory for render",
+    )
     args = parser.parse_args(argv)
     if args.check == "render":
-        summary = render_examples(args.output or Path("sql"))
+        summary = render_examples(args.output or Path("sql"), suite_output=args.suite_output)
     else:
         output = args.output or Path("build/checks") / (
             args.check + "-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")

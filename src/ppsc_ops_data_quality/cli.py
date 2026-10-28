@@ -6,8 +6,10 @@ from pathlib import Path
 
 import boto3
 
-from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
-from ppsc_ops_data_quality.runtime.validation import run_validation
+from ppsc_ops_data_quality.account_to_survey_results.workflow import (
+    load_validation_configuration,
+    run_validation,
+)
 
 
 def main(argv: list[str] | None = None) -> int:

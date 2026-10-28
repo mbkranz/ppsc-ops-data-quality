@@ -12,10 +12,10 @@ import ibis
 import pytest
 import yaml
 
+from ppsc_ops_data_quality.account_to_survey_results.workflow import load_validation_configuration
 from ppsc_ops_data_quality.core.configuration import load_yaml
 from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 from ppsc_ops_data_quality.gx_queries import query_asset_sql
-from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
 from ppsc_ops_data_quality.runtime.resources import ConfigurationResource, read_configuration
 from ppsc_ops_data_quality.views import create_view_sql
 
@@ -107,6 +107,23 @@ import ppsc_ops_data_quality.core.queries
 import ppsc_ops_data_quality.core.queries.sql
 assert not any('.account_to_survey_results' in key or '.runtime' in key
                for key in sys.modules if key.startswith('ppsc_ops_data_quality.'))
+""",
+        ],
+        check=True,
+    )
+
+
+def test_shared_backend_settings_do_not_load_account_workflow():
+    subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            """
+import sys
+from ppsc_ops_data_quality.runtime.configuration import AthenaConfiguration, ReportConfiguration
+AthenaConfiguration(region="fixture", database="fixture", s3_staging_dir="s3://fixture/staging", work_group="fixture")
+ReportConfiguration(s3_uri="s3://fixture/reports")
+assert not any('.account_to_survey_results' in name for name in sys.modules)
 """,
         ],
         check=True,

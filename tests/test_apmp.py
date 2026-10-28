@@ -6,8 +6,8 @@ import ibis
 import pytest
 from sqlglot import exp
 
+from ppsc_ops_data_quality.account_to_survey_results.workflow import ValidationConfiguration
 from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
-from ppsc_ops_data_quality.runtime.configuration import ValidationConfiguration
 from ppsc_ops_data_quality.runtime.preflight import DataVersionBinding, check_catalog
 from ppsc_ops_data_quality.sources.apmp import (
     RelationLocation,
@@ -212,9 +212,11 @@ def test_invalid_selection_never_constructs_an_online_client(tmp_path, monkeypat
     import re
     from pathlib import Path
 
+    from ppsc_ops_data_quality.account_to_survey_results import workflow as validation
     from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt
-    from ppsc_ops_data_quality.runtime import validation
-    from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
+    from ppsc_ops_data_quality.account_to_survey_results.workflow import (
+        load_validation_configuration,
+    )
 
     path = tmp_path / "config.yaml"
     path.write_text(
@@ -287,8 +289,10 @@ def test_date_validity_cannot_claim_timestamp_history_resolution(tmp_path, monke
     import re
     from pathlib import Path
 
-    from ppsc_ops_data_quality.runtime import validation
-    from ppsc_ops_data_quality.runtime.configuration import load_validation_configuration
+    from ppsc_ops_data_quality.account_to_survey_results import workflow as validation
+    from ppsc_ops_data_quality.account_to_survey_results.workflow import (
+        load_validation_configuration,
+    )
 
     path = tmp_path / "config.yaml"
     path.write_text(

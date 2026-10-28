@@ -80,7 +80,7 @@ tasks:
     help: Compile illustrative Athena queries and native suites without credentials.
   render-queries:
     cmd: python -m scripts.check_validation render
-    help: Regenerate illustrative expected-value and GX comparison SQL in sql/.
+    help: Regenerate illustrative SQL in sql/ and native suite examples in suites/.
   check-synthetic:
     cmd: python -m scripts.check_validation synthetic
     help: Validate independently authored synthetic history and preserve native report evidence.

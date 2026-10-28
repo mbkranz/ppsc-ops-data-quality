@@ -45,8 +45,8 @@ The release graph has four exclusive outputs:
 
 The requirements and dependency stages also track `vendor/`, which carries the
 independent compiler wheel until it has a separate distribution channel. The
-application declares `ppsc-metadata[ibis]==0.2.0`; uv binds that requirement to the
-checked-in wheel and records its actual hash. No Salesforce application is bundled.
+application declares `ppsc-salesforce[ibis]==0.1.1`; uv binds that requirement to
+the revision-pinned wheel and records its actual hash. See `vendor/README.md`.
 
 The archive producer validates metadata, target tags and dependency closure,
 rejects duplicates/source archives and tolerates an existing output parent.
@@ -57,8 +57,8 @@ There is no build manifest, revision-dependent producer or runtime
 completion manifests remain separate contracts.
 
 The installed smoke uses an isolated interpreter, index-free wheel installation,
-dependency checking, installed CLI help/error handling and the synthetic 28 Flow
-plus 25 rollup expectations, 53 expectation rows and two validation summaries.
+dependency checking, installed CLI help/error handling and the synthetic 30 Flow
+plus 26 rollup expectations, 56 expectation rows and two validation summaries.
 It does not establish managed Glue bootstrap/network compatibility.
 
 ## Publish an exact release

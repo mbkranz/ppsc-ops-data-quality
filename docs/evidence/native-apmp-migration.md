@@ -1,5 +1,10 @@
 # Applied PPSC review
 
+This records the original generated-input migration. At the Phase 0 compiler
+alignment, Salesforce PR #7 has removed its former APMP/ODCS authoring project.
+Ops keeps its existing physical-schema consumer adapter and saved input files;
+see [current ownership and refresh instructions](../metadata-compiler.md).
+
 The consumer uses the existing Salesforce distribution and APMP-generated JSON.
 ODCS authoring and Athena DDL parsing stay in the data lake project. The separate
 metadata package and its artifacts, evidence, projection and handoff abstractions

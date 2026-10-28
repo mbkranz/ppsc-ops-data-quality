@@ -2,9 +2,9 @@
 
 The existing `ppsc-salesforce[ibis]` distribution supplies Flow queries from
 `salesforce.entities.flows.queries` and rollups from
-`salesforce.entities.field_definitions.rollups`. APMP owns ODCS authoring, Athena
-schema parsing, physical aliases, keys and history definitions. Ops consumes
-APMP's generated `tables.json` and saved native JSON, then owns event selection,
+`salesforce.entities.field_definitions.rollups`. The former Salesforce APMP authoring project has been removed upstream.
+Ops retains the existing consumer of reviewed lake schemas, physical aliases, keys
+and history definitions. Ops consumes the saved `tables.json` and saved native JSON, then owns event selection,
 historical alignment, comparisons and native GX suites. ODCS is not an Ops dependency.
 
 The selected files live in `account_to_survey_results/metadata`. Native Ibis
@@ -15,7 +15,7 @@ pin these files. No separate metadata package or handoff manifest is required.
 `metadata_inputs()` and `metadata_request()` return fresh values from an immutable
 serialized compilation cache. `metadata_receipt()` checks the selected bytes,
 request and compiler version before runtime connections. Its ordinary run metadata
-records source revision, exact Flow version/hash, ODCS identity and inputs digest.
+records source revision, exact Flow version/hash, legacy contract identity and inputs digest.
 
 The packaged catalog remains a provisional synthetic fixture. Offline compilation
 does not establish real lake compatibility or Flow applicability.
@@ -78,12 +78,14 @@ resolution and network access.
 
 ## Refresh
 
-1. Capture and review actual native and lake evidence in Salesforce/APMP.
-2. Build the selected APMP product through its DVC stage; review its dictionary,
-   unresolved coverage and provisional status.
-3. Build the existing Salesforce wheel from the reviewed source revision. Freeze
-   that wheel and copy `tables.json`, `flow.json`, `source_catalog.json` and
-   `observed.json` into the consumer selection.
+1. Review saved native and lake evidence. Live capture is a separate authorized task.
+2. Keep the existing Ops schema consumer adapter; the removed Salesforce APMP
+   project is no longer an authoring or DVC refresh entry point. No producer
+   relocation or ODCS mediation is required by the refactor.
+3. Build the Salesforce wheel from the exact reviewed source revision using
+   `vendor/README.md`. Preserve `tables.json`, `flow.json`, `source_catalog.json`
+   and `observed.json` unless compatibility requires a documented representation
+   change; do not silently select another Flow version.
 4. Update the wheel reference and lockfile. Regenerate suites, SQL and diagrams
    through the existing Poe tasks.
 5. Run the installed-release smoke and real DVC producers.

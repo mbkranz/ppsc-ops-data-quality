@@ -1715,7 +1715,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.35,<2" },
     { name = "great-expectations", specifier = "==1.24.0" },
     { name = "ibis-framework", extras = ["duckdb"], specifier = "==12.0.0" },
-    { name = "ppsc-salesforce", extras = ["ibis"], path = "vendor/1d59b5b8/ppsc_salesforce-0.1.0-py3-none-any.whl" },
+    { name = "ppsc-salesforce", extras = ["ibis"], path = "vendor/a534c633/ppsc_salesforce-0.1.1-py3-none-any.whl" },
     { name = "pyarrow", specifier = ">=16,<27" },
     { name = "pyathena", extras = ["sqlalchemy"], specifier = ">=3,<4" },
     { name = "pydantic", specifier = ">=2.12,<3" },
@@ -1758,15 +1758,15 @@ release = [
 
 [[package]]
 name = "ppsc-salesforce"
-version = "0.1.0"
-source = { path = "vendor/1d59b5b8/ppsc_salesforce-0.1.0-py3-none-any.whl" }
+version = "0.1.1"
+source = { path = "vendor/a534c633/ppsc_salesforce-0.1.1-py3-none-any.whl" }
 dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
     { name = "sqlglot" },
 ]
 wheels = [
-    { filename = "ppsc_salesforce-0.1.0-py3-none-any.whl", hash = "sha256:7d588d32c56c1890a5b2988b3d7b4981042aa6ee1de5b829d58e936c93b240ec" },
+    { filename = "ppsc_salesforce-0.1.1-py3-none-any.whl", hash = "sha256:635ee8ac99d375cb318e33d809e6a6efac8a7e96707a3292a08a1637435a9ba0" },
 ]
 
 [package.optional-dependencies]

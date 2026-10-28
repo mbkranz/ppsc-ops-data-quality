@@ -9,6 +9,9 @@
           "expected_account_id",
           "person_contact_id",
           "observed_account_id",
+          "validation_record_id",
+          "source_parent_keys_are_valid",
+          "comparison_keys_are_valid",
           "expected__EHR_Authorized__pc",
           "expected__Count_of_Completed_EHR_Auth__pc",
           "expected__Count_of_Completed_Primary_Consent__pc",
@@ -97,10 +100,32 @@
       "severity": "critical"
     },
     {
+      "type": "expect_column_values_to_be_in_set",
+      "kwargs": {
+        "column": "source_parent_keys_are_valid",
+        "value_set": [
+          true
+        ]
+      },
+      "meta": {
+        "check_id": "rollup_source_parent_keys_are_valid"
+      },
+      "description": "Source parent IDs are unique before any child aggregation.",
+      "severity": "critical"
+    },
+    {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__EHR_Authorized__pc",
-        "column_B": "expected__EHR_Authorized__pc"
+        "column_B": "expected__EHR_Authorized__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_EHR_Authorized__pc_equals_expected_rollup",
@@ -144,7 +169,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Count_of_Completed_EHR_Auth__pc",
-        "column_B": "expected__Count_of_Completed_EHR_Auth__pc"
+        "column_B": "expected__Count_of_Completed_EHR_Auth__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Count_of_Completed_EHR_Auth__pc_equals_expected_rollup",
@@ -188,7 +221,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Count_of_Completed_Primary_Consent__pc",
-        "column_B": "expected__Count_of_Completed_Primary_Consent__pc"
+        "column_B": "expected__Count_of_Completed_Primary_Consent__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Count_of_Completed_Primary_Consent__pc_equals_expected_rollup",
@@ -229,7 +270,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Count_of_Completed_Reconsent__pc",
-        "column_B": "expected__Count_of_Completed_Reconsent__pc"
+        "column_B": "expected__Count_of_Completed_Reconsent__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Count_of_Completed_Reconsent__pc_equals_expected_rollup",
@@ -270,7 +319,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__PPI_2_Completion_Count__pc",
-        "column_B": "expected__PPI_2_Completion_Count__pc"
+        "column_B": "expected__PPI_2_Completion_Count__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_PPI_2_Completion_Count__pc_equals_expected_rollup",
@@ -311,7 +368,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__PPI_3_Completion_Count__pc",
-        "column_B": "expected__PPI_3_Completion_Count__pc"
+        "column_B": "expected__PPI_3_Completion_Count__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_PPI_3_Completion_Count__pc_equals_expected_rollup",
@@ -352,7 +417,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__EHR_Consent_Active__pc",
-        "column_B": "expected__EHR_Consent_Active__pc"
+        "column_B": "expected__EHR_Consent_Active__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_EHR_Consent_Active__pc_equals_expected_rollup",
@@ -393,7 +466,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__EHR_Consent_Declined__pc",
-        "column_B": "expected__EHR_Consent_Declined__pc"
+        "column_B": "expected__EHR_Consent_Declined__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_EHR_Consent_Declined__pc_equals_expected_rollup",
@@ -434,7 +515,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__PP1_Basics_Survey_Complete__pc",
-        "column_B": "expected__PP1_Basics_Survey_Complete__pc"
+        "column_B": "expected__PP1_Basics_Survey_Complete__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_PP1_Basics_Survey_Complete__pc_equals_expected_rollup",
@@ -475,7 +564,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Re_Consent_Declined__pc",
-        "column_B": "expected__Re_Consent_Declined__pc"
+        "column_B": "expected__Re_Consent_Declined__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Re_Consent_Declined__pc_equals_expected_rollup",
@@ -516,7 +613,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Re_consent_Active__pc",
-        "column_B": "expected__Re_consent_Active__pc"
+        "column_B": "expected__Re_consent_Active__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Re_consent_Active__pc_equals_expected_rollup",
@@ -557,7 +662,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Primary_Consent_Declined__pc",
-        "column_B": "expected__Primary_Consent_Declined__pc"
+        "column_B": "expected__Primary_Consent_Declined__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Primary_Consent_Declined__pc_equals_expected_rollup",
@@ -598,7 +711,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__EHR_Consent_Ever__pc",
-        "column_B": "expected__EHR_Consent_Ever__pc"
+        "column_B": "expected__EHR_Consent_Ever__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_EHR_Consent_Ever__pc_equals_expected_rollup",
@@ -639,7 +760,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Assent_Completion_Count__pc",
-        "column_B": "expected__Assent_Completion_Count__pc"
+        "column_B": "expected__Assent_Completion_Count__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Assent_Completion_Count__pc_equals_expected_rollup",
@@ -680,7 +809,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__Pediatric_Permission_Completion_Count__pc",
-        "column_B": "expected__Pediatric_Permission_Completion_Count__pc"
+        "column_B": "expected__Pediatric_Permission_Completion_Count__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_Pediatric_Permission_Completion_Count__pc_equals_expected_rollup",
@@ -721,7 +858,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__X0_6_Peds_Permission_Count__pc",
-        "column_B": "expected__X0_6_Peds_Permission_Count__pc"
+        "column_B": "expected__X0_6_Peds_Permission_Count__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_X0_6_Peds_Permission_Count__pc_equals_expected_rollup",
@@ -762,7 +907,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__X0_6_Peds_Permission_Declined_Count__pc",
-        "column_B": "expected__X0_6_Peds_Permission_Declined_Count__pc"
+        "column_B": "expected__X0_6_Peds_Permission_Declined_Count__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_X0_6_Peds_Permission_Declined_Count__pc_equals_expected_rollup",
@@ -803,7 +956,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__X0_6_Peds_Permission_Revoked_Count__pc",
-        "column_B": "expected__X0_6_Peds_Permission_Revoked_Count__pc"
+        "column_B": "expected__X0_6_Peds_Permission_Revoked_Count__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_X0_6_Peds_Permission_Revoked_Count__pc_equals_expected_rollup",
@@ -844,7 +1005,15 @@
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
         "column_A": "observed__EHR_Pediatric_Complete__pc",
-        "column_B": "expected__EHR_Pediatric_Complete__pc"
+        "column_B": "expected__EHR_Pediatric_Complete__pc",
+        "row_condition": {
+          "column": {
+            "name": "comparison_keys_are_valid"
+          },
+          "operator": "==",
+          "parameter": true,
+          "type": "comparison"
+        }
       },
       "meta": {
         "check_id": "observed_EHR_Pediatric_Complete__pc_equals_expected_rollup",

@@ -1,6 +1,6 @@
 # Salesforce and Ops data quality refactoring plan
 
-Status: Ready for Phase 0 compiler alignment, followed by Phase 1 implementation.
+Status: Phase 0 verified and checkpointed; ready for Phase 1.
 Prepared: October 27, 2026.
 Canonical plan: `ppsc-ops-data-quality/docs/refactor-plan.md`.
 
@@ -278,7 +278,70 @@ Counts supplement readability and correctness; they do not justify removing requ
 ## Progress
 
 - Planning: complete.
-- Phase 0 compiler alignment: not started.
+- Phase 0 compiler alignment: complete; verified checkpoint immediately before Phase 1.
 - Phase 1 implementation: not started; depends on verified Phase 0 alignment.
 - Phase 2–5 implementation: not started.
-- Repository tests/live validation for this planning-only commit: not run.
+- Offline implementation checks: recorded below. Live validation: not run or authorized.
+
+
+### Phase 0 observed alignment evidence (October 28, 2026)
+
+- Ops started clean on `codex/refactor-handoff` at
+  `87ec1b05051ec060451d064f802420e0a51326f6` (documentation on the reviewed
+  integration). Production module convention: recursive `src/**/*.py`, including
+  `__init__.py`; **40 before / 40 after dependency alignment**.
+- Resolved Salesforce PR #7 once to
+  `a534c63353680e41d12e3b55997a125ba703c675`. No producer source edits.
+  Compared against the old wheel source `1d59b5b87b69e2b7da52c3c0bdb008c2af37c200`:
+  native ColumnDef interpretation and named/resolved Flow queries were added;
+  alias/collision guards and original-fragment lineage were strengthened; the
+  former APMP/ODCS authoring project and Data Package adapters were removed.
+  Existing Ops query calls remain compatible. Its physical schema consumer
+  adapter stays in place; there is no remaining in-repository producer to relocate.
+- Two clean `git archive` builds with the documented tool versions and fixed
+  epoch produced identical 0.1.1 wheels, SHA256
+  `635ee8ac99d375cb318e33d809e6a6efac8a7e96707a3292a08a1637435a9ba0`.
+  All **164** packaged source/template files match the exact source export and
+  installed files, both in Ops development and the isolated release smoke.
+  Imports in the latter resolve inside its site-packages. uv's local-wheel
+  `direct_url.json` records the wheel path but omits archive hashes; acceptance
+  also checked the actual archive SHA256 and lockfile, not version alone.
+- Only the Salesforce package/requirement/path/hash changed in `uv.lock`;
+  all unrelated package entries are identical. Removed the superseded wheel.
+  The only compatibility code edit updates the installed-smoke compiler version
+  assertion. Saved Flow, catalog, table and observation JSON bytes are unchanged;
+  no selected native evidence required a representation change.
+- Regenerated suite examples with the existing `save_suite` serializer: Flow
+  **27 -> 29**, rollups **24 -> 25**. Scope/computation completeness and source
+  parent validity are now present. Upstream original-fragment lineage explains
+  most of the generated Flow JSON growth; it is deliberately retained.
+  `poe render-queries` produced byte-identical illustrative SQL.
+  `poe suite-diagrams` completed; all 14 labeled directed graph fingerprints,
+  node/edge counts and labels matched (eight refinement rounds). Retained the
+  original DOT/SVG bytes to avoid process-randomized Ibis node-ID/layout churn.
+- `poe check-queries`: passed. Compact Query Asset SQL (excluding `;\n`) measured
+  **260,813 Flow / 30,565 rollup UTF-8 bytes** for the development compile fixture.
+  Pretty-printed display SQL is larger and is not the executable representation.
+- An offline SQLAlchemy `before_cursor_execute` capture retained the actual
+  Athena base SQL inside native GX SQLite wrappers, replacing the inner query
+  with independently prepared fixture rows only at execution. All expectations
+  passed; 111 Flow / 68 rollup statements were captured, with maxima **261,967 /
+  31,341 bytes**. These are SQLite-rendered wrapper observations, not final
+  PyAthena statements; actual configured names/snapshot clauses remain unmeasured.
+  The Flow example has only **177 bytes** of headroom in that capture. No query
+  optimization, persistence or live acceptance is claimed.
+- Salesforce `uv run --locked --no-sync pytest -q`: **804 passed**, 355 warnings.
+  The first run hit DVC's read-only `/var/tmp/dvc` site cache (788 passed, one
+  failure, 15 setup errors); rerunning with `DVC_SITE_CACHE_DIR=/tmp/dvc-site-cache`
+  resolved every failure. This is environment configuration, not a source fix.
+- Ops `poe check-synthetic`: passed, **56 expectations** (30 Flow / 26 rollup),
+  with native results, suites, reports and two validation summaries retained.
+- Prepared the locked release tools once under Python 3.11.17 / uv 0.12.23 /
+  pip 25.3. `poe build-release --backend local`: passed, including all four real
+  DVC producers and installed smoke. Separate isolated compiler file comparison,
+  `dvc status dvc.yaml --quiet`, metadata-byte comparison and `git diff --check`
+  passed. No publication, deployment or live AWS/Salesforce operations ran.
+  The initial release attempt encountered the same DVC cache path issue; the
+  supported writable cache setting resolved it. `dvc.lock` contains real outputs.
+- Full Ops `uv run poe check`: **228 passed**, lint and formatting passed.
+  This completes Phase 0 acceptance; no Phase 1 changes preceded this result.

@@ -7,7 +7,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from ppsc_ops_data_quality.core.configuration import load_yaml
+from ppsc_ops_data_quality.io import load_yaml
 
 
 def render_report_catalog(*, config: Path, database: str, first_run_date: str, output: Path):

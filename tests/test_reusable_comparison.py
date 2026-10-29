@@ -5,17 +5,14 @@ import ibis
 import pandas as pd
 import pytest
 from pydantic import ValidationError
-from salesforce.entities.field_definitions.rollups import RollupRequest
-from salesforce.entities.flows.queries import FlowRequest
 
-from ppsc_ops_data_quality.core.comparison import (
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ComparisonSpec,
     KeyBinding,
     ValueBinding,
     compare_values,
 )
-from ppsc_ops_data_quality.core.comparison_gx import comparison_suite
-from ppsc_ops_data_quality.sources.salesforce import flow_comparison, native_rollup_comparison
+from ppsc_ops_data_quality.account_to_survey_results.suites import comparison_suite
 
 
 @pytest.fixture
@@ -114,9 +111,7 @@ def test_migration_columns_composite_grain_and_native_gx(backend):
     result = validate(backend, compare_values(expected, changed, spec), spec)
     assert not result["answer_equals_expected"].success  # assignment false still compares
     assert (
-        result["answer_equals_expected"].result["unexpected_index_list"][0][
-            "expected_key__response"
-        ]
+        result["answer_equals_expected"].result["unexpected_index_list"][0]["expected.key.response"]
         == "r3"
     )
 
@@ -131,7 +126,7 @@ def test_duplicates_preserve_fanout_and_block_equality(backend, side):
     comparison = compare_values(expected, observed, migration_spec())
     frame = backend.execute(comparison)
     assert len(frame) == 5
-    assert not frame.loc[frame.expected_key__response == "r2", "comparison_keys_are_valid"].any()
+    assert not frame.loc[frame["expected.key.response"] == "r2", "comparison_keys_are_valid"].any()
     assert not validate(backend, comparison, migration_spec())["comparison_grain_valid"].success
 
 
@@ -236,93 +231,6 @@ def native_inputs(tmp_path, object_name, field, literal):
 
 
 @pytest.mark.parametrize(
-    "object_name,field,value",
-    [("Case", "PriorityRank__c", 0), ("Order__c", "MigrationStatus__c", -99)],
-)
-def test_independent_verified_flows_have_no_account_defaults(
-    tmp_path, backend, object_name, field, value
-):
-    inputs = native_inputs(tmp_path, object_name, field, {"numberValue": value})
-    request = FlowRequest(
-        object_name=object_name,
-        fields=(field,),
-        before_prefix="before.",
-        target_reference="$Record.target",
-    )
-    spec = ComparisonSpec(
-        keys=(KeyBinding(name="target", expected="target", observed="external_key"),),
-        values=(
-            ValueBinding(
-                name=field,
-                expected="computed",
-                observed="destination",
-                deterministic="known",
-                assigned="assigned",
-            ),
-        ),
-    )
-    record = ibis.memtable({"target": ["x"], f"before.{field}": [4], "eligible": [True]})
-    observed = ibis.memtable({"external_key": ["x"], "destination": [value]})
-    comparison = flow_comparison(
-        record, observed, request, spec, inputs=inputs, eligibility=lambda r: r.eligible
-    )
-    assert all(item.success for item in validate(backend, comparison, spec).values())
-    retained = flow_comparison(
-        record.mutate(eligible=False),
-        observed.mutate(destination=ibis.literal(4, type="int64")),
-        request,
-        spec,
-        inputs=inputs,
-        eligibility=lambda r: r.eligible,
-    )
-    assert all(item.success for item in validate(backend, retained, spec).values())
-    unknown = flow_comparison(
-        record.mutate(eligible=ibis.null().cast("boolean")),
-        observed,
-        request,
-        spec,
-        inputs=inputs,
-        eligibility=lambda r: r.eligible,
-    )
-    assert not validate(backend, unknown, spec)["computation_complete"].success
-    with pytest.raises(ValueError, match="determinism and assignment"):
-        flow_comparison(
-            record,
-            observed,
-            request,
-            ComparisonSpec(
-                keys=spec.keys,
-                values=(ValueBinding(name=field, expected="computed", observed="destination"),),
-            ),
-            inputs=inputs,
-            eligibility=lambda r: r.eligible,
-        )
-
-
-def test_rollup_on_non_account_object_with_custom_parent_key(tmp_path, backend):
-    inputs = native_inputs(tmp_path, "Invoice__c", "LineCount__c", {"numberValue": 0})
-    parent = ibis.memtable({"Key": ["i1", "i2"]})
-    child = ibis.memtable({"owner": ["i1", "i1"]})
-    observed = ibis.memtable({"Key": ["i1", "i2", "unexpected"], "LineCount__c": [2, 0, 0]})
-    comparison = native_rollup_comparison(
-        parent,
-        child,
-        observed,
-        RollupRequest(
-            parent_key="Key", output_field="LineCount__c", child_object="Line", empty_value=0
-        ),
-        source_field="Invoice__c.LineCount__c",
-        inputs=inputs,
-    )
-    frame = backend.execute(comparison)
-    assert not any("account" in name for name in frame.columns)
-    assert sorted(frame.expected__LineCount__c.dropna()) == [0, 2]
-    assert not frame.loc[
-        frame.observed_key__parent == "unexpected", "comparison_keys_are_valid"
-    ].any()
-
-
-@pytest.mark.parametrize(
     "dtype,value", [("boolean", False), ("string", '["a|b","-99"]'), ("decimal(12,2)", "0.00")]
 )
 def test_field_names_and_physical_values_are_not_interpreted(backend, dtype, value):
@@ -341,7 +249,7 @@ def test_field_names_and_physical_values_are_not_interpreted(backend, dtype, val
 
 
 def test_generic_reconciliation_sql_executes_after_shared_renderer(backend):
-    from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
+    from ppsc_ops_data_quality.account_to_survey_results.queries import to_sqlglot
 
     expected, observed = migration_inputs()
     expected = backend.create_table("migration_expected", expected)
@@ -350,72 +258,14 @@ def test_generic_reconciliation_sql_executes_after_shared_renderer(backend):
     query = to_sqlglot(comparison)
     direct = (
         backend.execute(comparison)
-        .sort_values(["expected_key__tenant", "expected_key__response"])
+        .sort_values(["expected.key.tenant", "expected.key.response"])
         .reset_index(drop=True)
     )
     rendered = (
         backend.con.execute(query.sql(dialect="duckdb"))
         .fetchdf()
-        .sort_values(["expected_key__tenant", "expected_key__response"])
+        .sort_values(["expected.key.tenant", "expected.key.response"])
         .reset_index(drop=True)
     )
     pd.testing.assert_frame_equal(direct, rendered, check_dtype=False)
     assert "FULL OUTER JOIN" in to_sqlglot(comparison).sql(dialect="athena")
-
-
-def test_shared_adapters_do_not_import_the_account_workflow():
-    import subprocess
-    import sys
-
-    subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            "import sys; import ppsc_ops_data_quality.sources.salesforce; import ppsc_ops_data_quality.core.comparison_gx; assert not any('account_to_survey_results' in name for name in sys.modules)",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-
-
-def test_existing_flow_can_use_explicit_shared_adapter_without_legacy_aliases(backend):
-    from test_account_to_survey_results_expectations import flow_inputs
-
-    from ppsc_ops_data_quality.account_to_survey_results.metadata import (
-        metadata_inputs,
-        metadata_request,
-    )
-    from ppsc_ops_data_quality.account_to_survey_results.queries import flow_account_comparison
-
-    record, observed = flow_inputs()
-    request = metadata_request()
-    spec = ComparisonSpec(
-        keys=(
-            KeyBinding(name="event", expected="Id", observed="survey_result_id"),
-            KeyBinding(name="target", expected="Participant__r.Account.Id", observed="Id"),
-        ),
-        values=tuple(
-            ValueBinding(
-                name=field,
-                expected=f"computed_{index}",
-                observed=field,
-                deterministic=f"known_{index}",
-                assigned=f"assigned_{index}",
-            )
-            for index, field in enumerate(request.fields)
-        ),
-    )
-    comparison = flow_comparison(
-        record,
-        observed,
-        request,
-        spec,
-        inputs=metadata_inputs(),
-        eligibility=lambda r: r.Completion_Status__c == "Complete",
-    )
-    legacy = backend.execute(flow_account_comparison(record, observed))
-    shared = backend.execute(comparison)
-    for field in request.fields:
-        pd.testing.assert_series_equal(shared[f"expected__{field}"], legacy[f"expected__{field}"])
-    assert all(item.success for item in validate(backend, comparison, spec).values())

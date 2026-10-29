@@ -1,5 +1,7 @@
 # Salesforce and Ops data quality refactoring plan
 
+Historical record. Current interfaces and acceptance are described in [the native Flow SQL plan](specs/minimal-implementation-plan.md).
+
 Status: Phase 0 verified at `2d5b497`; Phase 1 complete. Phases 2–5 remain unstarted.
 Prepared: October 27, 2026.
 Canonical plan: `ppsc-ops-data-quality/docs/refactor-plan.md`.

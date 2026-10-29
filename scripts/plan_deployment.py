@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import boto3
 from botocore.validate import validate_parameters
 
-from ppsc_ops_data_quality.core.configuration import load_yaml
+from ppsc_ops_data_quality.io import load_yaml
 from scripts.package_release import sha256
 from scripts.release_artifact import verify_release
 

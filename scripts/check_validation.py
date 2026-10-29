@@ -13,35 +13,34 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from great_expectations.core import RunIdentifier
 
-from ppsc_ops_data_quality.account_to_survey_results.gx import (
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
+    ROLLUP_ACCOUNT_FIELDS,
+    flow_account_query,
+    history_tables,
+    logical_schema,
+    metadata_inputs,
+    metadata_receipt,
+    projection_lineage,
+    rollup_account_query,
+    rollup_projection_lineage,
+    to_sqlglot,
+)
+from ppsc_ops_data_quality.account_to_survey_results.suites import (
     flow_account_suite,
     rollup_account_suite,
 )
-from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
-from ppsc_ops_data_quality.account_to_survey_results.metadata import (
-    metadata_inputs,
-    metadata_receipt,
-)
-from ppsc_ops_data_quality.account_to_survey_results.queries import (
-    ROLLUP_ACCOUNT_FIELDS,
-    add_flow_context,
-    expected_account_values,
-    expected_survey_rollups,
-    flow_account_query,
-    join_account,
-    rollup_account_query,
-)
-from ppsc_ops_data_quality.core.queries import history_tables, snapshot
-from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
-from ppsc_ops_data_quality.core.schemas import (
-    ACCOUNT_HISTORY_VALIDATION_INPUT,
-    CONTACT_HISTORY_VALIDATION_INPUT,
-    SURVEY_RESULT_HISTORY_VALIDATION_INPUT,
-)
-from ppsc_ops_data_quality.gx_queries import query_asset_sql
-from ppsc_ops_data_quality.runtime import run_validations_with_reports
-from ppsc_ops_data_quality.runtime.artifacts import save_suite
-from ppsc_ops_data_quality.runtime.duckdb import prepare_validation
+from ppsc_ops_data_quality.io import RelationLocation
+from ppsc_ops_data_quality.runtime import query_asset_sql, run_validations_with_reports, save_suite
+from ppsc_ops_data_quality.views import ViewRequest, create_view_sql, extract_cte_view
+
+
+def fixture_schemas():
+    inputs = metadata_inputs()
+    return {
+        binding["native_object"]: logical_schema(inputs, key)
+        for key, binding in inputs["tables"].items()
+    }
+
 
 EVENT_ID = "synthetic_basics_event"
 BEFORE_AT = datetime(2026, 10, 21, 11, 59, 59)
@@ -50,7 +49,7 @@ AFTER_AT = datetime(2026, 10, 21, 12, 5)
 FLOW_RUN_DATE = date(2026, 10, 21)
 
 
-def comparisons(history):
+def comparisons(history, *, eligibility: bool | None = True):
     """Compose examples with independently declared BEFORE and AFTER boundaries."""
     return {
         "flow": flow_account_query(
@@ -60,8 +59,13 @@ def comparisons(history):
             execution_at=EXECUTION_AT,
             account_after_at=AFTER_AT,
             flow_run_date=FLOW_RUN_DATE,
+            eligibility=eligibility,
+            inputs=metadata_inputs(),
         ),
-        "rollups": rollup_account_query(history, as_of=AFTER_AT),
+        "rollups": to_sqlglot(
+            rollup_account_query(history, as_of=AFTER_AT),
+            projection_lineage=rollup_projection_lineage(),
+        ),
     }
 
 
@@ -72,6 +76,10 @@ def synthetic_history_tables(backend):
     values are computed by the existing query builders, not used to construct the
     observed rows. All identifiers are synthetic. No files or AWS services are read.
     """
+    schemas = fixture_schemas()
+    ACCOUNT_HISTORY_VALIDATION_INPUT = schemas["Account"]
+    CONTACT_HISTORY_VALIDATION_INPUT = schemas["Contact"]
+    SURVEY_RESULT_HISTORY_VALIDATION_INPUT = schemas["Survey_Result__c"]
     account = {field: None for field in ACCOUNT_HISTORY_VALIDATION_INPUT}
     account.update(
         Id="synthetic_account",
@@ -129,80 +137,89 @@ def compile_comparisons(output: Path):
     """Compile illustrative Athena comparisons and export native suite definitions."""
     history = history_tables(inputs=metadata_inputs())
     output.mkdir(parents=True, exist_ok=False)
-    for name, query in comparisons(history).items():
+    queries = comparisons(history)
+    for name, query in queries.items():
         (output / f"{name}.sql").write_text(
-            query_asset_sql(query, projection_lineage=PROJECTION_LINEAGE) + ";\n", encoding="utf-8"
+            query_asset_sql(query, projection_lineage=projection_lineage(query)) + ";\n",
+            encoding="utf-8",
         )
-        suite = flow_account_suite() if name == "flow" else rollup_account_suite()
+        suite = (
+            flow_account_suite(lineage=projection_lineage(query), provenance=metadata_receipt())
+            if name == "flow"
+            else rollup_account_suite(lineage=projection_lineage(query))
+        )
         assert len(suite.expectations) == (29 if name == "flow" else 25)
         save_suite(suite, output / f"{name}.suite.json")
-    return {"mode": "compile", "output": str(output), "live_queries": False}
+    sizes = render_view_example(queries["flow"], output=output)
+    return {
+        "mode": "compile",
+        "output": str(output),
+        "live_queries": False,
+        "view_sql_utf8_bytes": sizes,
+    }
+
+
+def render_view_example(query, *, output: Path) -> dict[str, int]:
+    """Save an illustrative view definition and its small GX comparison; no DDL effects."""
+    request = ViewRequest(
+        location=RelationLocation(
+            catalog="AwsDataCatalog", database="dq_example", relation="flow_expected_example"
+        )
+    )
+    expected, comparison = extract_cte_view(
+        query, cte_name="Expected_Account", location=request.location
+    )
+    statements = {
+        "flow_expected_view": create_view_sql(expected, request),
+        "flow_via_view": query_asset_sql(comparison),
+    }
+    for name, sql in statements.items():
+        (output / f"{name}.sql").write_text(
+            "-- Illustrative offline bindings; not live acceptance.\n" + sql + ";\n",
+            encoding="utf-8",
+        )
+    return {name: len(sql.encode()) for name, sql in statements.items()}
 
 
 def render_examples(output: Path, *, suite_output: Path):
     """Regenerate illustrative SQL and native suite examples from their builders."""
     history = history_tables(inputs=metadata_inputs())
-    event_id = "EXAMPLE_VERIFIED_SURVEY_EVENT"
-    AccountBefore = snapshot(history["Account"], as_of=BEFORE_AT).alias("Account_Before")
-    Contact = snapshot(history["Contact"], as_of=EXECUTION_AT).alias("Contact_At_Execution")
-    Survey = snapshot(history["Survey_Result__c"], as_of=EXECUTION_AT).alias(
-        "Survey_Results_At_Execution"
-    )
-    Trigger = Survey.filter(Survey.Id == event_id).alias("Trigger_Survey_Result")
-    Record = add_flow_context(
-        join_account(Trigger, Contact, AccountBefore),
-        Survey,
-        flow_run_date=ibis.literal(FLOW_RUN_DATE),
-    )
-    expected = {
-        "flow": expected_account_values(Record),
-        "rollups": expected_survey_rollups(
-            snapshot(history["Account"], as_of=EXECUTION_AT).alias("Account_At_Snapshot"),
-            Survey,
-        ),
-    }
-    comparison = {
-        "flow": flow_account_query(
-            history,
-            survey_result_id=event_id,
-            account_before_at=BEFORE_AT,
-            execution_at=EXECUTION_AT,
-            account_after_at=AFTER_AT,
-            flow_run_date=FLOW_RUN_DATE,
-        ),
-        "rollups": rollup_account_query(history, as_of=EXECUTION_AT),
-    }
-    header = (
-        "-- ILLUSTRATIVE bindings/event/times; source profiles are defined in core/schemas/.\n"
-        "-- Direct SELECTs over history. Verify physical catalog types before execution.\n"
-        "-- Execution: 2026-10-21 12:00; BEFORE: 11:59:59; settled AFTER: 12:05.\n\n"
-    )
     output.mkdir(parents=True, exist_ok=True)
-    for filename, queries, is_comparison in (
-        ("account_to_survey_results.sql", expected, False),
-        ("account_to_survey_results_gx_comparison.sql", comparison, True),
-    ):
-        statements = []
-        for name, query in queries.items():
-            sql = (
-                query_asset_sql(query, projection_lineage=PROJECTION_LINEAGE)
-                if is_comparison
-                else to_sqlglot(query, projection_lineage=PROJECTION_LINEAGE).sql(
-                    dialect="athena", pretty=True
-                )
-            )
-            statements.append(f"-- {name}\n{sql};\n")
-        (output / filename).write_text(header + "\n".join(statements), encoding="utf-8")
-    for suite in (flow_account_suite(), rollup_account_suite()):
+    queries = comparisons(history)
+    for name, query in queries.items():
+        (output / f"{name}.sql").write_text(
+            "-- Illustrative offline bindings; not live acceptance.\n"
+            + query_asset_sql(query)
+            + ";\n"
+        )
+        (output / f"{name}.lineage.json").write_text(
+            json.dumps(query.meta.get("ppsc", {}), indent=2) + "\n"
+        )
+        suite = (
+            flow_account_suite(lineage=projection_lineage(query), provenance=metadata_receipt())
+            if name == "flow"
+            else rollup_account_suite(lineage=projection_lineage(query))
+        )
         path = suite_output / f"{suite.name}.json"
-        path.unlink(missing_ok=True)  # Review examples are replaceable; run snapshots are not.
+        path.unlink(missing_ok=True)
         save_suite(suite, path)
+    sizes = render_view_example(queries["flow"], output=output)
     return {
         "mode": "render",
         "output": str(output),
         "suite_output": str(suite_output),
         "live_queries": False,
+        "view_sql_utf8_bytes": sizes,
     }
+
+
+def prepare_validation(context, data_source, backend, comparison, suite, *, name, metadata=None):
+    frame = backend.con.execute(comparison.sql(dialect="duckdb", comments=False)).fetchdf()
+    asset = data_source.add_dataframe_asset(name=name, batch_metadata=dict(metadata or {}))
+    batch = asset.add_batch_definition_whole_dataframe(name="whole_comparison")
+    return context.validation_definitions.add(
+        gx.ValidationDefinition(name=name, data=batch, suite=suite)
+    ), {"dataframe": frame}
 
 
 def validate_synthetic(run_directory: Path, *, s3_uri: str | None = None):
@@ -218,7 +235,11 @@ def validate_synthetic(run_directory: Path, *, s3_uri: str | None = None):
         prepared = []
         for name, query in queries.items():
             suite = (
-                flow_account_suite(expected_row_count=1)
+                flow_account_suite(
+                    expected_row_count=1,
+                    lineage=projection_lineage(query),
+                    provenance=metadata_receipt(),
+                )
                 if name == "flow"
                 else rollup_account_suite(expected_row_count=1)
             )
@@ -246,7 +267,7 @@ def validate_synthetic(run_directory: Path, *, s3_uri: str | None = None):
                         "Survey_Result__c_history",
                         *(["Contact_history"] if name == "flow" else []),
                     ],
-                    "source_query": backend.compile(query, limit=None),
+                    "source_query": query.sql(dialect="duckdb", comments=False),
                     "source_query_dialect": "duckdb",
                 }
                 for name, query in queries.items()

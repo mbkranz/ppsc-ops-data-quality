@@ -1,5 +1,7 @@
 # Explicit foreign key boundary
 
+Historical record. Current interfaces and acceptance are described in [the native Flow SQL plan](specs/minimal-implementation-plan.md).
+
 `normalize_foreign_keys(bindings)` validates a selected APMP `LakeBindings` and
 returns native `RelationshipBinding` values with ordered source/target fields.
 Each relationship explicitly names source/target objects and ordered field tuples.

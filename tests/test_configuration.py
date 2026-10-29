@@ -8,16 +8,12 @@ import sys
 from datetime import UTC, date, datetime
 from pathlib import Path
 
-import ibis
 import pytest
 import yaml
 
 from ppsc_ops_data_quality.account_to_survey_results.workflow import load_validation_configuration
-from ppsc_ops_data_quality.core.configuration import load_yaml
-from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
-from ppsc_ops_data_quality.gx_queries import query_asset_sql
-from ppsc_ops_data_quality.runtime.resources import ConfigurationResource, read_configuration
-from ppsc_ops_data_quality.views import create_view_sql
+from ppsc_ops_data_quality.glue import ConfigurationResource, read_configuration
+from ppsc_ops_data_quality.io import load_yaml
 
 
 def test_yaml_preserves_temporal_types_and_quoted_account_ids(tmp_path):
@@ -81,38 +77,6 @@ def test_verified_resource_closes_body_on_success_and_hash_mismatch():
     assert bodies[-1].closed
 
 
-def test_lineage_is_opt_in_and_reaches_query_assets_and_views():
-    source = ibis.table({"event_time": "timestamp"}, name="unrelated")
-    query = source.select(Basics_Date_Time__c=source.event_time)
-    plain = to_sqlglot(query)
-    assert all("ppsc" not in node.meta for node in plain.walk())
-    assert "FlowRecordUpdate" not in query_asset_sql(query)
-    lineage = {"Basics_Date_Time__c": {"description": "Explicit unrelated source"}}
-    assert "Explicit unrelated source" in query_asset_sql(query, projection_lineage=lineage)
-    assert "Explicit unrelated source" in create_view_sql(
-        query, name="example", projection_lineage=lineage
-    )
-    assert "Explicit unrelated source" not in create_view_sql(query, name="example")
-
-
-def test_importing_core_does_not_initialize_a_domain_or_runtime():
-    subprocess.run(
-        [
-            sys.executable,
-            "-c",
-            """
-import sys
-import ppsc_ops_data_quality.core.schemas
-import ppsc_ops_data_quality.core.queries
-import ppsc_ops_data_quality.core.queries.sql
-assert not any('.account_to_survey_results' in key or '.runtime' in key
-               for key in sys.modules if key.startswith('ppsc_ops_data_quality.'))
-""",
-        ],
-        check=True,
-    )
-
-
 def test_shared_backend_settings_do_not_load_account_workflow():
     subprocess.run(
         [
@@ -120,7 +84,7 @@ def test_shared_backend_settings_do_not_load_account_workflow():
             "-c",
             """
 import sys
-from ppsc_ops_data_quality.runtime.configuration import AthenaConfiguration, ReportConfiguration
+from ppsc_ops_data_quality.runtime import AthenaConfiguration, ReportConfiguration
 AthenaConfiguration(region="fixture", database="fixture", s3_staging_dir="s3://fixture/staging", work_group="fixture")
 ReportConfiguration(s3_uri="s3://fixture/reports")
 assert not any('.account_to_survey_results' in name for name in sys.modules)

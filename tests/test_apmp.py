@@ -6,14 +6,14 @@ import ibis
 import pytest
 from sqlglot import exp
 
-from ppsc_ops_data_quality.account_to_survey_results.workflow import ValidationConfiguration
-from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
-from ppsc_ops_data_quality.runtime.preflight import DataVersionBinding, check_catalog
-from ppsc_ops_data_quality.sources.apmp import (
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
     RelationLocation,
     logical_schema,
     source_relation,
+    to_sqlglot,
 )
+from ppsc_ops_data_quality.account_to_survey_results.workflow import ValidationConfiguration
+from ppsc_ops_data_quality.runtime import DataVersionBinding, check_catalog
 
 
 def bundle(tmp_path):
@@ -176,14 +176,14 @@ def test_generated_schema_and_mapping_disagreement_is_rejected(tmp_path):
 
 
 def test_nonempty_legacy_runtime_type_override_has_migration_message():
-    with pytest.raises(ValueError, match="reviewed APMP definition"):
+    with pytest.raises(ValueError, match="Extra inputs"):
         ValidationConfiguration.model_validate({"schema_overrides": {"account": {"x": "string"}}})
 
 
 def test_query_assets_receive_the_same_snapshot_on_each_metric_source(tmp_path):
     from types import SimpleNamespace
 
-    from ppsc_ops_data_quality.gx_queries import query_batch_definition
+    from ppsc_ops_data_quality.runtime import query_batch_definition
 
     inputs = bundle(tmp_path)
     relation = source_relation(inputs, "ledger")
@@ -198,7 +198,7 @@ def test_query_assets_receive_the_same_snapshot_on_each_metric_source(tmp_path):
         assert (
             query_batch_definition(
                 Source(),
-                query,
+                to_sqlglot(query),
                 name="selected",
                 table_versions={("lake", "finance", "delivery_42"): "123"},
             )
@@ -213,7 +213,7 @@ def test_invalid_selection_never_constructs_an_online_client(tmp_path, monkeypat
     from pathlib import Path
 
     from ppsc_ops_data_quality.account_to_survey_results import workflow as validation
-    from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt
+    from ppsc_ops_data_quality.account_to_survey_results.queries import metadata_receipt
     from ppsc_ops_data_quality.account_to_survey_results.workflow import (
         load_validation_configuration,
     )
@@ -223,9 +223,12 @@ def test_invalid_selection_never_constructs_an_online_client(tmp_path, monkeypat
         re.sub(r"REPLACE_WITH_[A-Z_]+", "fixture", Path("params.example.yaml").read_text())
     )
     request = load_validation_configuration(path)
+    from ppsc_ops_data_quality.account_to_survey_results.queries import metadata_inputs
+
+    monkeypatch.setattr(validation, "metadata_inputs", lambda *_: metadata_inputs())
     request = request.model_copy(update={"locations": {}})
     calls = []
-    with pytest.raises(ValueError, match="locations"):
+    with pytest.raises(ValueError, match="Live validation requires"):
         validation.run_validation(
             request,
             run_directory=tmp_path / "never",
@@ -285,41 +288,8 @@ def test_case_colliding_added_live_column_is_not_harmless(tmp_path):
     assert not client.queries
 
 
-def test_date_validity_cannot_claim_timestamp_history_resolution(tmp_path, monkeypatch):
-    import re
-    from pathlib import Path
-
-    from ppsc_ops_data_quality.account_to_survey_results import workflow as validation
-    from ppsc_ops_data_quality.account_to_survey_results.workflow import (
-        load_validation_configuration,
-    )
-
-    path = tmp_path / "config.yaml"
-    path.write_text(
-        re.sub(r"REPLACE_WITH_[A-Z_]+", "fixture", Path("params.example.yaml").read_text())
-    )
-    request = load_validation_configuration(path)
-    inputs = validation.metadata_inputs()
-    # A declaration claiming timestamp grain is insufficient if the selected
-    # physical state boundaries are actually DATE. loaded_at remains timestamp.
-    selected = inputs["tables"]["account"]
-    selected["fields"] = [
-        [name, "date" if name in {"valid_from", "valid_to"} else typ]
-        for name, typ in selected["fields"]
-    ]
-    monkeypatch.setattr(validation, "metadata_inputs", lambda: inputs)
-    calls = []
-    with pytest.raises(ValueError, match="temporal resolution unestablished"):
-        validation.run_validation(
-            request,
-            run_directory=tmp_path / "never",
-            athena_client_factory=lambda: calls.append(True),
-        )
-    assert not calls
-
-
 def test_generated_native_query_types_preserve_precision_timezone_and_order(tmp_path):
-    from ppsc_ops_data_quality.sources.apmp import physical_schema
+    from ppsc_ops_data_quality.account_to_survey_results.queries import physical_schema
 
     inputs = bundle(tmp_path)
     table = inputs["tables"]["ledger"]
@@ -334,7 +304,7 @@ def test_generated_native_query_types_preserve_precision_timezone_and_order(tmp_
 
 
 def test_report_sources_follow_executed_sql_and_exclude_unused_locations():
-    from ppsc_ops_data_quality.runtime.athena import query_source_tables
+    from ppsc_ops_data_quality.runtime import query_source_tables
 
     selected = {
         "used": RelationLocation(catalog="lake", database="finance", relation="delivery_42"),

@@ -13,22 +13,22 @@ stages:
       size: 8
     - path: pyproject.toml
       hash: md5
-      md5: d29afef2af2cec4e7ac74afbe082c8d7
-      size: 1592
+      md5: bc3c86db479825046ab17a8e51e4aed7
+      size: 1643
     - path: uv.lock
       hash: md5
-      md5: 29aa003a6e2e6551a6a2a106e6e0b70a
-      size: 458601
+      md5: 4767023c8f33a579e4ba2f52e203e3ee
+      size: 460993
     - path: vendor
       hash: md5
-      md5: 7282ad944392a7d0cdecdc994063b0e8.dir
-      size: 188752
-      nfiles: 2
+      md5: d74f6754343750f1d97ade3a714274c5.dir
+      size: 216810
+      nfiles: 3
     outs:
     - path: build/release/requirements/requirements.txt
       hash: md5
-      md5: 15bcdf2b33c0fefa062186f87a62dd0f
-      size: 62897
+      md5: 6285b2277eef7655796f0b5719c8a417
+      size: 63529
   dependencies:
     cmd: "python -c 'import pip; assert pip.__version__ == \"25.3\"' && python -m
       pip download --require-hashes --only-binary=:all: --no-deps --python-version
@@ -42,18 +42,18 @@ stages:
       size: 8
     - path: build/release/requirements/requirements.txt
       hash: md5
-      md5: 15bcdf2b33c0fefa062186f87a62dd0f
-      size: 62897
+      md5: 6285b2277eef7655796f0b5719c8a417
+      size: 63529
     - path: vendor
       hash: md5
-      md5: 7282ad944392a7d0cdecdc994063b0e8.dir
-      size: 188752
-      nfiles: 2
+      md5: d74f6754343750f1d97ade3a714274c5.dir
+      size: 216810
+      nfiles: 3
     outs:
     - path: build/release/dependencies
       hash: md5
-      md5: 3136987b957219cf0f95e9b608c3822f.dir
-      size: 185984133
+      md5: 768a9a41630b98521d23e0ae06362cb6.dir
+      size: 183199055
       nfiles: 58
   wheel:
     cmd:
@@ -71,39 +71,39 @@ stages:
       size: 8
     - path: README.md
       hash: md5
-      md5: 1faa908981d9a48c6dfcf3f6c5087b2a
-      size: 16030
+      md5: 64e1ed813f4e10d31d1c45cb10617ae2
+      size: 3992
     - path: pyproject.toml
       hash: md5
-      md5: d29afef2af2cec4e7ac74afbe082c8d7
-      size: 1592
+      md5: bc3c86db479825046ab17a8e51e4aed7
+      size: 1643
     - path: src
       hash: md5
-      md5: d665d3aaf305962e6c54372199f4c2bb.dir
-      size: 356272
-      nfiles: 47
+      md5: af5e1860701e3b978603e59fcad1b8ab.dir
+      size: 318150
+      nfiles: 16
     - path: uv.lock
       hash: md5
-      md5: 29aa003a6e2e6551a6a2a106e6e0b70a
-      size: 458601
+      md5: 4767023c8f33a579e4ba2f52e203e3ee
+      size: 460993
     outs:
     - path: build/release/project
       hash: md5
-      md5: b97eadc030b5122c01de593e3a2aa81e.dir
-      size: 89291
+      md5: cbd792c8f552fdde81dca8fe8ba059c2.dir
+      size: 60509
       nfiles: 1
   bundle:
     cmd: python -m scripts.package_release
     deps:
     - path: build/release/dependencies
       hash: md5
-      md5: 3136987b957219cf0f95e9b608c3822f.dir
-      size: 185984133
+      md5: 768a9a41630b98521d23e0ae06362cb6.dir
+      size: 183199055
       nfiles: 58
     - path: build/release/project
       hash: md5
-      md5: b97eadc030b5122c01de593e3a2aa81e.dir
-      size: 89291
+      md5: cbd792c8f552fdde81dca8fe8ba059c2.dir
+      size: 60509
       nfiles: 1
     - path: scripts/glue_wheels.py
       hash: md5
@@ -116,5 +116,5 @@ stages:
     outs:
     - path: build/release/bundle/dependencies.gluewheels.zip
       hash: md5
-      md5: 56c4ce2c739aadb9c6961f3eeddb8f1c
-      size: 183039870
+      md5: 9ce3bad18ad5c588cfc655084aa8208c
+      size: 180089850

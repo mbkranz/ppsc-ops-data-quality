@@ -1,26 +1,28 @@
 # Reusing expected-value comparisons across sources
 
+Current modules are `account_to_survey_results.queries` and `.suites`; the shared runtime accepts native SELECTs. Retired source adapters are replaced by the [explicit native query path](query-design.md).
+
 The shared consumer accepts native Ibis relations and explicit, validated column
 bindings. Object names, field lists, Flow IDs, survey launch dates, eligibility,
-lookup resolution and source interpretation stay outside core. There is no
+lookup resolution and source interpretation stay outside the shared comparison function. There is no
 source registry, rule DSL, automatic discovery or replacement GX engine.
 
 ## Source-independent comparison
 
-`core.comparison.ComparisonSpec` declares the complete comparison grain and value
+`ComparisonSpec` declares the complete comparison grain and value
 bindings. Keys and values can have different source and target names. Composite
 keys remain ordered typed columns, never concatenated strings. Each value may
 bind separate source-computation determinism, assignment, required and
 must-be-null evidence columns. These must be boolean; unknown remains NULL.
 
 ```python
-from ppsc_ops_data_quality.core.comparison import (
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ComparisonSpec,
     KeyBinding,
     ValueBinding,
     compare_values,
 )
-from ppsc_ops_data_quality.core.comparison_gx import comparison_suite
+from ppsc_ops_data_quality.account_to_survey_results.suites import comparison_suite
 
 spec = ComparisonSpec(
     keys=(
@@ -71,31 +73,24 @@ freshness, exclusion/quarantine policy, native source definitions and APMP bindi
 receipts and run metadata. The suite builder creates no context or execution.
 Use the existing runner's explicit result-format argument and report handoffs.
 
-## Salesforce adapters
+## Account adapters and dotted GX labels
 
-`sources.salesforce.flow_comparison` accepts a verified `MetadataBundle`, a
-producer `FlowRequest`, the comparison specification and explicit native Ibis
-eligibility predicate. It compiles the selected object and fields once through
-`ppsc_metadata`. It never selects the Account workflow, QA2 files or cached global
-request. Prepare relationship paths and BEFORE state upstream. When lookups or
-formulas are needed, call the producer's `flow_context` with the selected Flow,
-request, source tables and execution date first. Requested target fields must
-exist in the supplied verified native metadata and APMP bindings; missing assignments and unsupported native
-constructs retain compiler diagnostics. Output/evidence collisions fail explicitly.
+Expected Flow and rollup builders expose canonical Account fields. The independent
+observation query uses the same field names. `flow_account_comparison` and
+`rollup_account_comparison` create dotted output labels only at the GX join boundary.
+The native Flow compiler's internal aliases, graph and execution sequence are retained.
 
-`sources.salesforce.native_rollup_comparison` accepts any explicitly selected parent
-object, child object, selected native rollup and explicit parent key. The caller
-chooses snapshots and the empty/all-null aggregate policy. Keys use source-neutral
-`expected_key__parent` and `observed_key__parent` names. The Account module retains
-its existing public wrapper with compatibility aliases. The active 19 workbook
-rollups remain unchanged pending reviewed org definitions and policies.
+The generic `compare_values` function applies the same boundary naming convention:
+`expected.<value>`, `observed.<value>`, `expected.key.<key>` and `observed.key.<key>`.
+The `key` namespace prevents key/value collisions. Evidence labels are
+`expected.<value>__assigned`, `__deterministic`, `__required` and `__must_be_null`.
+Source relations keep their original names, including explicitly mapped cross-source
+names. Dotted output labels are quoted as single identifiers; GX receives these labels,
+not SQL table qualifiers. Native equality/null checks and finding keys use the labels.
 
-The existing Account event builder and runtime configuration remain one explicit
-workflow. Their field list, join paths, launch cutoff and CABOR-specific evidence
-are application policy, not shared defaults for new flows. New workflows compose
-native source queries, adapters and suite builders explicitly; adding a workflow
-does not mean editing an Account field list or introducing a dispatcher. Existing
-Account suites and the generic suite share the native equality/null constructor.
+The Account workflow retains its event grain, launch cutoff and permission-lookup
+checks. Check IDs stay stable despite label changes. New workflows compose their own
+native source queries and suites; there is no dispatcher or metadata interpreter.
 
 ## Migration mappings and Qualtrics
 

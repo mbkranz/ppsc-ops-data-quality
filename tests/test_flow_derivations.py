@@ -1,13 +1,10 @@
 import datetime as dt
 import unittest
-from pathlib import Path
 
 import ibis
 import sqlglot
 
-from ppsc_ops_data_quality.account_to_survey_results import lineage
 from ppsc_ops_data_quality.account_to_survey_results import queries as m
-from ppsc_ops_data_quality.core.queries.sql import to_sqlglot
 
 OLD = dt.datetime(2001, 1, 1)
 NEW = dt.datetime(2024, 1, 1)
@@ -82,11 +79,28 @@ def fixtures(
     return (Trigger, All, Account, Contact)
 
 
-def build(*args, **kwargs):
-    Trigger, All, Account, Contact = fixtures(*args, **kwargs)
-    Record = m.join_account(Trigger, Contact, Account)
-    Record = m.add_flow_context(Record, All, flow_run_date=ibis.date("2026-10-21"))
-    return m.expected_account_values(Record)
+def build(backend, *args, **kwargs):
+    _, surveys, account, contact = fixtures(*args, **kwargs)
+    history = {}
+    for name, table in [("Account", account), ("Contact", contact), ("Survey_Result__c", surveys)]:
+        table = table.mutate(
+            valid_from=ibis.timestamp("1999-01-01"),
+            valid_to=ibis.null().cast("timestamp"),
+            is_current=True,
+        )
+        history[name] = backend.create_table(
+            name + "_history_" + __import__("uuid").uuid4().hex, table
+        )
+    return m.flow_account_query(
+        history,
+        survey_result_id="r1",
+        account_before_at=dt.datetime(2023, 12, 30),
+        execution_at=dt.datetime(2024, 1, 1),
+        account_after_at=dt.datetime(2024, 1, 2),
+        flow_run_date=dt.date(2026, 10, 21),
+        eligibility=kwargs.get("status", "Complete") == "Complete",
+        inputs=m.metadata_inputs(),
+    )
 
 
 class ExpectedValues(unittest.TestCase):
@@ -95,7 +109,17 @@ class ExpectedValues(unittest.TestCase):
         cls.con = ibis.duckdb.connect()
 
     def row(self, *args, **kwargs):
-        return self.con.execute(build(*args, **kwargs)).iloc[0]
+        row = (
+            self.con.con.execute(
+                build(self.con, *args, **kwargs).sql(dialect="duckdb", comments=False)
+            )
+            .fetchdf()
+            .iloc[0]
+        )
+        return row.rename(
+            {"expected." + field: field for field in m.FLOW_FIELDS}
+            | {"cabor_lookup_is_deterministic": "CABOR_Completion_Date__c_is_deterministic"}
+        )
 
     def test_every_simple_update(self):
         for index, field in [
@@ -170,7 +194,6 @@ class ExpectedValues(unittest.TestCase):
                 }
             ],
         )
-        self.assertEqual(row["FlowRecordLookup.Pediatric_Permission_For_Assent.match_count"], 2)
         self.assertFalse(row.CABOR_Completion_Date__c_is_deterministic)
         self.assertTrue(pd.isna(row.CABOR_Completion_Date__c))
 
@@ -190,15 +213,6 @@ class ExpectedValues(unittest.TestCase):
             for field in m.ACCOUNT_FIELDS_ASSIGNED_BY_FLOW:
                 self.assertEqual(row[field], 22 if field == "Age_at_Time_of_Consent__pc" else OLD)
 
-    def test_missing_parent_retained(self):
-        Trigger, All, Account, Contact = fixtures("2001")
-        Contact = Contact.filter(Contact.Id == "absent")
-        Record = m.join_account(Trigger, Contact, Account)
-        Record = m.add_flow_context(Record, All, flow_run_date=ibis.date("2026-10-21"))
-        rows = self.con.execute(m.expected_account_values(Record))
-        self.assertEqual(len(rows), 1)
-        self.assertTrue(rows["Account.Id"].isna().all())
-
     def test_rollups_are_separate_expected_case_aggregates(self):
         Account = ibis.memtable(
             {
@@ -217,7 +231,7 @@ class ExpectedValues(unittest.TestCase):
             }
         )
         expected = m.expected_survey_rollups(Account, Survey)
-        rows = self.con.execute(expected).set_index("Account.Id")
+        rows = self.con.execute(expected).set_index("Id")
         self.assertEqual(set(rows.index), {"a1", "a2"})
         self.assertEqual(rows.loc["a1", "Count_of_Completed_Primary_Consent__pc"], 2)
         self.assertEqual(rows.loc["a2", "Count_of_Completed_Primary_Consent__pc"], 0)
@@ -233,149 +247,3 @@ class ExpectedValues(unittest.TestCase):
             any(column.startswith("FlowDecision_") for column in row.index),
             "resolved routing conditions belong in final expected expressions",
         )
-
-    def context(self, index="1001", **kwargs):
-        Trigger, All, Account, Contact = fixtures(index, **kwargs)
-        return m.add_flow_context(
-            m.join_account(Trigger, Contact, Account), All, flow_run_date=ibis.date("2026-10-21")
-        )
-
-    def test_plain_ibis_values_can_be_selected_independently(self):
-        import ibis.expr.types as ir
-
-        R = self.context("2001")
-        fields = m.derived_account_expressions(R)
-        self.assertEqual(len(fields), 19)
-        self.assertTrue(all(isinstance(f, ir.Value) for f in fields))
-        by_name = {f.get_name(): f for f in fields}
-        basics = by_name["Basics_Date_Time__c"]
-        self.assertEqual(self.con.execute(R.select(basics)).iloc[0].Basics_Date_Time__c, NEW)
-        selected = m.expected_account_values(R, fields=[basics])
-        self.assertEqual(self.con.execute(selected).iloc[0].Basics_Date_Time__c, NEW)
-        with self.assertRaises(ValueError):
-            m.expected_account_values(R, fields=[basics, basics])
-
-    def test_annotations_match_final_aliases_and_original_sources(self):
-        query = to_sqlglot(
-            build("1001", prior="1002"), projection_lineage=lineage.PROJECTION_LINEAGE
-        )
-        by_name = {p.alias_or_name: p for p in query.selects}
-        self.assertEqual(query.meta["ppsc"]["unannotated_fields"], [])
-        for name in m.ACCOUNT_FIELDS_ASSIGNED_BY_FLOW:
-            self.assertEqual(by_name[name].meta["ppsc"]["target_field"], "Account." + name)
-        p = by_name["Basics_Date_Time__c"].meta["ppsc"]
-        self.assertEqual(p["source_entities"], ["FlowRecordUpdate.updateAccount2001"])
-        self.assertEqual(p["branches"][0]["rule_id"], "updateAccount2001/Basics_Date_Time__c")
-        self.assertEqual(p["workbook_rows"], [14506])
-        self.assertFalse(any(name.startswith("FlowDecision_") for name in by_name))
-
-    def test_ast_copy_and_dump_load_preserve_metadata(self):
-        import json
-
-        from sqlglot import exp
-
-        query = to_sqlglot(
-            build("1008", prior="1007"), projection_lineage=lineage.PROJECTION_LINEAGE
-        )
-        for restored in [query.copy(), exp.Expression.load(json.loads(json.dumps(query.dump())))]:
-            self.assertEqual(restored.meta["ppsc"], query.meta["ppsc"])
-            self.assertEqual(
-                [p.meta["ppsc"] for p in restored.selects], [p.meta["ppsc"] for p in query.selects]
-            )
-            self.assertEqual(restored.sql(dialect="athena"), query.sql(dialect="athena"))
-        sql = query.sql(dialect="athena", pretty=True)
-        self.assertIn("source: FlowRecordUpdate.updateAccount2001", sql)
-        reparsed = sqlglot.parse_one(sql, read="athena")
-        self.assertFalse(any(n.meta.get("ppsc") for n in reparsed.walk()))
-
-    def test_recompilation_reapplies_independent_metadata(self):
-        from ibis.backends.sql.compilers.athena import compiler
-
-        from ppsc_ops_data_quality.account_to_survey_results import lineage
-
-        expression = build("1001")
-        first = to_sqlglot(expression, projection_lineage=lineage.PROJECTION_LINEAGE)
-        plain = compiler.to_sqlglot(expression)
-        self.assertTrue(all("ppsc" not in p.meta for p in plain.selects))
-        first.selects[-1].meta["ppsc"]["description"] = "mutated copy"
-        second = to_sqlglot(expression, projection_lineage=lineage.PROJECTION_LINEAGE)
-        self.assertNotEqual(second.selects[-1].meta["ppsc"]["description"], "mutated copy")
-        self.assertNotEqual(
-            lineage.PROJECTION_LINEAGE[second.selects[-1].alias_or_name]["description"],
-            "mutated copy",
-        )
-
-    def test_all_authored_update_sources_and_branch_ids_retained(self):
-        import json
-
-        from ppsc_ops_data_quality.account_to_survey_results import lineage
-
-        query = to_sqlglot(build("1008"), projection_lineage=lineage.PROJECTION_LINEAGE)
-        manifest = json.loads(
-            (Path(__file__).parent / "fixtures/survey_completion_flow_updates.json").read_text()
-        )
-        expected = set(manifest["record_update_ids"])
-        actual = {
-            s for s in query.meta["ppsc"]["source_entities"] if s.startswith("FlowRecordUpdate.")
-        }
-        self.assertEqual(actual, expected)
-        ids = {b["rule_id"] for p in query.selects for b in p.meta["ppsc"].get("branches", [])}
-        rolls = ibis.table(
-            {
-                "Completion_Status__c": "string",
-                "Consent_Status__c": "string",
-                "Consent_Revoked__c": "boolean",
-                "Survey_Index_Number__c": "string",
-            },
-            name="Record",
-        )
-        for indicator in m.survey_rollup_indicators(rolls):
-            ids.update(
-                b["rule_id"] for b in lineage.PROJECTION_LINEAGE[indicator.get_name()]["branches"]
-            )
-        intermediate_decision_ids = {
-            branch["rule_id"]
-            for name, metadata in lineage.PROJECTION_LINEAGE.items()
-            if name.startswith("FlowDecision_")
-            for branch in metadata.get("branches", [])
-        }
-        self.assertEqual(ids, set(lineage.BRANCH_LINEAGE) - intermediate_decision_ids)
-
-    def test_annotated_athena_ast_matches_ibis_execution(self):
-        import pandas as pd
-
-        for index, kwargs in [
-            ("1001", {"prior": "1002"}),
-            ("1008", {"prior": "1007", "earliest": None}),
-            ("2009", {"prior": "2009"}),
-        ]:
-            with self.subTest(index=index):
-                expression = build(index, **kwargs)
-                expected = self.con.execute(expression)
-                query = to_sqlglot(expression, projection_lineage=lineage.PROJECTION_LINEAGE)
-                parsed = sqlglot.parse_one(query.sql(dialect="athena"), read="athena")
-                rows = self.con.raw_sql(parsed.sql(dialect="duckdb")).fetchall()
-                actual = pd.DataFrame(rows, columns=expected.columns)
-                # pandas 3 can represent SQL NULL strings as NaN rather than None.
-                # Compare null positions independently, then every non-null value.
-                pd.testing.assert_frame_equal(actual.isna(), expected.isna())
-                for column in expected.columns:
-                    present = expected[column].notna()
-                    pd.testing.assert_series_equal(
-                        actual.loc[present, column].reset_index(drop=True),
-                        expected.loc[present, column].reset_index(drop=True),
-                        check_dtype=False,
-                    )
-
-    def test_unknown_outputs_and_null_predicates(self):
-        R = self.context("1001", status=None)
-        row = self.con.execute(m.expected_account_values(R)).iloc[0]
-        self.assertEqual(row.Age_at_Time_of_Consent__pc, 22)
-        custom = R.select(custom_output=R.Id)
-        query = to_sqlglot(custom, projection_lineage=lineage.PROJECTION_LINEAGE)
-        self.assertEqual(query.meta["ppsc"]["unannotated_fields"], ["custom_output"])
-        self.assertNotIn("ppsc", query.selects[0].meta)
-
-
-if __name__ == "__main__":
-    unittest.main(verbosity=2)

@@ -1,5 +1,7 @@
 > Historical pre-migration review. The active v2 boundary is documented in [metadata-compiler.md](metadata-compiler.md).
 
+Historical record. Current interfaces and acceptance are described in [the native Flow SQL plan](specs/minimal-implementation-plan.md).
+
 # Expected-value consumer implementation and PPSC review
 
 This completes the offline consumer work from the October 24 Spaces plan. Review

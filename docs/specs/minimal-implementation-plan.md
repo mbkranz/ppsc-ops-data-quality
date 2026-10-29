@@ -129,3 +129,18 @@ Final gate results and release artifact identities are recorded in
 [the implementation evidence](../evidence/native-flow-sql-ops.md). Synthetic/offline checks
 and installed release verification establish no live Salesforce/Athena/Glue acceptance.
 No live configuration, record-level data or report rows belong in Git.
+
+## Canonical query simplification (PR #14 follow-up)
+
+Expected and observed domain queries now use canonical Account field names. The native
+Flow binder returns expected state without the AFTER observation; rollup aggregation
+also finishes before joining observations. The two existing comparison functions add
+literal `expected.<field>` / `observed.<field>` labels for GX and preserve structural,
+scope, assignment, determinism, presence and NULL checks. Identity check IDs remain
+stable. Generic comparison keys use `expected.key.<name>` / `observed.key.<name>`.
+
+No new runtime abstraction or dependency is needed. The composition functions retain
+explicit temporal validation and the runtime accepts the final SELECT as before. Review
+must verify independent expected queries, no observation-to-expectation dependency,
+row multiplicity after pre-aggregation, quoted dotted identifiers, copied lineage and
+native GX diagnostics. See [follow-up evidence](../evidence/canonical-query-boundary.md).

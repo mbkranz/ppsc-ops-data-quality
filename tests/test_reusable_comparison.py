@@ -111,9 +111,7 @@ def test_migration_columns_composite_grain_and_native_gx(backend):
     result = validate(backend, compare_values(expected, changed, spec), spec)
     assert not result["answer_equals_expected"].success  # assignment false still compares
     assert (
-        result["answer_equals_expected"].result["unexpected_index_list"][0][
-            "expected_key__response"
-        ]
+        result["answer_equals_expected"].result["unexpected_index_list"][0]["expected.key.response"]
         == "r3"
     )
 
@@ -128,7 +126,7 @@ def test_duplicates_preserve_fanout_and_block_equality(backend, side):
     comparison = compare_values(expected, observed, migration_spec())
     frame = backend.execute(comparison)
     assert len(frame) == 5
-    assert not frame.loc[frame.expected_key__response == "r2", "comparison_keys_are_valid"].any()
+    assert not frame.loc[frame["expected.key.response"] == "r2", "comparison_keys_are_valid"].any()
     assert not validate(backend, comparison, migration_spec())["comparison_grain_valid"].success
 
 
@@ -260,13 +258,13 @@ def test_generic_reconciliation_sql_executes_after_shared_renderer(backend):
     query = to_sqlglot(comparison)
     direct = (
         backend.execute(comparison)
-        .sort_values(["expected_key__tenant", "expected_key__response"])
+        .sort_values(["expected.key.tenant", "expected.key.response"])
         .reset_index(drop=True)
     )
     rendered = (
         backend.con.execute(query.sql(dialect="duckdb"))
         .fetchdf()
-        .sort_values(["expected_key__tenant", "expected_key__response"])
+        .sort_values(["expected.key.tenant", "expected.key.response"])
         .reset_index(drop=True)
     )
     pd.testing.assert_frame_equal(direct, rendered, check_dtype=False)

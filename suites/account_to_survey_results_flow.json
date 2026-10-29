@@ -8,90 +8,90 @@
         "column_set": [
           "survey_result_id",
           "participant_contact_id",
-          "expected_account_id",
-          "observed_account_id",
+          "expected.Id",
+          "observed.Id",
           "validation_record_id",
           "comparison_keys_are_valid",
           "flow_evidence_is_complete",
           "cabor_lookup_is_deterministic",
           "survey_completion_timestamp",
           "survey_completion_occurred_on_or_after_launch",
-          "expected__Age_at_Time_of_Consent__pc",
-          "expected__CABOR_Completion_Date__c",
-          "expected__Earliest_Primary_Consent_Date_for_Report__c",
-          "expected__Latest_Primary_Consent_Date_for_Report__c",
-          "expected__EHR_Consent_Date_Time__c",
-          "expected__EHR_Reconsent_Date_Time__c",
-          "expected__Update_to_Primary_Consent_Completed__c",
-          "expected__Basics_Date_Time__c",
-          "expected__Overall_Health_Date_Time__c",
-          "expected__Lifestyle_Date_Time__c",
-          "expected__Personal_and_Family_History_Complete__c",
-          "expected__HC_Access_Date_Time__c",
-          "expected__Life_Functioning_Date_Time__c",
-          "expected__First_Physical_Measurement_Date_Time__c",
-          "expected__Last_Physical_Measurement_Date_Time__c",
-          "expected__EH_Date_Time__c",
-          "expected__Behavioral_Health_Completion__c",
-          "expected__Environmental_Exposures_Date_Time__c",
-          "expected__Social_Determinants_of_Health_Completion__c",
-          "observed__Age_at_Time_of_Consent__pc",
-          "observed__CABOR_Completion_Date__c",
-          "observed__Earliest_Primary_Consent_Date_for_Report__c",
-          "observed__Latest_Primary_Consent_Date_for_Report__c",
-          "observed__EHR_Consent_Date_Time__c",
-          "observed__EHR_Reconsent_Date_Time__c",
-          "observed__Update_to_Primary_Consent_Completed__c",
-          "observed__Basics_Date_Time__c",
-          "observed__Overall_Health_Date_Time__c",
-          "observed__Lifestyle_Date_Time__c",
-          "observed__Personal_and_Family_History_Complete__c",
-          "observed__HC_Access_Date_Time__c",
-          "observed__Life_Functioning_Date_Time__c",
-          "observed__First_Physical_Measurement_Date_Time__c",
-          "observed__Last_Physical_Measurement_Date_Time__c",
-          "observed__EH_Date_Time__c",
-          "observed__Behavioral_Health_Completion__c",
-          "observed__Environmental_Exposures_Date_Time__c",
-          "observed__Social_Determinants_of_Health_Completion__c",
-          "expected__Age_at_Time_of_Consent__pc__deterministic",
-          "expected__CABOR_Completion_Date__c__deterministic",
-          "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic",
-          "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic",
-          "expected__EHR_Consent_Date_Time__c__deterministic",
-          "expected__EHR_Reconsent_Date_Time__c__deterministic",
-          "expected__Update_to_Primary_Consent_Completed__c__deterministic",
-          "expected__Basics_Date_Time__c__deterministic",
-          "expected__Overall_Health_Date_Time__c__deterministic",
-          "expected__Lifestyle_Date_Time__c__deterministic",
-          "expected__Personal_and_Family_History_Complete__c__deterministic",
-          "expected__HC_Access_Date_Time__c__deterministic",
-          "expected__Life_Functioning_Date_Time__c__deterministic",
-          "expected__First_Physical_Measurement_Date_Time__c__deterministic",
-          "expected__Last_Physical_Measurement_Date_Time__c__deterministic",
-          "expected__EH_Date_Time__c__deterministic",
-          "expected__Behavioral_Health_Completion__c__deterministic",
-          "expected__Environmental_Exposures_Date_Time__c__deterministic",
-          "expected__Social_Determinants_of_Health_Completion__c__deterministic",
-          "expected__Age_at_Time_of_Consent__pc__assigned",
-          "expected__CABOR_Completion_Date__c__assigned",
-          "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned",
-          "expected__Latest_Primary_Consent_Date_for_Report__c__assigned",
-          "expected__EHR_Consent_Date_Time__c__assigned",
-          "expected__EHR_Reconsent_Date_Time__c__assigned",
-          "expected__Update_to_Primary_Consent_Completed__c__assigned",
-          "expected__Basics_Date_Time__c__assigned",
-          "expected__Overall_Health_Date_Time__c__assigned",
-          "expected__Lifestyle_Date_Time__c__assigned",
-          "expected__Personal_and_Family_History_Complete__c__assigned",
-          "expected__HC_Access_Date_Time__c__assigned",
-          "expected__Life_Functioning_Date_Time__c__assigned",
-          "expected__First_Physical_Measurement_Date_Time__c__assigned",
-          "expected__Last_Physical_Measurement_Date_Time__c__assigned",
-          "expected__EH_Date_Time__c__assigned",
-          "expected__Behavioral_Health_Completion__c__assigned",
-          "expected__Environmental_Exposures_Date_Time__c__assigned",
-          "expected__Social_Determinants_of_Health_Completion__c__assigned"
+          "expected.Age_at_Time_of_Consent__pc",
+          "expected.CABOR_Completion_Date__c",
+          "expected.Earliest_Primary_Consent_Date_for_Report__c",
+          "expected.Latest_Primary_Consent_Date_for_Report__c",
+          "expected.EHR_Consent_Date_Time__c",
+          "expected.EHR_Reconsent_Date_Time__c",
+          "expected.Update_to_Primary_Consent_Completed__c",
+          "expected.Basics_Date_Time__c",
+          "expected.Overall_Health_Date_Time__c",
+          "expected.Lifestyle_Date_Time__c",
+          "expected.Personal_and_Family_History_Complete__c",
+          "expected.HC_Access_Date_Time__c",
+          "expected.Life_Functioning_Date_Time__c",
+          "expected.First_Physical_Measurement_Date_Time__c",
+          "expected.Last_Physical_Measurement_Date_Time__c",
+          "expected.EH_Date_Time__c",
+          "expected.Behavioral_Health_Completion__c",
+          "expected.Environmental_Exposures_Date_Time__c",
+          "expected.Social_Determinants_of_Health_Completion__c",
+          "observed.Age_at_Time_of_Consent__pc",
+          "observed.CABOR_Completion_Date__c",
+          "observed.Earliest_Primary_Consent_Date_for_Report__c",
+          "observed.Latest_Primary_Consent_Date_for_Report__c",
+          "observed.EHR_Consent_Date_Time__c",
+          "observed.EHR_Reconsent_Date_Time__c",
+          "observed.Update_to_Primary_Consent_Completed__c",
+          "observed.Basics_Date_Time__c",
+          "observed.Overall_Health_Date_Time__c",
+          "observed.Lifestyle_Date_Time__c",
+          "observed.Personal_and_Family_History_Complete__c",
+          "observed.HC_Access_Date_Time__c",
+          "observed.Life_Functioning_Date_Time__c",
+          "observed.First_Physical_Measurement_Date_Time__c",
+          "observed.Last_Physical_Measurement_Date_Time__c",
+          "observed.EH_Date_Time__c",
+          "observed.Behavioral_Health_Completion__c",
+          "observed.Environmental_Exposures_Date_Time__c",
+          "observed.Social_Determinants_of_Health_Completion__c",
+          "expected.Age_at_Time_of_Consent__pc__deterministic",
+          "expected.CABOR_Completion_Date__c__deterministic",
+          "expected.Earliest_Primary_Consent_Date_for_Report__c__deterministic",
+          "expected.Latest_Primary_Consent_Date_for_Report__c__deterministic",
+          "expected.EHR_Consent_Date_Time__c__deterministic",
+          "expected.EHR_Reconsent_Date_Time__c__deterministic",
+          "expected.Update_to_Primary_Consent_Completed__c__deterministic",
+          "expected.Basics_Date_Time__c__deterministic",
+          "expected.Overall_Health_Date_Time__c__deterministic",
+          "expected.Lifestyle_Date_Time__c__deterministic",
+          "expected.Personal_and_Family_History_Complete__c__deterministic",
+          "expected.HC_Access_Date_Time__c__deterministic",
+          "expected.Life_Functioning_Date_Time__c__deterministic",
+          "expected.First_Physical_Measurement_Date_Time__c__deterministic",
+          "expected.Last_Physical_Measurement_Date_Time__c__deterministic",
+          "expected.EH_Date_Time__c__deterministic",
+          "expected.Behavioral_Health_Completion__c__deterministic",
+          "expected.Environmental_Exposures_Date_Time__c__deterministic",
+          "expected.Social_Determinants_of_Health_Completion__c__deterministic",
+          "expected.Age_at_Time_of_Consent__pc__assigned",
+          "expected.CABOR_Completion_Date__c__assigned",
+          "expected.Earliest_Primary_Consent_Date_for_Report__c__assigned",
+          "expected.Latest_Primary_Consent_Date_for_Report__c__assigned",
+          "expected.EHR_Consent_Date_Time__c__assigned",
+          "expected.EHR_Reconsent_Date_Time__c__assigned",
+          "expected.Update_to_Primary_Consent_Completed__c__assigned",
+          "expected.Basics_Date_Time__c__assigned",
+          "expected.Overall_Health_Date_Time__c__assigned",
+          "expected.Lifestyle_Date_Time__c__assigned",
+          "expected.Personal_and_Family_History_Complete__c__assigned",
+          "expected.HC_Access_Date_Time__c__assigned",
+          "expected.Life_Functioning_Date_Time__c__assigned",
+          "expected.First_Physical_Measurement_Date_Time__c__assigned",
+          "expected.Last_Physical_Measurement_Date_Time__c__assigned",
+          "expected.EH_Date_Time__c__assigned",
+          "expected.Behavioral_Health_Completion__c__assigned",
+          "expected.Environmental_Exposures_Date_Time__c__assigned",
+          "expected.Social_Determinants_of_Health_Completion__c__assigned"
         ],
         "exact_match": false
       },
@@ -177,7 +177,7 @@
     {
       "type": "expect_column_values_to_not_be_null",
       "kwargs": {
-        "column": "expected_account_id",
+        "column": "expected.Id",
         "row_condition": {
           "column": {
             "name": "survey_completion_occurred_on_or_after_launch"
@@ -190,13 +190,13 @@
       "meta": {
         "check_id": "flow_expected_account_id_is_present"
       },
-      "description": "Every survey event has expected_account_id.",
+      "description": "Every survey event has expected.Id.",
       "severity": "critical"
     },
     {
       "type": "expect_column_values_to_not_be_null",
       "kwargs": {
-        "column": "observed_account_id",
+        "column": "observed.Id",
         "row_condition": {
           "column": {
             "name": "survey_completion_occurred_on_or_after_launch"
@@ -209,7 +209,7 @@
       "meta": {
         "check_id": "flow_observed_account_id_is_present"
       },
-      "description": "Every survey event has observed_account_id.",
+      "description": "Every survey event has observed.Id.",
       "severity": "critical"
     },
     {
@@ -280,8 +280,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Age_at_Time_of_Consent__pc",
-        "column_B": "expected__Age_at_Time_of_Consent__pc",
+        "column_A": "observed.Age_at_Time_of_Consent__pc",
+        "column_B": "expected.Age_at_Time_of_Consent__pc",
         "row_condition": {
           "conditions": [
             {
@@ -302,7 +302,7 @@
             },
             {
               "column": {
-                "name": "expected__Age_at_Time_of_Consent__pc__deterministic"
+                "name": "expected.Age_at_Time_of_Consent__pc__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -310,7 +310,7 @@
             },
             {
               "column": {
-                "name": "expected__Age_at_Time_of_Consent__pc__assigned"
+                "name": "expected.Age_at_Time_of_Consent__pc__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -404,8 +404,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__CABOR_Completion_Date__c",
-        "column_B": "expected__CABOR_Completion_Date__c",
+        "column_A": "observed.CABOR_Completion_Date__c",
+        "column_B": "expected.CABOR_Completion_Date__c",
         "row_condition": {
           "conditions": [
             {
@@ -426,7 +426,7 @@
             },
             {
               "column": {
-                "name": "expected__CABOR_Completion_Date__c__deterministic"
+                "name": "expected.CABOR_Completion_Date__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -434,7 +434,7 @@
             },
             {
               "column": {
-                "name": "expected__CABOR_Completion_Date__c__assigned"
+                "name": "expected.CABOR_Completion_Date__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -536,8 +536,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Earliest_Primary_Consent_Date_for_Report__c",
-        "column_B": "expected__Earliest_Primary_Consent_Date_for_Report__c",
+        "column_A": "observed.Earliest_Primary_Consent_Date_for_Report__c",
+        "column_B": "expected.Earliest_Primary_Consent_Date_for_Report__c",
         "row_condition": {
           "conditions": [
             {
@@ -558,7 +558,7 @@
             },
             {
               "column": {
-                "name": "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic"
+                "name": "expected.Earliest_Primary_Consent_Date_for_Report__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -566,7 +566,7 @@
             },
             {
               "column": {
-                "name": "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned"
+                "name": "expected.Earliest_Primary_Consent_Date_for_Report__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -654,8 +654,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Latest_Primary_Consent_Date_for_Report__c",
-        "column_B": "expected__Latest_Primary_Consent_Date_for_Report__c",
+        "column_A": "observed.Latest_Primary_Consent_Date_for_Report__c",
+        "column_B": "expected.Latest_Primary_Consent_Date_for_Report__c",
         "row_condition": {
           "conditions": [
             {
@@ -676,7 +676,7 @@
             },
             {
               "column": {
-                "name": "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic"
+                "name": "expected.Latest_Primary_Consent_Date_for_Report__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -684,7 +684,7 @@
             },
             {
               "column": {
-                "name": "expected__Latest_Primary_Consent_Date_for_Report__c__assigned"
+                "name": "expected.Latest_Primary_Consent_Date_for_Report__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -778,8 +778,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__EHR_Consent_Date_Time__c",
-        "column_B": "expected__EHR_Consent_Date_Time__c",
+        "column_A": "observed.EHR_Consent_Date_Time__c",
+        "column_B": "expected.EHR_Consent_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -800,7 +800,7 @@
             },
             {
               "column": {
-                "name": "expected__EHR_Consent_Date_Time__c__deterministic"
+                "name": "expected.EHR_Consent_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -808,7 +808,7 @@
             },
             {
               "column": {
-                "name": "expected__EHR_Consent_Date_Time__c__assigned"
+                "name": "expected.EHR_Consent_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -878,8 +878,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__EHR_Reconsent_Date_Time__c",
-        "column_B": "expected__EHR_Reconsent_Date_Time__c",
+        "column_A": "observed.EHR_Reconsent_Date_Time__c",
+        "column_B": "expected.EHR_Reconsent_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -900,7 +900,7 @@
             },
             {
               "column": {
-                "name": "expected__EHR_Reconsent_Date_Time__c__deterministic"
+                "name": "expected.EHR_Reconsent_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -908,7 +908,7 @@
             },
             {
               "column": {
-                "name": "expected__EHR_Reconsent_Date_Time__c__assigned"
+                "name": "expected.EHR_Reconsent_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -978,8 +978,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Update_to_Primary_Consent_Completed__c",
-        "column_B": "expected__Update_to_Primary_Consent_Completed__c",
+        "column_A": "observed.Update_to_Primary_Consent_Completed__c",
+        "column_B": "expected.Update_to_Primary_Consent_Completed__c",
         "row_condition": {
           "conditions": [
             {
@@ -1000,7 +1000,7 @@
             },
             {
               "column": {
-                "name": "expected__Update_to_Primary_Consent_Completed__c__deterministic"
+                "name": "expected.Update_to_Primary_Consent_Completed__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1008,7 +1008,7 @@
             },
             {
               "column": {
-                "name": "expected__Update_to_Primary_Consent_Completed__c__assigned"
+                "name": "expected.Update_to_Primary_Consent_Completed__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1069,8 +1069,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Basics_Date_Time__c",
-        "column_B": "expected__Basics_Date_Time__c",
+        "column_A": "observed.Basics_Date_Time__c",
+        "column_B": "expected.Basics_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -1091,7 +1091,7 @@
             },
             {
               "column": {
-                "name": "expected__Basics_Date_Time__c__deterministic"
+                "name": "expected.Basics_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1099,7 +1099,7 @@
             },
             {
               "column": {
-                "name": "expected__Basics_Date_Time__c__assigned"
+                "name": "expected.Basics_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1160,8 +1160,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Overall_Health_Date_Time__c",
-        "column_B": "expected__Overall_Health_Date_Time__c",
+        "column_A": "observed.Overall_Health_Date_Time__c",
+        "column_B": "expected.Overall_Health_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -1182,7 +1182,7 @@
             },
             {
               "column": {
-                "name": "expected__Overall_Health_Date_Time__c__deterministic"
+                "name": "expected.Overall_Health_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1190,7 +1190,7 @@
             },
             {
               "column": {
-                "name": "expected__Overall_Health_Date_Time__c__assigned"
+                "name": "expected.Overall_Health_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1251,8 +1251,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Lifestyle_Date_Time__c",
-        "column_B": "expected__Lifestyle_Date_Time__c",
+        "column_A": "observed.Lifestyle_Date_Time__c",
+        "column_B": "expected.Lifestyle_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -1273,7 +1273,7 @@
             },
             {
               "column": {
-                "name": "expected__Lifestyle_Date_Time__c__deterministic"
+                "name": "expected.Lifestyle_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1281,7 +1281,7 @@
             },
             {
               "column": {
-                "name": "expected__Lifestyle_Date_Time__c__assigned"
+                "name": "expected.Lifestyle_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1342,8 +1342,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Personal_and_Family_History_Complete__c",
-        "column_B": "expected__Personal_and_Family_History_Complete__c",
+        "column_A": "observed.Personal_and_Family_History_Complete__c",
+        "column_B": "expected.Personal_and_Family_History_Complete__c",
         "row_condition": {
           "conditions": [
             {
@@ -1364,7 +1364,7 @@
             },
             {
               "column": {
-                "name": "expected__Personal_and_Family_History_Complete__c__deterministic"
+                "name": "expected.Personal_and_Family_History_Complete__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1372,7 +1372,7 @@
             },
             {
               "column": {
-                "name": "expected__Personal_and_Family_History_Complete__c__assigned"
+                "name": "expected.Personal_and_Family_History_Complete__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1433,8 +1433,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__HC_Access_Date_Time__c",
-        "column_B": "expected__HC_Access_Date_Time__c",
+        "column_A": "observed.HC_Access_Date_Time__c",
+        "column_B": "expected.HC_Access_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -1455,7 +1455,7 @@
             },
             {
               "column": {
-                "name": "expected__HC_Access_Date_Time__c__deterministic"
+                "name": "expected.HC_Access_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1463,7 +1463,7 @@
             },
             {
               "column": {
-                "name": "expected__HC_Access_Date_Time__c__assigned"
+                "name": "expected.HC_Access_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1524,8 +1524,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Life_Functioning_Date_Time__c",
-        "column_B": "expected__Life_Functioning_Date_Time__c",
+        "column_A": "observed.Life_Functioning_Date_Time__c",
+        "column_B": "expected.Life_Functioning_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -1546,7 +1546,7 @@
             },
             {
               "column": {
-                "name": "expected__Life_Functioning_Date_Time__c__deterministic"
+                "name": "expected.Life_Functioning_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1554,7 +1554,7 @@
             },
             {
               "column": {
-                "name": "expected__Life_Functioning_Date_Time__c__assigned"
+                "name": "expected.Life_Functioning_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1615,8 +1615,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__First_Physical_Measurement_Date_Time__c",
-        "column_B": "expected__First_Physical_Measurement_Date_Time__c",
+        "column_A": "observed.First_Physical_Measurement_Date_Time__c",
+        "column_B": "expected.First_Physical_Measurement_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -1637,7 +1637,7 @@
             },
             {
               "column": {
-                "name": "expected__First_Physical_Measurement_Date_Time__c__deterministic"
+                "name": "expected.First_Physical_Measurement_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1645,7 +1645,7 @@
             },
             {
               "column": {
-                "name": "expected__First_Physical_Measurement_Date_Time__c__assigned"
+                "name": "expected.First_Physical_Measurement_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1711,8 +1711,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Last_Physical_Measurement_Date_Time__c",
-        "column_B": "expected__Last_Physical_Measurement_Date_Time__c",
+        "column_A": "observed.Last_Physical_Measurement_Date_Time__c",
+        "column_B": "expected.Last_Physical_Measurement_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -1733,7 +1733,7 @@
             },
             {
               "column": {
-                "name": "expected__Last_Physical_Measurement_Date_Time__c__deterministic"
+                "name": "expected.Last_Physical_Measurement_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1741,7 +1741,7 @@
             },
             {
               "column": {
-                "name": "expected__Last_Physical_Measurement_Date_Time__c__assigned"
+                "name": "expected.Last_Physical_Measurement_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1807,8 +1807,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__EH_Date_Time__c",
-        "column_B": "expected__EH_Date_Time__c",
+        "column_A": "observed.EH_Date_Time__c",
+        "column_B": "expected.EH_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -1829,7 +1829,7 @@
             },
             {
               "column": {
-                "name": "expected__EH_Date_Time__c__deterministic"
+                "name": "expected.EH_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1837,7 +1837,7 @@
             },
             {
               "column": {
-                "name": "expected__EH_Date_Time__c__assigned"
+                "name": "expected.EH_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1898,8 +1898,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Behavioral_Health_Completion__c",
-        "column_B": "expected__Behavioral_Health_Completion__c",
+        "column_A": "observed.Behavioral_Health_Completion__c",
+        "column_B": "expected.Behavioral_Health_Completion__c",
         "row_condition": {
           "conditions": [
             {
@@ -1920,7 +1920,7 @@
             },
             {
               "column": {
-                "name": "expected__Behavioral_Health_Completion__c__deterministic"
+                "name": "expected.Behavioral_Health_Completion__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -1928,7 +1928,7 @@
             },
             {
               "column": {
-                "name": "expected__Behavioral_Health_Completion__c__assigned"
+                "name": "expected.Behavioral_Health_Completion__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -1989,8 +1989,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Environmental_Exposures_Date_Time__c",
-        "column_B": "expected__Environmental_Exposures_Date_Time__c",
+        "column_A": "observed.Environmental_Exposures_Date_Time__c",
+        "column_B": "expected.Environmental_Exposures_Date_Time__c",
         "row_condition": {
           "conditions": [
             {
@@ -2011,7 +2011,7 @@
             },
             {
               "column": {
-                "name": "expected__Environmental_Exposures_Date_Time__c__deterministic"
+                "name": "expected.Environmental_Exposures_Date_Time__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -2019,7 +2019,7 @@
             },
             {
               "column": {
-                "name": "expected__Environmental_Exposures_Date_Time__c__assigned"
+                "name": "expected.Environmental_Exposures_Date_Time__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -2080,8 +2080,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Social_Determinants_of_Health_Completion__c",
-        "column_B": "expected__Social_Determinants_of_Health_Completion__c",
+        "column_A": "observed.Social_Determinants_of_Health_Completion__c",
+        "column_B": "expected.Social_Determinants_of_Health_Completion__c",
         "row_condition": {
           "conditions": [
             {
@@ -2102,7 +2102,7 @@
             },
             {
               "column": {
-                "name": "expected__Social_Determinants_of_Health_Completion__c__deterministic"
+                "name": "expected.Social_Determinants_of_Health_Completion__c__deterministic"
               },
               "operator": "==",
               "parameter": true,
@@ -2110,7 +2110,7 @@
             },
             {
               "column": {
-                "name": "expected__Social_Determinants_of_Health_Completion__c__assigned"
+                "name": "expected.Social_Determinants_of_Health_Completion__c__assigned"
               },
               "is_null": false,
               "type": "nullity"
@@ -2195,17 +2195,19 @@
         "source_entities": [],
         "comparison_role": "evidence"
       },
-      "expected_account_id": {
-        "description": "expected_account_id",
-        "rule_id": "expected_account_id",
+      "expected.Id": {
+        "description": "Id",
+        "rule_id": "Id",
         "source_entities": [],
         "comparison_role": "evidence"
       },
-      "observed_account_id": {
-        "description": "observed_account_id",
-        "rule_id": "observed_account_id",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Id": {
+        "target_field": "Account.Id",
+        "source_entities": [
+          "Account.Id"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Id"
       },
       "participant_contact_id": {
         "description": "participant_contact_id",
@@ -2225,7 +2227,7 @@
         "source_entities": [],
         "comparison_role": "evidence"
       },
-      "expected__Age_at_Time_of_Consent__pc": {
+      "expected.Age_at_Time_of_Consent__pc": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -2299,7 +2301,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Age_at_Time_of_Consent__pc__assigned": {
+      "expected.Age_at_Time_of_Consent__pc__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -2373,7 +2375,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Age_at_Time_of_Consent__pc__deterministic": {
+      "expected.Age_at_Time_of_Consent__pc__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -2447,7 +2449,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__CABOR_Completion_Date__c": {
+      "expected.CABOR_Completion_Date__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -2521,7 +2523,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__CABOR_Completion_Date__c__assigned": {
+      "expected.CABOR_Completion_Date__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -2595,7 +2597,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__CABOR_Completion_Date__c__deterministic": {
+      "expected.CABOR_Completion_Date__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -2669,7 +2671,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Earliest_Primary_Consent_Date_for_Report__c": {
+      "expected.Earliest_Primary_Consent_Date_for_Report__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -2737,7 +2739,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned": {
+      "expected.Earliest_Primary_Consent_Date_for_Report__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -2805,7 +2807,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic": {
+      "expected.Earliest_Primary_Consent_Date_for_Report__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -2873,7 +2875,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Latest_Primary_Consent_Date_for_Report__c": {
+      "expected.Latest_Primary_Consent_Date_for_Report__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -2947,7 +2949,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Latest_Primary_Consent_Date_for_Report__c__assigned": {
+      "expected.Latest_Primary_Consent_Date_for_Report__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3021,7 +3023,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic": {
+      "expected.Latest_Primary_Consent_Date_for_Report__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3095,7 +3097,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__EHR_Consent_Date_Time__c": {
+      "expected.EHR_Consent_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3145,7 +3147,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__EHR_Consent_Date_Time__c__assigned": {
+      "expected.EHR_Consent_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3195,7 +3197,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__EHR_Consent_Date_Time__c__deterministic": {
+      "expected.EHR_Consent_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3245,7 +3247,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__EHR_Reconsent_Date_Time__c": {
+      "expected.EHR_Reconsent_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3295,7 +3297,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__EHR_Reconsent_Date_Time__c__assigned": {
+      "expected.EHR_Reconsent_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3345,7 +3347,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__EHR_Reconsent_Date_Time__c__deterministic": {
+      "expected.EHR_Reconsent_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3395,7 +3397,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Update_to_Primary_Consent_Completed__c": {
+      "expected.Update_to_Primary_Consent_Completed__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3436,7 +3438,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Update_to_Primary_Consent_Completed__c__assigned": {
+      "expected.Update_to_Primary_Consent_Completed__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3477,7 +3479,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Update_to_Primary_Consent_Completed__c__deterministic": {
+      "expected.Update_to_Primary_Consent_Completed__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3518,7 +3520,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Basics_Date_Time__c": {
+      "expected.Basics_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3559,7 +3561,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Basics_Date_Time__c__assigned": {
+      "expected.Basics_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3600,7 +3602,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Basics_Date_Time__c__deterministic": {
+      "expected.Basics_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3641,7 +3643,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Overall_Health_Date_Time__c": {
+      "expected.Overall_Health_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3682,7 +3684,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Overall_Health_Date_Time__c__assigned": {
+      "expected.Overall_Health_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3723,7 +3725,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Overall_Health_Date_Time__c__deterministic": {
+      "expected.Overall_Health_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3764,7 +3766,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Lifestyle_Date_Time__c": {
+      "expected.Lifestyle_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3805,7 +3807,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Lifestyle_Date_Time__c__assigned": {
+      "expected.Lifestyle_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3846,7 +3848,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Lifestyle_Date_Time__c__deterministic": {
+      "expected.Lifestyle_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3887,7 +3889,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Personal_and_Family_History_Complete__c": {
+      "expected.Personal_and_Family_History_Complete__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3928,7 +3930,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Personal_and_Family_History_Complete__c__assigned": {
+      "expected.Personal_and_Family_History_Complete__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -3969,7 +3971,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Personal_and_Family_History_Complete__c__deterministic": {
+      "expected.Personal_and_Family_History_Complete__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4010,7 +4012,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__HC_Access_Date_Time__c": {
+      "expected.HC_Access_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4051,7 +4053,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__HC_Access_Date_Time__c__assigned": {
+      "expected.HC_Access_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4092,7 +4094,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__HC_Access_Date_Time__c__deterministic": {
+      "expected.HC_Access_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4133,7 +4135,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Life_Functioning_Date_Time__c": {
+      "expected.Life_Functioning_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4174,7 +4176,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Life_Functioning_Date_Time__c__assigned": {
+      "expected.Life_Functioning_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4215,7 +4217,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Life_Functioning_Date_Time__c__deterministic": {
+      "expected.Life_Functioning_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4256,7 +4258,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__First_Physical_Measurement_Date_Time__c": {
+      "expected.First_Physical_Measurement_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4302,7 +4304,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__First_Physical_Measurement_Date_Time__c__assigned": {
+      "expected.First_Physical_Measurement_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4348,7 +4350,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__First_Physical_Measurement_Date_Time__c__deterministic": {
+      "expected.First_Physical_Measurement_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4394,7 +4396,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Last_Physical_Measurement_Date_Time__c": {
+      "expected.Last_Physical_Measurement_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4440,7 +4442,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Last_Physical_Measurement_Date_Time__c__assigned": {
+      "expected.Last_Physical_Measurement_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4486,7 +4488,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Last_Physical_Measurement_Date_Time__c__deterministic": {
+      "expected.Last_Physical_Measurement_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4532,7 +4534,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__EH_Date_Time__c": {
+      "expected.EH_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4573,7 +4575,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__EH_Date_Time__c__assigned": {
+      "expected.EH_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4614,7 +4616,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__EH_Date_Time__c__deterministic": {
+      "expected.EH_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4655,7 +4657,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Behavioral_Health_Completion__c": {
+      "expected.Behavioral_Health_Completion__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4696,7 +4698,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Behavioral_Health_Completion__c__assigned": {
+      "expected.Behavioral_Health_Completion__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4737,7 +4739,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Behavioral_Health_Completion__c__deterministic": {
+      "expected.Behavioral_Health_Completion__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4778,7 +4780,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Environmental_Exposures_Date_Time__c": {
+      "expected.Environmental_Exposures_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4819,7 +4821,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Environmental_Exposures_Date_Time__c__assigned": {
+      "expected.Environmental_Exposures_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4860,7 +4862,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Environmental_Exposures_Date_Time__c__deterministic": {
+      "expected.Environmental_Exposures_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4901,7 +4903,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Social_Determinants_of_Health_Completion__c": {
+      "expected.Social_Determinants_of_Health_Completion__c": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4942,7 +4944,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Social_Determinants_of_Health_Completion__c__assigned": {
+      "expected.Social_Determinants_of_Health_Completion__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -4983,7 +4985,7 @@
         "native": {},
         "definition_status": "unresolved"
       },
-      "expected__Social_Determinants_of_Health_Completion__c__deterministic": {
+      "expected.Social_Determinants_of_Health_Completion__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
         "FullName": "Survey_Result_Survey_Completion_Updates",
         "MasterLabel": "Survey Result : Survey Completion Updates",
@@ -5168,119 +5170,157 @@
         "source_entities": [],
         "comparison_role": "evidence"
       },
-      "observed__Age_at_Time_of_Consent__pc": {
-        "description": "observed__Age_at_Time_of_Consent__pc",
-        "rule_id": "observed__Age_at_Time_of_Consent__pc",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Age_at_Time_of_Consent__pc": {
+        "target_field": "Account.Age_at_Time_of_Consent__pc",
+        "source_entities": [
+          "Account.Age_at_Time_of_Consent__pc"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Age_at_Time_of_Consent__pc"
       },
-      "observed__CABOR_Completion_Date__c": {
-        "description": "observed__CABOR_Completion_Date__c",
-        "rule_id": "observed__CABOR_Completion_Date__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.CABOR_Completion_Date__c": {
+        "target_field": "Account.CABOR_Completion_Date__c",
+        "source_entities": [
+          "Account.CABOR_Completion_Date__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.CABOR_Completion_Date__c"
       },
-      "observed__Earliest_Primary_Consent_Date_for_Report__c": {
-        "description": "observed__Earliest_Primary_Consent_Date_for_Report__c",
-        "rule_id": "observed__Earliest_Primary_Consent_Date_for_Report__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Earliest_Primary_Consent_Date_for_Report__c": {
+        "target_field": "Account.Earliest_Primary_Consent_Date_for_Report__c",
+        "source_entities": [
+          "Account.Earliest_Primary_Consent_Date_for_Report__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Earliest_Primary_Consent_Date_for_Report__c"
       },
-      "observed__Latest_Primary_Consent_Date_for_Report__c": {
-        "description": "observed__Latest_Primary_Consent_Date_for_Report__c",
-        "rule_id": "observed__Latest_Primary_Consent_Date_for_Report__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Latest_Primary_Consent_Date_for_Report__c": {
+        "target_field": "Account.Latest_Primary_Consent_Date_for_Report__c",
+        "source_entities": [
+          "Account.Latest_Primary_Consent_Date_for_Report__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Latest_Primary_Consent_Date_for_Report__c"
       },
-      "observed__EHR_Consent_Date_Time__c": {
-        "description": "observed__EHR_Consent_Date_Time__c",
-        "rule_id": "observed__EHR_Consent_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.EHR_Consent_Date_Time__c": {
+        "target_field": "Account.EHR_Consent_Date_Time__c",
+        "source_entities": [
+          "Account.EHR_Consent_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.EHR_Consent_Date_Time__c"
       },
-      "observed__EHR_Reconsent_Date_Time__c": {
-        "description": "observed__EHR_Reconsent_Date_Time__c",
-        "rule_id": "observed__EHR_Reconsent_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.EHR_Reconsent_Date_Time__c": {
+        "target_field": "Account.EHR_Reconsent_Date_Time__c",
+        "source_entities": [
+          "Account.EHR_Reconsent_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.EHR_Reconsent_Date_Time__c"
       },
-      "observed__Update_to_Primary_Consent_Completed__c": {
-        "description": "observed__Update_to_Primary_Consent_Completed__c",
-        "rule_id": "observed__Update_to_Primary_Consent_Completed__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Update_to_Primary_Consent_Completed__c": {
+        "target_field": "Account.Update_to_Primary_Consent_Completed__c",
+        "source_entities": [
+          "Account.Update_to_Primary_Consent_Completed__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Update_to_Primary_Consent_Completed__c"
       },
-      "observed__Basics_Date_Time__c": {
-        "description": "observed__Basics_Date_Time__c",
-        "rule_id": "observed__Basics_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Basics_Date_Time__c": {
+        "target_field": "Account.Basics_Date_Time__c",
+        "source_entities": [
+          "Account.Basics_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Basics_Date_Time__c"
       },
-      "observed__Overall_Health_Date_Time__c": {
-        "description": "observed__Overall_Health_Date_Time__c",
-        "rule_id": "observed__Overall_Health_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Overall_Health_Date_Time__c": {
+        "target_field": "Account.Overall_Health_Date_Time__c",
+        "source_entities": [
+          "Account.Overall_Health_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Overall_Health_Date_Time__c"
       },
-      "observed__Lifestyle_Date_Time__c": {
-        "description": "observed__Lifestyle_Date_Time__c",
-        "rule_id": "observed__Lifestyle_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Lifestyle_Date_Time__c": {
+        "target_field": "Account.Lifestyle_Date_Time__c",
+        "source_entities": [
+          "Account.Lifestyle_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Lifestyle_Date_Time__c"
       },
-      "observed__Personal_and_Family_History_Complete__c": {
-        "description": "observed__Personal_and_Family_History_Complete__c",
-        "rule_id": "observed__Personal_and_Family_History_Complete__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Personal_and_Family_History_Complete__c": {
+        "target_field": "Account.Personal_and_Family_History_Complete__c",
+        "source_entities": [
+          "Account.Personal_and_Family_History_Complete__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Personal_and_Family_History_Complete__c"
       },
-      "observed__HC_Access_Date_Time__c": {
-        "description": "observed__HC_Access_Date_Time__c",
-        "rule_id": "observed__HC_Access_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.HC_Access_Date_Time__c": {
+        "target_field": "Account.HC_Access_Date_Time__c",
+        "source_entities": [
+          "Account.HC_Access_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.HC_Access_Date_Time__c"
       },
-      "observed__Life_Functioning_Date_Time__c": {
-        "description": "observed__Life_Functioning_Date_Time__c",
-        "rule_id": "observed__Life_Functioning_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Life_Functioning_Date_Time__c": {
+        "target_field": "Account.Life_Functioning_Date_Time__c",
+        "source_entities": [
+          "Account.Life_Functioning_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Life_Functioning_Date_Time__c"
       },
-      "observed__First_Physical_Measurement_Date_Time__c": {
-        "description": "observed__First_Physical_Measurement_Date_Time__c",
-        "rule_id": "observed__First_Physical_Measurement_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.First_Physical_Measurement_Date_Time__c": {
+        "target_field": "Account.First_Physical_Measurement_Date_Time__c",
+        "source_entities": [
+          "Account.First_Physical_Measurement_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.First_Physical_Measurement_Date_Time__c"
       },
-      "observed__Last_Physical_Measurement_Date_Time__c": {
-        "description": "observed__Last_Physical_Measurement_Date_Time__c",
-        "rule_id": "observed__Last_Physical_Measurement_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Last_Physical_Measurement_Date_Time__c": {
+        "target_field": "Account.Last_Physical_Measurement_Date_Time__c",
+        "source_entities": [
+          "Account.Last_Physical_Measurement_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Last_Physical_Measurement_Date_Time__c"
       },
-      "observed__EH_Date_Time__c": {
-        "description": "observed__EH_Date_Time__c",
-        "rule_id": "observed__EH_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.EH_Date_Time__c": {
+        "target_field": "Account.EH_Date_Time__c",
+        "source_entities": [
+          "Account.EH_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.EH_Date_Time__c"
       },
-      "observed__Behavioral_Health_Completion__c": {
-        "description": "observed__Behavioral_Health_Completion__c",
-        "rule_id": "observed__Behavioral_Health_Completion__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Behavioral_Health_Completion__c": {
+        "target_field": "Account.Behavioral_Health_Completion__c",
+        "source_entities": [
+          "Account.Behavioral_Health_Completion__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Behavioral_Health_Completion__c"
       },
-      "observed__Environmental_Exposures_Date_Time__c": {
-        "description": "observed__Environmental_Exposures_Date_Time__c",
-        "rule_id": "observed__Environmental_Exposures_Date_Time__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Environmental_Exposures_Date_Time__c": {
+        "target_field": "Account.Environmental_Exposures_Date_Time__c",
+        "source_entities": [
+          "Account.Environmental_Exposures_Date_Time__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Environmental_Exposures_Date_Time__c"
       },
-      "observed__Social_Determinants_of_Health_Completion__c": {
-        "description": "observed__Social_Determinants_of_Health_Completion__c",
-        "rule_id": "observed__Social_Determinants_of_Health_Completion__c",
-        "source_entities": [],
-        "comparison_role": "evidence"
+      "observed.Social_Determinants_of_Health_Completion__c": {
+        "target_field": "Account.Social_Determinants_of_Health_Completion__c",
+        "source_entities": [
+          "Account.Social_Determinants_of_Health_Completion__c"
+        ],
+        "comparison_role": "observed",
+        "description": "Independently observed observed.Social_Determinants_of_Health_Completion__c"
       },
       "cabor_lookup_is_deterministic": {
         "description": "cabor_lookup_is_deterministic",

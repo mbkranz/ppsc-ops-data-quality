@@ -488,12 +488,12 @@ class ComparisonSpec(BaseModel):
             if len({getattr(item, side) for item in self.keys}) != len(self.keys):
                 raise ValueError("Composite keys must bind distinct source columns")
         outputs = [
-            f"{side}_key__{key.name}" for key in self.keys for side in ("expected", "observed")
+            f"{side}.key.{key.name}" for key in self.keys for side in ("expected", "observed")
         ]
         for value in self.values:
-            outputs.extend([f"expected__{value.name}", f"observed__{value.name}"])
+            outputs.extend([f"expected.{value.name}", f"observed.{value.name}"])
             outputs.extend(
-                f"expected__{value.name}__{role}"
+                f"expected.{value.name}__{role}"
                 for role in ("deterministic", "assigned", "required", "must_be_null")
                 if getattr(value, role) is not None
             )
@@ -535,14 +535,14 @@ def compare_values(Expected: ir.Table, Observed: ir.Table, spec: ComparisonSpec)
     for column in evidence | ({spec.scope} if spec.scope else set()):
         if not Expected[column].type().is_boolean():
             raise ValueError(f"Comparison evidence must be boolean: {column}")
-    expected_columns = {f"expected_key__{key.name}": Expected[key.expected] for key in spec.keys}
-    observed_columns = {f"observed_key__{key.name}": Observed[key.observed] for key in spec.keys}
+    expected_columns = {f"expected.key.{key.name}": Expected[key.expected] for key in spec.keys}
+    observed_columns = {f"observed.key.{key.name}": Observed[key.observed] for key in spec.keys}
     for value in spec.values:
-        expected_columns[f"expected__{value.name}"] = Expected[value.expected]
-        observed_columns[f"observed__{value.name}"] = Observed[value.observed]
+        expected_columns[f"expected.{value.name}"] = Expected[value.expected]
+        observed_columns[f"observed.{value.name}"] = Observed[value.observed]
         for role in ("deterministic", "assigned", "required", "must_be_null"):
             if (column := getattr(value, role)) is not None:
-                expected_columns[f"expected__{value.name}__{role}"] = Expected[column]
+                expected_columns[f"expected.{value.name}__{role}"] = Expected[column]
     expected_columns.update(
         _expected_present=ibis.literal(True),
         _expected_unique=(
@@ -562,7 +562,7 @@ def compare_values(Expected: ir.Table, Observed: ir.Table, spec: ComparisonSpec)
     Joined = Expected.outer_join(
         Observed,
         [
-            Expected[f"expected_key__{key.name}"] == Observed[f"observed_key__{key.name}"]
+            Expected[f"expected.key.{key.name}"] == Observed[f"observed.key.{key.name}"]
             for key in spec.keys
         ],
     )
@@ -571,7 +571,7 @@ def compare_values(Expected: ir.Table, Observed: ir.Table, spec: ComparisonSpec)
     for value in spec.values:
         for role in ("deterministic", "assigned", "required", "must_be_null"):
             if getattr(value, role) is not None:
-                column = Comparison[f"expected__{value.name}__{role}"]
+                column = Comparison[f"expected.{value.name}__{role}"]
                 complete.append(column if role == "deterministic" else column.notnull())
     return Comparison.mutate(
         # An unexpected observation is always reconciled, even when expected rows
@@ -582,7 +582,7 @@ def compare_values(Expected: ir.Table, Observed: ir.Table, spec: ComparisonSpec)
         comparison_keys_are_valid=_all(
             [
                 *[
-                    Comparison[f"{side}_key__{key.name}"].notnull()
+                    Comparison[f"{side}.key.{key.name}"].notnull()
                     for key in spec.keys
                     for side in ("expected", "observed")
                 ],
@@ -1003,8 +1003,11 @@ def expected_survey_rollups(Account: ir.Table, Survey_Result__c: ir.Table) -> ir
     snapshots with deleted survey rows excluded upstream.
     """
     Record = _survey_rollup_record(Account, Survey_Result__c)
-    return Record.group_by("Account.Id", "PersonContactId").aggregate(
-        **survey_rollup_expressions(Record)
+    return Record.group_by(
+        Id=Record["Account.Id"], PersonContactId=Record.PersonContactId
+    ).aggregate(
+        source_parent_keys_are_valid=Record._source_parent_key_is_unique.all(),
+        **survey_rollup_expressions(Record),
     )
 
 
@@ -1014,59 +1017,40 @@ ROLLUP_ACCOUNT_FIELDS = tuple(field.removeprefix("Account.") for field in ROLLUP
 SURVEY_COMPLETION_FLOW_LAUNCH_DATE = date(2024, 12, 16)
 
 
-def rollup_account_comparison(
-    Account: ir.Table, Survey_Result__c: ir.Table, AccountSnapshot: ir.Table
+def observed_account_query(
+    history: Mapping[str, ir.Table], *, fields: tuple[str, ...], as_of: date | datetime | None
 ) -> ir.Table:
-    """Aggregate resolved conditional counts beside independently observed fields.
+    """Independently observed Account snapshot with canonical field names."""
+    return snapshot(history["Account"], as_of=as_of).select("Id", *fields)
 
-    Group by an observation's row identity, not just its values: identical
-    duplicate observations must remain separate comparison rows. Joining before
-    aggregation otherwise preserves the same source-account/survey multiplicity
-    as expected_survey_rollups(), including unmatched observations and zero children.
+
+def rollup_account_comparison(Expected: ir.Table, Observed: ir.Table) -> ir.Table:
+    """Add dotted GX labels only when joining canonical expected/observed rows.
+
+    Expected aggregation is complete before the observation join. Full reconciliation
+    preserves missing/extra observations and every duplicate observation occurrence.
     """
-    Record = _survey_rollup_record(Account, Survey_Result__c)
-    AccountSnapshot = AccountSnapshot.mutate(
-        _comparison_observation_row=ibis.row_number().over(ibis.window())
-    ).alias("Account_Snapshot")
-    Joined = Record.outer_join(AccountSnapshot, Record["Account.Id"] == AccountSnapshot.Id).select(
-        Record,
-        AccountSnapshot.Id.name("observed_account_id"),
-        AccountSnapshot._comparison_observation_row,
-        **{f"observed__{field}": AccountSnapshot[field] for field in ROLLUP_ACCOUNT_FIELDS},
-    )
-    observed_fields = [f"observed__{field}" for field in ROLLUP_ACCOUNT_FIELDS]
-    Comparison = Joined.group_by(
-        Joined["Account.Id"].name("expected_account_id"),
-        Joined.PersonContactId.name("person_contact_id"),
-        Joined.observed_account_id,
-        Joined._comparison_observation_row,
-        *[Joined[field] for field in observed_fields],
-    ).aggregate(
-        source_parent_keys_are_valid=Joined._source_parent_key_is_unique.all(),
-        **{
-            f"expected__{field}": expression
-            for field, expression in survey_rollup_expressions(Joined).items()
-        },
-    )
-    Comparison = Comparison.select(
-        Comparison.expected_account_id.name("validation_record_id"),
-        "expected_account_id",
-        "person_contact_id",
-        "observed_account_id",
-        "source_parent_keys_are_valid",
-        *[f"expected__{field}" for field in ROLLUP_ACCOUNT_FIELDS],
-        *observed_fields,
+    Expected, Observed = Expected.alias("expected"), Observed.alias("observed")
+    Joined = Expected.outer_join(Observed, Expected.Id == Observed.Id)
+    Comparison = Joined.select(
+        Expected.Id.name("validation_record_id"),
+        Expected.Id.name("expected.Id"),
+        Expected.PersonContactId.name("person_contact_id"),
+        Observed.Id.name("observed.Id"),
+        Expected.source_parent_keys_are_valid,
+        **{f"expected.{field}": Expected[field] for field in ROLLUP_ACCOUNT_FIELDS},
+        **{f"observed.{field}": Observed[field] for field in ROLLUP_ACCOUNT_FIELDS},
     )
     return Comparison.mutate(
         comparison_keys_are_valid=(
-            Comparison.expected_account_id.notnull()
+            Comparison["expected.Id"].notnull()
             & Comparison.person_contact_id.notnull()
-            & Comparison.observed_account_id.notnull()
+            & Comparison["observed.Id"].notnull()
             & Comparison.source_parent_keys_are_valid
             & (
-                Comparison.expected_account_id.count().over(
-                    ibis.window(group_by=Comparison.expected_account_id)
-                )
+                Comparison["expected.Id"]
+                .count()
+                .over(ibis.window(group_by=Comparison["expected.Id"]))
                 == 1
             )
         )
@@ -1076,17 +1060,13 @@ def rollup_account_comparison(
 def rollup_account_query(
     history: Mapping[str, ir.Table], *, as_of: date | datetime | None = None
 ) -> ir.Table:
-    """Compare rollups and independent observed fields at one effective snapshot.
-
-    Lineage: Account.PersonContactId -> Survey_Result__c.Participant__c -> the
-    existing 19 field formulas -> expected/observed comparison. as_of=None uses
-    current flags on both relations. Preserve zero-child Accounts and duplicates.
-    """
-    AccountSnapshot = snapshot(history["Account"], as_of=as_of).alias("Account_At_Snapshot")
-    SurveyResultSnapshot = snapshot(history["Survey_Result__c"], as_of=as_of).alias(
-        "Survey_Results_At_Snapshot"
+    """Compose canonical rollup and observation queries at the GX join boundary."""
+    expected = expected_survey_rollups(
+        snapshot(history["Account"], as_of=as_of),
+        snapshot(history["Survey_Result__c"], as_of=as_of),
     )
-    return rollup_account_comparison(AccountSnapshot, SurveyResultSnapshot, AccountSnapshot)
+    observed = observed_account_query(history, fields=ROLLUP_ACCOUNT_FIELDS, as_of=as_of)
+    return rollup_account_comparison(expected, observed)
 
 
 def metadata_inputs(directory: Path | None = None) -> dict:
@@ -1139,19 +1119,18 @@ def _named(value, name):
     return exp.alias_(value, name, quoted=True)
 
 
-def flow_account_query(
+def expected_flow_account_query(
     history: Mapping[str, ir.Table],
     *,
     survey_result_id: str,
     account_before_at: date | datetime,
     execution_at: date | datetime,
-    account_after_at: date | datetime,
     flow_run_date: date,
     eligibility: bool | None,
     inputs: dict,
     simplify: bool = True,
 ) -> exp.Select:
-    """Bind native Flow SELECT to independent BEFORE/execution/AFTER lake roles.
+    """Bind native Flow to BEFORE/execution inputs; expose canonical Account fields.
 
     Eligibility is an explicit verified trigger fact (None is unknown). Inputs
     may be provisional for offline evaluation; live workflow requires native evidence.
@@ -1160,14 +1139,14 @@ def flow_account_query(
         raise ValueError("Select a triggering event identity")
     if isinstance(flow_run_date, datetime) or not isinstance(flow_run_date, date):
         raise ValueError("flow_run_date must be an org-local date")
-    if any(not isinstance(v, date) for v in (account_before_at, execution_at, account_after_at)):
+    if any(not isinstance(v, date) for v in (account_before_at, execution_at)):
         raise TypeError("Bind explicit temporal values")
     try:
-        ordered = account_before_at < execution_at < account_after_at
+        ordered = account_before_at < execution_at
     except TypeError as error:
         raise ValueError("Temporal bindings must use comparable types and time zones") from error
     if not ordered:
-        raise ValueError("Require account_before_at < execution_at < account_after_at")
+        raise ValueError("Require account_before_at < execution_at")
     if eligibility is not None and not isinstance(eligibility, bool):
         raise ValueError("eligibility must be Boolean or unknown")
     native = flow_to_sqlglot(
@@ -1182,7 +1161,6 @@ def flow_account_query(
     before = snapshot(history["Account"], as_of=account_before_at)
     contact = snapshot(history["Contact"], as_of=execution_at)
     surveys = snapshot(history["Survey_Result__c"], as_of=execution_at)
-    after = snapshot(history["Account"], as_of=account_after_at)
     trigger = surveys.filter(surveys.Id == survey_result_id)
     record = join_account(trigger, contact, before)
     supplied = {}
@@ -1257,31 +1235,86 @@ def flow_account_query(
     ]
     with_clause = native.args.pop("with_", None)
     ctes.extend(with_clause.expressions if with_clause else [])
-    ctes.append(
+    # Rename only the native final projection; keep its CTEs and expression tree.
+    # An extra SELECT wrapper would repeat every field and lookup diagnostic.
+    final = native.copy()
+    outputs = []
+    identities = {"flow_target_id": "Id", "flow_record_id": "survey_result_id"}
+    for projection in native.selects:
+        name = projection.alias_or_name
+        if name == "flow_row_id":
+            continue
+        canonical = identities.get(name, name.removeprefix("expected__").removeprefix("__ops."))
+        output = _named(projection.unalias().copy(), canonical)
+        field = canonical.removesuffix("__assigned").removesuffix("__deterministic")
+        if name.startswith("expected__") and field in native.meta["ppsc"]["outputs"]:
+            output.meta["ppsc"] = deepcopy(native.meta["ppsc"]["outputs"][field])
+        outputs.append(output)
+    final.set("expressions", outputs)
+    final.set("with_", exp.With(expressions=ctes))
+    final.meta["ppsc"] = {
+        **deepcopy(native.meta["ppsc"]),
+        "lake_bindings": metadata_receipt(inputs),
+        "temporal_roles": {"before": str(account_before_at), "execution": str(execution_at)},
+        "eligibility": eligibility,
+    }
+    return final
+
+
+def flow_account_comparison(Expected: exp.Select, Observed: exp.Select) -> exp.Select:
+    """Join canonical queries, adding literal dotted output labels for native GX.
+
+    The observation never feeds the expected computation. This left join retains
+    every triggering event and all matching AFTER occurrences, as before.
+    """
+    Expected = Expected.copy()
+    comparison_fields = {
+        field + suffix
+        for field in FLOW_FIELDS
+        for suffix in ("", "__assigned", "__deterministic", "_required", "_must_be_null")
+    }
+    expected_lineage = projection_lineage(Expected)
+    ctes = [
         exp.CTE(
-            this=native, alias=exp.TableAlias(this=exp.to_identifier("Expected_Flow", quoted=True))
+            this=Expected,
+            alias=exp.TableAlias(this=exp.to_identifier("Expected_Account", quoted=True)),
         )
-    )
+    ]
     final = exp.select(
-        _named(_col("flow_record_id", "e"), "survey_result_id"),
-        _named(_col("flow_record_id", "e"), "validation_record_id"),
-        _named(_col("flow_target_id", "e"), "expected_account_id"),
-        _named(_col("Id", "a"), "observed_account_id"),
-        *[_named(_col("__ops." + name, "e"), name) for name in context],
+        _named(_col("survey_result_id", "expected"), "survey_result_id"),
+        _named(_col("survey_result_id", "expected"), "validation_record_id"),
+        _named(_col("Id", "expected"), "expected.Id"),
+        _named(_col("Id", "observed"), "observed.Id"),
         *[
-            _col(name, "e")
-            for name in native.named_selects
-            if name not in {"flow_row_id", "flow_record_id", "flow_target_id"}
-            and not name.startswith("__ops.")
+            _col(name, "expected")
+            for name in (
+                "participant_contact_id",
+                "survey_index_number",
+                "survey_completion_timestamp",
+            )
         ],
-        *[_named(_col(field, "a"), "observed__" + field) for field in FLOW_FIELDS],
+        *[
+            _named(_col(name, "expected"), "expected." + name)
+            if name in comparison_fields
+            else _col(name, "expected")
+            for name in Expected.named_selects
+            if name
+            not in {
+                "Id",
+                "survey_result_id",
+                "participant_contact_id",
+                "survey_index_number",
+                "survey_completion_timestamp",
+            }
+        ],
+        *[_named(_col(field, "observed"), "observed." + field) for field in FLOW_FIELDS],
         _named(
-            _col("expected__CABOR_Completion_Date__c__deterministic", "e"),
+            _col("CABOR_Completion_Date__c__deterministic", "expected"),
             "cabor_lookup_is_deterministic",
         ),
         _named(
             exp.GTE(
-                this=exp.cast(_col("__ops.survey_completion_timestamp", "e"), "DATE"),
+                this=exp.cast(_col("survey_completion_timestamp", "expected"), "DATE"),
                 expression=exp.cast(exp.Literal.string("2024-12-16"), "DATE"),
             ),
             "survey_completion_occurred_on_or_after_launch",
@@ -1290,7 +1323,7 @@ def flow_account_query(
             exp.and_(
                 *[
                     exp.Is(
-                        this=_col("expected__" + field + "__deterministic", "e"),
+                        this=_col(field + "__deterministic", "expected"),
                         expression=exp.true(),
                     )
                     for field in FLOW_FIELDS
@@ -1298,7 +1331,7 @@ def flow_account_query(
                 *[
                     exp.Not(
                         this=exp.Is(
-                            this=_col("expected__" + field + "__assigned", "e"),
+                            this=_col(field + "__assigned", "expected"),
                             expression=exp.Null(),
                         )
                     )
@@ -1312,15 +1345,16 @@ def flow_account_query(
                 *[
                     exp.Not(this=exp.Is(this=_col(name, alias), expression=exp.Null()))
                     for name, alias in [
-                        ("flow_record_id", "e"),
-                        ("flow_target_id", "e"),
-                        ("__ops.participant_contact_id", "e"),
-                        ("Id", "a"),
+                        ("survey_result_id", "expected"),
+                        ("Id", "expected"),
+                        ("participant_contact_id", "expected"),
+                        ("Id", "observed"),
                     ]
                 ],
                 exp.EQ(
                     this=exp.Window(
-                        this=exp.Count(this=exp.Star()), partition_by=[_col("flow_record_id", "e")]
+                        this=exp.Count(this=exp.Star()),
+                        partition_by=[_col("survey_result_id", "expected")],
                     ),
                     expression=exp.Literal.number(1),
                 ),
@@ -1329,38 +1363,70 @@ def flow_account_query(
         ),
     ).from_(
         exp.Table(
-            this=exp.to_identifier("Expected_Flow", quoted=True),
-            alias=exp.TableAlias(this=exp.to_identifier("e", quoted=True)),
+            this=exp.to_identifier("Expected_Account", quoted=True),
+            alias=exp.TableAlias(this=exp.to_identifier("expected", quoted=True)),
         )
     )
     final = final.join(
-        to_sqlglot(after.select("Id", *FLOW_FIELDS)).subquery("a"),
-        on=_col("flow_target_id", "e").eq(_col("Id", "a")),
+        Observed.copy().subquery("observed"),
+        on=_col("Id", "expected").eq(_col("Id", "observed")),
         join_type="LEFT",
     )
     final.set("with_", exp.With(expressions=ctes))
-    final.meta["ppsc"] = {
-        **deepcopy(native.meta["ppsc"]),
-        "lake_bindings": metadata_receipt(inputs),
-        "temporal_roles": {
-            "before": str(account_before_at),
-            "execution": str(execution_at),
-            "after": str(account_after_at),
-        },
-        "eligibility": eligibility,
-    }
+    final.meta["ppsc"] = deepcopy(Expected.meta["ppsc"])
     for column in final.selects:
-        field = (
-            column.alias_or_name.removeprefix("expected__")
-            .removesuffix("__assigned")
-            .removesuffix("__deterministic")
-        )
-        if (
-            column.alias_or_name.startswith("expected__")
-            and field in native.meta["ppsc"]["outputs"]
-        ):
-            column.meta["ppsc"] = deepcopy(native.meta["ppsc"]["outputs"][field])
+        name = column.alias_or_name
+        if name.startswith("expected."):
+            column.meta["ppsc"] = deepcopy(expected_lineage[name.removeprefix("expected.")])
+        elif name.startswith("observed."):
+            column.meta["ppsc"] = {
+                "target_field": "Account." + name.removeprefix("observed."),
+                "source_entities": ["Account." + name.removeprefix("observed.")],
+                "comparison_role": "observed",
+                "description": "Independently observed " + name,
+            }
     return final
+
+
+def flow_account_query(
+    history: Mapping[str, ir.Table],
+    *,
+    survey_result_id: str,
+    account_before_at: date | datetime,
+    execution_at: date | datetime,
+    account_after_at: date | datetime,
+    flow_run_date: date,
+    eligibility: bool | None,
+    inputs: dict,
+    simplify: bool = True,
+) -> exp.Select:
+    """Bind native Flow SELECT to independent BEFORE/execution/AFTER lake roles.
+
+    Eligibility is an explicit verified trigger fact (None is unknown). Inputs
+    may be provisional for offline evaluation; live workflow requires native evidence.
+    """
+    if not isinstance(account_after_at, date) or not isinstance(execution_at, date):
+        raise TypeError("Bind explicit temporal values")
+    try:
+        ordered = execution_at < account_after_at
+    except TypeError as error:
+        raise ValueError("Temporal bindings must use comparable types and time zones") from error
+    if not ordered:
+        raise ValueError("Require account_before_at < execution_at < account_after_at")
+    expected = expected_flow_account_query(
+        history,
+        survey_result_id=survey_result_id,
+        account_before_at=account_before_at,
+        execution_at=execution_at,
+        flow_run_date=flow_run_date,
+        eligibility=eligibility,
+        inputs=inputs,
+        simplify=simplify,
+    )
+    observed = observed_account_query(history, fields=FLOW_FIELDS, as_of=account_after_at)
+    comparison = flow_account_comparison(expected, to_sqlglot(observed))
+    comparison.meta["ppsc"]["temporal_roles"]["after"] = str(account_after_at)
+    return comparison
 
 
 class SqlParameter(BaseModel):
@@ -1561,7 +1627,7 @@ def rollup_projection_lineage() -> dict:
     outputs = {}
     for target, record in ROLLUP_FIELD_LINEAGE.items():
         field = target.removeprefix("Account.")
-        outputs["expected__" + field] = {
+        outputs["expected." + field] = {
             **deepcopy(record),
             "target_field": target,
             "description": record["expression"].replace("_", " "),
@@ -1569,7 +1635,7 @@ def rollup_projection_lineage() -> dict:
             "source_entities": [record["source_entity"]],
             "branches": [{**BRANCH_LINEAGE[name], "rule_id": name} for name in record["branches"]],
         }
-        outputs["observed__" + field] = {
+        outputs["observed." + field] = {
             "description": "Independently observed " + target,
             "source_entities": [target],
             "comparison_role": "observed",

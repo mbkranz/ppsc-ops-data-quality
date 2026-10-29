@@ -94,13 +94,13 @@ def test_assigned_null_unassigned_and_unknown_are_distinct(lake):
         'UPDATE "Survey_Result__c_history" SET "Completion_Status_Timestamp__c"=NULL'
     )
     frame = rows(lake)
-    assert frame["expected__Basics_Date_Time__c__assigned"].all()
-    assert frame["expected__Basics_Date_Time__c"].isna().all()
-    assert not frame["expected__Lifestyle_Date_Time__c__assigned"].any()
+    assert frame["expected.Basics_Date_Time__c__assigned"].all()
+    assert frame["expected.Basics_Date_Time__c"].isna().all()
+    assert not frame["expected.Lifestyle_Date_Time__c__assigned"].any()
     assert frame.survey_completion_occurred_on_or_after_launch.isna().all()
     unknown = rows(lake, eligibility=None)
     assert not unknown.flow_evidence_is_complete.any()
-    assert unknown["expected__Basics_Date_Time__c__assigned"].isna().all()
+    assert unknown["expected.Basics_Date_Time__c__assigned"].isna().all()
 
 
 def test_observed_values_never_feed_expected_projection(lake):
@@ -111,11 +111,9 @@ def test_observed_values_never_feed_expected_projection(lake):
     )
     changed = rows(lake)
     pd.testing.assert_series_equal(
-        before["expected__Basics_Date_Time__c"], changed["expected__Basics_Date_Time__c"]
+        before["expected.Basics_Date_Time__c"], changed["expected.Basics_Date_Time__c"]
     )
-    assert (
-        changed["expected__Basics_Date_Time__c"][0] != changed["observed__Basics_Date_Time__c"][0]
-    )
+    assert changed["expected.Basics_Date_Time__c"][0] != changed["observed.Basics_Date_Time__c"][0]
 
 
 def test_old_unchanged_before_is_retained(lake):
@@ -124,8 +122,8 @@ def test_old_unchanged_before_is_retained(lake):
         'UPDATE "Account_history" SET "Lifestyle_Date_Time__c"=TIMESTAMP \'2001-01-01\''
     )
     frame = rows(lake)
-    assert frame["expected__Lifestyle_Date_Time__c"][0].year == 2001
-    assert not frame["expected__Lifestyle_Date_Time__c__assigned"][0]
+    assert frame["expected.Lifestyle_Date_Time__c"][0].year == 2001
+    assert not frame["expected.Lifestyle_Date_Time__c__assigned"][0]
 
 
 def test_metadata_change_controls_output_not_domain_rules(lake):
@@ -134,7 +132,7 @@ def test_metadata_change_controls_output_not_domain_rules(lake):
         n for n in inputs["flow"]["Metadata"]["recordUpdates"] if n["name"] == "updateAccount2001"
     )
     node["inputAssignments"][0]["value"] = {"dateTimeValue": "2000-01-02 00:00:00"}
-    assert rows(lake, inputs=inputs)["expected__Basics_Date_Time__c"][0].year == 2000
+    assert rows(lake, inputs=inputs)["expected.Basics_Date_Time__c"][0].year == 2000
 
 
 def test_faithful_and_simplified_preserve_multiset_and_lineage(lake):
@@ -182,4 +180,76 @@ def test_native_query_fits_gx_base_limit(lake):
     sql = query_asset_sql(query(lake[1]))
     assert len(sql.encode()) < 262144
     assert sql.startswith("SELECT")
-    assert all("expected__" + field in sql for field in FLOW_FIELDS)
+    assert all("expected." + field in sql for field in FLOW_FIELDS)
+
+
+def test_canonical_expected_and_observed_are_independent_of_gx_join(lake):
+    from ppsc_ops_data_quality.account_to_survey_results.queries import (
+        expected_flow_account_query,
+        flow_account_comparison,
+        observed_account_query,
+        to_sqlglot,
+    )
+
+    backend, history = lake
+    expected = expected_flow_account_query(
+        history,
+        survey_result_id=EVENT_ID,
+        account_before_at=BEFORE_AT,
+        execution_at=EXECUTION_AT,
+        flow_run_date=FLOW_RUN_DATE,
+        eligibility=True,
+        inputs=metadata_inputs(),
+    )
+    observed = observed_account_query(history, fields=FLOW_FIELDS, as_of=AFTER_AT)
+    assert set(FLOW_FIELDS) | {"Id"} <= set(expected.named_selects)
+    assert set(observed.columns) == set(FLOW_FIELDS) | {"Id"}
+    assert not any(
+        n.startswith(("expected.", "observed.", "expected__", "observed__"))
+        for n in expected.named_selects
+    )
+    expected.select(
+        exp.alias_(exp.true(), "Basics_Date_Time__c_required", quoted=True),
+        exp.alias_(exp.true(), "Lifestyle_Date_Time__c_must_be_null", quoted=True),
+        append=True,
+        copy=False,
+    )
+    original = expected.dump()
+    comparison = flow_account_comparison(expected, to_sqlglot(observed))
+    assert expected.dump() == original  # Boundary decoration does not mutate its input.
+    assert {
+        "expected.Basics_Date_Time__c_required",
+        "expected.Lifestyle_Date_Time__c_must_be_null",
+    } <= set(comparison.named_selects)
+    expected_frame = backend.con.execute(expected.sql(dialect="duckdb", comments=False)).fetchdf()
+    comparison_frame = backend.con.execute(
+        comparison.sql(dialect="duckdb", comments=False)
+    ).fetchdf()
+    for field in FLOW_FIELDS:
+        pd.testing.assert_series_equal(
+            expected_frame[field], comparison_frame["expected." + field], check_names=False
+        )
+    # Remove AFTER entirely: expected query still works and missing observation remains a finding.
+    backend.con.execute('DELETE FROM "Account_history" WHERE valid_to IS NULL')
+    pd.testing.assert_frame_equal(
+        expected_frame,
+        backend.con.execute(expected.sql(dialect="duckdb", comments=False)).fetchdf(),
+    )
+    missing = backend.con.execute(comparison.sql(dialect="duckdb", comments=False)).fetchdf()
+    assert missing["observed.Id"].isna().all()
+    assert not missing.comparison_keys_are_valid.any()
+    assert (
+        projection_lineage(comparison)["expected.Basics_Date_Time__c"]["target_field"]
+        == "Account.Basics_Date_Time__c"
+    )
+    rendered = query_asset_sql(comparison)
+    assert '"expected.Basics_Date_Time__c"' in rendered
+
+
+def test_identity_check_ids_survive_dotted_output_labels():
+    from ppsc_ops_data_quality.account_to_survey_results.suites import rollup_account_suite
+
+    for prefix, suite in [("flow", flow_account_suite()), ("rollup", rollup_account_suite())]:
+        by_id = {e.meta["check_id"]: e for e in suite.expectations}
+        assert by_id[prefix + "_expected_account_id_is_present"].column == "expected.Id"
+        assert by_id[prefix + "_observed_account_id_is_present"].column == "observed.Id"

@@ -1,10 +1,39 @@
 # Query authoring
 
-`account_to_survey_results.queries.flow_account_query` returns an annotated SQLGlot
-SELECT. Supply the selected inputs, history relations, event ID, ordered BEFORE /
-execution / AFTER instants, org-local `flow_run_date` and verified `eligibility`
-(Boolean or unknown). Start-transition eligibility is an explicit caller fact;
-completion status alone cannot establish it. Native Salesforce controls source semantics.
+The domain builders expose canonical Account columns; dotted side labels belong only
+at the GX comparison boundary:
+
+- `expected_flow_account_query(...)` returns an annotated SQLGlot SELECT with `Id`,
+  the 19 Account field names, event context and separate assignment/determinism/lookup
+  evidence. It takes BEFORE/execution snapshots and does not read the AFTER snapshot.
+- `expected_survey_rollups(Account, Survey_Result__c)` returns a native Ibis relation
+  with canonical `Id`, `PersonContactId`, rollup fields and source-parent evidence.
+  The aggregation is complete before any observation join.
+- `observed_account_query(history, fields=..., as_of=...)` selects an independent
+  snapshot with canonical `Id` and the requested fields. Convert it with `to_sqlglot`
+  when joining the native Flow SELECT.
+- `flow_account_comparison(expected, observed)` and
+  `rollup_account_comparison(expected, observed)` add the GX projection. Native
+  `ExpectColumnPairValuesToBeEqual` binds `expected.<field>` and `observed.<field>`.
+  These labels are **quoted as single identifiers**, not table-qualified expressions in GX.
+
+`flow_account_query(...)` and `rollup_account_query(...)` are the workflow composition
+operations: build the two independent relations, then invoke the comparison boundary.
+The Flow operation checks ordered BEFORE/execution/AFTER instants, supplies the org-local
+`flow_run_date` and explicit `eligibility` (Boolean or unknown), and retains all three
+role bindings in provenance. Direct callers of the lower-level comparison function
+must supply correctly scoped, independently bound inputs.
+
+```sql
+SELECT expected.F AS "expected.F", observed.F AS "observed.F"
+FROM expected LEFT JOIN observed ON expected.Id = observed.Id
+```
+
+The actual event comparison also preserves its event key, missing observations,
+duplicate occurrences and evidence columns. Rollup and generic reconciliations retain
+their full outer joins. Column labels are added without rewriting native Salesforce
+Flow node/CTE names or changing the compiler dependency. Expected projection lineage
+is carried to its dotted GX label; the original query is not mutated.
 
 `history_tables(inputs=..., locations=...)` constructs selected physical relations
 from parsed lake DDL and explicit aliases. Effective half-open intervals are applied

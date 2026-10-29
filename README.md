@@ -31,6 +31,11 @@ Ibis remains only for authored rollups, relational history composition and repor
 completed expressions are converted to SQLGlot in the domain module. The shared runtime
 accepts final native SELECTs and has no domain imports.
 
+Expected-state and observed-state queries expose canonical Account field names.
+Only the GX join projection adds literal dotted labels such as `expected.Id`,
+`expected.Basics_Date_Time__c` and `observed.Basics_Date_Time__c`. Native column-pair
+expectations retain the existing scope, NULL, evidence and duplicate checks.
+
 ## Checks
 
 ```bash

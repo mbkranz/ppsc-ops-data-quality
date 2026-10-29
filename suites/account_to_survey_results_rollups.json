@@ -6,50 +6,50 @@
       "type": "expect_table_columns_to_match_set",
       "kwargs": {
         "column_set": [
-          "expected_account_id",
+          "expected.Id",
           "person_contact_id",
-          "observed_account_id",
+          "observed.Id",
           "validation_record_id",
           "source_parent_keys_are_valid",
           "comparison_keys_are_valid",
-          "expected__EHR_Authorized__pc",
-          "expected__Count_of_Completed_EHR_Auth__pc",
-          "expected__Count_of_Completed_Primary_Consent__pc",
-          "expected__Count_of_Completed_Reconsent__pc",
-          "expected__PPI_2_Completion_Count__pc",
-          "expected__PPI_3_Completion_Count__pc",
-          "expected__EHR_Consent_Active__pc",
-          "expected__EHR_Consent_Declined__pc",
-          "expected__PP1_Basics_Survey_Complete__pc",
-          "expected__Re_Consent_Declined__pc",
-          "expected__Re_consent_Active__pc",
-          "expected__Primary_Consent_Declined__pc",
-          "expected__EHR_Consent_Ever__pc",
-          "expected__Assent_Completion_Count__pc",
-          "expected__Pediatric_Permission_Completion_Count__pc",
-          "expected__X0_6_Peds_Permission_Count__pc",
-          "expected__X0_6_Peds_Permission_Declined_Count__pc",
-          "expected__X0_6_Peds_Permission_Revoked_Count__pc",
-          "expected__EHR_Pediatric_Complete__pc",
-          "observed__EHR_Authorized__pc",
-          "observed__Count_of_Completed_EHR_Auth__pc",
-          "observed__Count_of_Completed_Primary_Consent__pc",
-          "observed__Count_of_Completed_Reconsent__pc",
-          "observed__PPI_2_Completion_Count__pc",
-          "observed__PPI_3_Completion_Count__pc",
-          "observed__EHR_Consent_Active__pc",
-          "observed__EHR_Consent_Declined__pc",
-          "observed__PP1_Basics_Survey_Complete__pc",
-          "observed__Re_Consent_Declined__pc",
-          "observed__Re_consent_Active__pc",
-          "observed__Primary_Consent_Declined__pc",
-          "observed__EHR_Consent_Ever__pc",
-          "observed__Assent_Completion_Count__pc",
-          "observed__Pediatric_Permission_Completion_Count__pc",
-          "observed__X0_6_Peds_Permission_Count__pc",
-          "observed__X0_6_Peds_Permission_Declined_Count__pc",
-          "observed__X0_6_Peds_Permission_Revoked_Count__pc",
-          "observed__EHR_Pediatric_Complete__pc"
+          "expected.EHR_Authorized__pc",
+          "expected.Count_of_Completed_EHR_Auth__pc",
+          "expected.Count_of_Completed_Primary_Consent__pc",
+          "expected.Count_of_Completed_Reconsent__pc",
+          "expected.PPI_2_Completion_Count__pc",
+          "expected.PPI_3_Completion_Count__pc",
+          "expected.EHR_Consent_Active__pc",
+          "expected.EHR_Consent_Declined__pc",
+          "expected.PP1_Basics_Survey_Complete__pc",
+          "expected.Re_Consent_Declined__pc",
+          "expected.Re_consent_Active__pc",
+          "expected.Primary_Consent_Declined__pc",
+          "expected.EHR_Consent_Ever__pc",
+          "expected.Assent_Completion_Count__pc",
+          "expected.Pediatric_Permission_Completion_Count__pc",
+          "expected.X0_6_Peds_Permission_Count__pc",
+          "expected.X0_6_Peds_Permission_Declined_Count__pc",
+          "expected.X0_6_Peds_Permission_Revoked_Count__pc",
+          "expected.EHR_Pediatric_Complete__pc",
+          "observed.EHR_Authorized__pc",
+          "observed.Count_of_Completed_EHR_Auth__pc",
+          "observed.Count_of_Completed_Primary_Consent__pc",
+          "observed.Count_of_Completed_Reconsent__pc",
+          "observed.PPI_2_Completion_Count__pc",
+          "observed.PPI_3_Completion_Count__pc",
+          "observed.EHR_Consent_Active__pc",
+          "observed.EHR_Consent_Declined__pc",
+          "observed.PP1_Basics_Survey_Complete__pc",
+          "observed.Re_Consent_Declined__pc",
+          "observed.Re_consent_Active__pc",
+          "observed.Primary_Consent_Declined__pc",
+          "observed.EHR_Consent_Ever__pc",
+          "observed.Assent_Completion_Count__pc",
+          "observed.Pediatric_Permission_Completion_Count__pc",
+          "observed.X0_6_Peds_Permission_Count__pc",
+          "observed.X0_6_Peds_Permission_Declined_Count__pc",
+          "observed.X0_6_Peds_Permission_Revoked_Count__pc",
+          "observed.EHR_Pediatric_Complete__pc"
         ],
         "exact_match": false
       },
@@ -61,7 +61,7 @@
     {
       "type": "expect_column_values_to_not_be_null",
       "kwargs": {
-        "column": "expected_account_id"
+        "column": "expected.Id"
       },
       "meta": {
         "check_id": "rollup_expected_account_id_is_present"
@@ -81,7 +81,7 @@
     {
       "type": "expect_column_values_to_not_be_null",
       "kwargs": {
-        "column": "observed_account_id"
+        "column": "observed.Id"
       },
       "meta": {
         "check_id": "rollup_observed_account_id_is_present"
@@ -91,7 +91,7 @@
     {
       "type": "expect_column_values_to_be_unique",
       "kwargs": {
-        "column": "expected_account_id"
+        "column": "expected.Id"
       },
       "meta": {
         "check_id": "one_rollup_comparison_row_per_person_account"
@@ -116,8 +116,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__EHR_Authorized__pc",
-        "column_B": "expected__EHR_Authorized__pc",
+        "column_A": "observed.EHR_Authorized__pc",
+        "column_B": "expected.EHR_Authorized__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -168,8 +168,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Count_of_Completed_EHR_Auth__pc",
-        "column_B": "expected__Count_of_Completed_EHR_Auth__pc",
+        "column_A": "observed.Count_of_Completed_EHR_Auth__pc",
+        "column_B": "expected.Count_of_Completed_EHR_Auth__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -220,8 +220,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Count_of_Completed_Primary_Consent__pc",
-        "column_B": "expected__Count_of_Completed_Primary_Consent__pc",
+        "column_A": "observed.Count_of_Completed_Primary_Consent__pc",
+        "column_B": "expected.Count_of_Completed_Primary_Consent__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -269,8 +269,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Count_of_Completed_Reconsent__pc",
-        "column_B": "expected__Count_of_Completed_Reconsent__pc",
+        "column_A": "observed.Count_of_Completed_Reconsent__pc",
+        "column_B": "expected.Count_of_Completed_Reconsent__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -318,8 +318,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__PPI_2_Completion_Count__pc",
-        "column_B": "expected__PPI_2_Completion_Count__pc",
+        "column_A": "observed.PPI_2_Completion_Count__pc",
+        "column_B": "expected.PPI_2_Completion_Count__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -367,8 +367,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__PPI_3_Completion_Count__pc",
-        "column_B": "expected__PPI_3_Completion_Count__pc",
+        "column_A": "observed.PPI_3_Completion_Count__pc",
+        "column_B": "expected.PPI_3_Completion_Count__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -416,8 +416,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__EHR_Consent_Active__pc",
-        "column_B": "expected__EHR_Consent_Active__pc",
+        "column_A": "observed.EHR_Consent_Active__pc",
+        "column_B": "expected.EHR_Consent_Active__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -465,8 +465,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__EHR_Consent_Declined__pc",
-        "column_B": "expected__EHR_Consent_Declined__pc",
+        "column_A": "observed.EHR_Consent_Declined__pc",
+        "column_B": "expected.EHR_Consent_Declined__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -514,8 +514,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__PP1_Basics_Survey_Complete__pc",
-        "column_B": "expected__PP1_Basics_Survey_Complete__pc",
+        "column_A": "observed.PP1_Basics_Survey_Complete__pc",
+        "column_B": "expected.PP1_Basics_Survey_Complete__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -563,8 +563,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Re_Consent_Declined__pc",
-        "column_B": "expected__Re_Consent_Declined__pc",
+        "column_A": "observed.Re_Consent_Declined__pc",
+        "column_B": "expected.Re_Consent_Declined__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -612,8 +612,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Re_consent_Active__pc",
-        "column_B": "expected__Re_consent_Active__pc",
+        "column_A": "observed.Re_consent_Active__pc",
+        "column_B": "expected.Re_consent_Active__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -661,8 +661,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Primary_Consent_Declined__pc",
-        "column_B": "expected__Primary_Consent_Declined__pc",
+        "column_A": "observed.Primary_Consent_Declined__pc",
+        "column_B": "expected.Primary_Consent_Declined__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -710,8 +710,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__EHR_Consent_Ever__pc",
-        "column_B": "expected__EHR_Consent_Ever__pc",
+        "column_A": "observed.EHR_Consent_Ever__pc",
+        "column_B": "expected.EHR_Consent_Ever__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -759,8 +759,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Assent_Completion_Count__pc",
-        "column_B": "expected__Assent_Completion_Count__pc",
+        "column_A": "observed.Assent_Completion_Count__pc",
+        "column_B": "expected.Assent_Completion_Count__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -808,8 +808,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__Pediatric_Permission_Completion_Count__pc",
-        "column_B": "expected__Pediatric_Permission_Completion_Count__pc",
+        "column_A": "observed.Pediatric_Permission_Completion_Count__pc",
+        "column_B": "expected.Pediatric_Permission_Completion_Count__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -857,8 +857,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__X0_6_Peds_Permission_Count__pc",
-        "column_B": "expected__X0_6_Peds_Permission_Count__pc",
+        "column_A": "observed.X0_6_Peds_Permission_Count__pc",
+        "column_B": "expected.X0_6_Peds_Permission_Count__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -906,8 +906,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__X0_6_Peds_Permission_Declined_Count__pc",
-        "column_B": "expected__X0_6_Peds_Permission_Declined_Count__pc",
+        "column_A": "observed.X0_6_Peds_Permission_Declined_Count__pc",
+        "column_B": "expected.X0_6_Peds_Permission_Declined_Count__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -955,8 +955,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__X0_6_Peds_Permission_Revoked_Count__pc",
-        "column_B": "expected__X0_6_Peds_Permission_Revoked_Count__pc",
+        "column_A": "observed.X0_6_Peds_Permission_Revoked_Count__pc",
+        "column_B": "expected.X0_6_Peds_Permission_Revoked_Count__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"
@@ -1004,8 +1004,8 @@
     {
       "type": "expect_column_pair_values_to_be_equal",
       "kwargs": {
-        "column_A": "observed__EHR_Pediatric_Complete__pc",
-        "column_B": "expected__EHR_Pediatric_Complete__pc",
+        "column_A": "observed.EHR_Pediatric_Complete__pc",
+        "column_B": "expected.EHR_Pediatric_Complete__pc",
         "row_condition": {
           "column": {
             "name": "comparison_keys_are_valid"

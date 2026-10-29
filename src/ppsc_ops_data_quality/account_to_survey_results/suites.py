@@ -18,8 +18,8 @@ from ppsc_ops_data_quality.account_to_survey_results.queries import (
 def equal_values(*, field: str, row_condition, meta: dict, description: str | None = None):
     """The shared native equality/null policy; callers supply applicability."""
     return gxe.ExpectColumnPairValuesToBeEqual(
-        column_A=f"observed__{field}",
-        column_B=f"expected__{field}",
+        column_A=f"observed.{field}",
+        column_B=f"expected.{field}",
         ignore_row_if="both_values_are_missing",
         mostly=1,
         row_condition=row_condition,
@@ -33,7 +33,7 @@ def comparison_suite(spec: ComparisonSpec, *, name: str) -> gx.ExpectationSuite:
     scope = Column("comparison_scope") == True
     valid = scope & (Column("comparison_keys_are_valid") == True)
     columns = ["comparison_scope", "comparison_keys_are_valid", "comparison_evidence_is_complete"]
-    keys = [f"{side}_key__{key.name}" for key in spec.keys for side in ("expected", "observed")]
+    keys = [f"{side}.key.{key.name}" for key in spec.keys for side in ("expected", "observed")]
     columns.extend(keys)
     checks = [
         gxe.ExpectColumnValuesToNotBeNull(
@@ -54,12 +54,12 @@ def comparison_suite(spec: ComparisonSpec, *, name: str) -> gx.ExpectationSuite:
         ),
     ]
     for value in spec.values:
-        expected, observed = f"expected__{value.name}", f"observed__{value.name}"
+        expected, observed = f"expected.{value.name}", f"observed.{value.name}"
         columns.extend([expected, observed])
         applicable = valid
         for role in ("deterministic", "assigned", "required", "must_be_null"):
             if getattr(value, role) is not None:
-                column = f"expected__{value.name}__{role}"
+                column = f"expected.{value.name}__{role}"
                 columns.append(column)
                 if role == "deterministic":
                     applicable = applicable & (Column(column) == True)
@@ -102,18 +102,21 @@ def comparison_suite(spec: ComparisonSpec, *, name: str) -> gx.ExpectationSuite:
     )
 
 
+# Stable check identities survive output-label changes in the GX projection.
+IDENTITY_CHECK_NAMES = {"expected.Id": "expected_account_id", "observed.Id": "observed_account_id"}
+
 FLOW_IDENTITY_COLUMNS = (
     "survey_result_id",
     "participant_contact_id",
-    "expected_account_id",
-    "observed_account_id",
+    "expected.Id",
+    "observed.Id",
 )
 
 
 ROLLUP_IDENTITY_COLUMNS = (
-    "expected_account_id",
+    "expected.Id",
     "person_contact_id",
-    "observed_account_id",
+    "observed.Id",
 )
 
 
@@ -148,12 +151,12 @@ def flow_account_suite(
                 "cabor_lookup_is_deterministic",
                 "survey_completion_timestamp",
                 "survey_completion_occurred_on_or_after_launch",
-                *[f"expected__{field}" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
-                *[f"observed__{field}" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
-                *[f"expected__{field}__deterministic" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
-                *[f"expected__{field}__assigned" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
-                *[f"expected__{field}_required" for field in required_fields],
-                *[f"expected__{field}_must_be_null" for field in must_be_null_fields],
+                *[f"expected.{field}" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
+                *[f"observed.{field}" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
+                *[f"expected.{field}__deterministic" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
+                *[f"expected.{field}__assigned" for field in ACCOUNT_FIELDS_ASSIGNED_BY_FLOW],
+                *[f"expected.{field}_required" for field in required_fields],
+                *[f"expected.{field}_must_be_null" for field in must_be_null_fields],
             ],
             exact_match=False,
             description="The joined comparison contains all identity, evidence and value columns.",
@@ -183,7 +186,7 @@ def flow_account_suite(
                 row_condition=POST_LAUNCH_COMPLETION,
                 mostly=1,
                 description=f"Every survey event has {column}.",
-                meta={"check_id": f"flow_{column}_is_present"},
+                meta={"check_id": f"flow_{IDENTITY_CHECK_NAMES.get(column, column)}_is_present"},
             )
         )
     expectations.append(
@@ -220,8 +223,8 @@ def flow_account_suite(
         row_condition = (
             POST_LAUNCH_COMPLETION
             & (Column("comparison_keys_are_valid") == True)
-            & (Column(f"expected__{field}__deterministic") == True)
-            & Column(f"expected__{field}__assigned").is_not_null()
+            & (Column(f"expected.{field}__deterministic") == True)
+            & Column(f"expected.{field}__assigned").is_not_null()
         )
         if field == "CABOR_Completion_Date__c":
             row_condition = row_condition & (Column("cabor_lookup_is_deterministic") == True)
@@ -231,7 +234,7 @@ def flow_account_suite(
                 description=f"Observed Account.{field} equals its expected AFTER value.",
                 meta={
                     "check_id": f"observed_{field}_equals_expected",
-                    "ppsc": deepcopy(PROJECTION_LINEAGE.get("expected__" + field, {})),
+                    "ppsc": deepcopy(PROJECTION_LINEAGE.get("expected." + field, {})),
                     "both_null_policy": "accepted; native missing_count reports these excluded pairs",
                     "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs",
                 },
@@ -249,11 +252,11 @@ def flow_account_suite(
         for field in fields:
             expectations.append(
                 expectation_type(
-                    column=f"observed__{field}",
+                    column=f"observed.{field}",
                     row_condition=(
                         POST_LAUNCH_COMPLETION
                         & (Column("comparison_keys_are_valid") == True)
-                        & (Column(f"expected__{field}_{suffix}") == True)
+                        & (Column(f"expected.{field}_{suffix}") == True)
                     ),
                     meta={"check_id": f"observed_{field}_{suffix}", "presence_role": suffix},
                 )
@@ -301,8 +304,8 @@ def rollup_account_suite(
                 "validation_record_id",
                 "source_parent_keys_are_valid",
                 "comparison_keys_are_valid",
-                *[f"expected__{field}" for field in ROLLUP_ACCOUNT_FIELDS],
-                *[f"observed__{field}" for field in ROLLUP_ACCOUNT_FIELDS],
+                *[f"expected.{field}" for field in ROLLUP_ACCOUNT_FIELDS],
+                *[f"observed.{field}" for field in ROLLUP_ACCOUNT_FIELDS],
             ],
             exact_match=False,
             meta={"check_id": "rollup_comparison_required_columns"},
@@ -313,12 +316,12 @@ def rollup_account_suite(
             gxe.ExpectColumnValuesToNotBeNull(
                 column=column,
                 mostly=1,
-                meta={"check_id": f"rollup_{column}_is_present"},
+                meta={"check_id": f"rollup_{IDENTITY_CHECK_NAMES.get(column, column)}_is_present"},
             )
         )
     expectations.append(
         gxe.ExpectColumnValuesToBeUnique(
-            column="expected_account_id",
+            column="expected.Id",
             mostly=1,
             description="Person Account IDs are unique in the rollup comparison.",
             meta={"check_id": "one_rollup_comparison_row_per_person_account"},
@@ -340,7 +343,7 @@ def rollup_account_suite(
                 description=f"Observed Account.{field} equals its expected survey rollup count.",
                 meta={
                     "check_id": f"observed_{field}_equals_expected_rollup",
-                    "ppsc": deepcopy(PROJECTION_LINEAGE.get("expected__" + field, {})),
+                    "ppsc": deepcopy(PROJECTION_LINEAGE.get("expected." + field, {})),
                 },
             )
         )

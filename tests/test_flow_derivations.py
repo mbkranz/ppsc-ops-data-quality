@@ -117,7 +117,7 @@ class ExpectedValues(unittest.TestCase):
             .iloc[0]
         )
         return row.rename(
-            {"expected__" + field: field for field in m.FLOW_FIELDS}
+            {"expected." + field: field for field in m.FLOW_FIELDS}
             | {"cabor_lookup_is_deterministic": "CABOR_Completion_Date__c_is_deterministic"}
         )
 
@@ -231,7 +231,7 @@ class ExpectedValues(unittest.TestCase):
             }
         )
         expected = m.expected_survey_rollups(Account, Survey)
-        rows = self.con.execute(expected).set_index("Account.Id")
+        rows = self.con.execute(expected).set_index("Id")
         self.assertEqual(set(rows.index), {"a1", "a2"})
         self.assertEqual(rows.loc["a1", "Count_of_Completed_Primary_Consent__pc"], 2)
         self.assertEqual(rows.loc["a2", "Count_of_Completed_Primary_Consent__pc"], 0)

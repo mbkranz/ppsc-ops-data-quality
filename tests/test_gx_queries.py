@@ -6,6 +6,7 @@ from sqlglot import exp
 
 from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ROLLUP_ACCOUNT_FIELDS,
+    expected_survey_rollups,
     rollup_account_comparison,
     to_sqlglot,
 )
@@ -75,18 +76,23 @@ class QueryAssetTests(unittest.TestCase):
             observed = backend.create_table(
                 "Observed",
                 ibis.memtable(
-                    {"Id": ["a1", "a1"], **{field: [0, 0] for field in ROLLUP_ACCOUNT_FIELDS}}
+                    {
+                        "Id": ["a1", "a1", "observed_only"],
+                        **{field: [0, 0, 0] for field in ROLLUP_ACCOUNT_FIELDS},
+                    }
                 ),
             )
-            comparison = rollup_account_comparison(account, survey, observed)
+            comparison = rollup_account_comparison(
+                expected_survey_rollups(account, survey), observed
+            )
             self.assertCountEqual(
                 backend.raw_sql(
                     backend.compile(
                         comparison.select(
-                            "expected_account_id",
+                            "expected.Id",
                             "person_contact_id",
-                            "observed_account_id",
-                            "expected__Count_of_Completed_Primary_Consent__pc",
+                            "observed.Id",
+                            "expected.Count_of_Completed_Primary_Consent__pc",
                         )
                     )
                 ).fetchall(),
@@ -95,6 +101,7 @@ class QueryAssetTests(unittest.TestCase):
                     ("a1", "c1", "a1", 4),
                     ("a2", "c2", None, 0),
                     (None, "c3", None, 1),
+                    (None, None, "observed_only", None),
                 ],
             )
             self.assertCountEqual(
@@ -178,4 +185,56 @@ def test_complete_gx_statements_are_measured_and_limit_checked(tmp_path):
     finally:
         sa.event.remove(engine, "before_cursor_execute", listener)
     engine.dispose()
+    seed.dispose()
+
+
+def test_native_sql_gx_dotted_labels_preserve_pair_and_null_semantics(tmp_path):
+    import great_expectations as gx
+    import great_expectations.expectations as gxe
+    import sqlalchemy as sa
+
+    from ppsc_ops_data_quality.account_to_survey_results.suites import equal_values
+    from ppsc_ops_data_quality.runtime import prepare_validation, run_validations
+
+    url = "sqlite:///" + str(tmp_path / "dotted.db")
+    seed = sa.create_engine(url)
+    with seed.begin() as connection:
+        for table in ("expected", "observed"):
+            connection.execute(sa.text(f'CREATE TABLE {table} (Id INTEGER, "F__c" INTEGER)'))
+            connection.execute(sa.text(f"INSERT INTO {table} VALUES (1, 7), (2, NULL)"))
+    context = gx.get_context(mode="ephemeral")
+    context.variables.progress_bars = {"globally": False}
+    source = context.data_sources.add_sqlite(name="dotted", connection_string=url)
+    pair = equal_values(field="F__c", row_condition=None, meta={"check_id": "F_equals_expected"})
+    suite = context.suites.add(
+        gx.ExpectationSuite(
+            name="pairs",
+            expectations=[
+                gxe.ExpectColumnValuesToBeUnique(column="expected.Id"),
+                pair,
+            ],
+        )
+    )
+    # Table qualifiers belong inside the join; dotted labels are single identifiers outside it.
+    query = __import__("sqlglot").parse_one("""SELECT expected.Id AS "expected.Id",
+        expected.F__c AS "expected.F__c", observed.F__c AS "observed.F__c"
+        FROM expected LEFT JOIN observed ON expected.Id = observed.Id""")
+    definition, _ = prepare_validation(
+        context, source, query, suite, name="dotted", sql_path=tmp_path / "query.sql"
+    )
+    equal = run_validations([definition], suite_directory=tmp_path / "equal")["dotted"]
+    assert equal.success
+    assert equal.results[1].result["missing_count"] == 1
+    with seed.begin() as connection:
+        connection.execute(sa.text("UPDATE observed SET F__c=8 WHERE Id=1"))
+        connection.execute(sa.text("UPDATE observed SET F__c=9 WHERE Id=2"))
+    unequal = run_validations([definition], suite_directory=tmp_path / "unequal")["dotted"]
+    assert not unequal.success
+    assert unequal.results[1].result["unexpected_count"] == 2
+    with seed.begin() as connection:
+        connection.execute(sa.text("INSERT INTO observed VALUES (1, 8)"))
+    duplicate = run_validations([definition], suite_directory=tmp_path / "duplicate")["dotted"]
+    assert not duplicate.results[0].success
+    assert duplicate.results[1].result["unexpected_count"] == 3
+    source.get_execution_engine().engine.dispose()
     seed.dispose()

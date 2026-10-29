@@ -4,6 +4,10 @@ Prepared October 28, 2026. Source base:
 `035ae5fedf4f63393f8e92e04336ec22ea4725ea` on `codex/refactor-handoff`.
 See the [plan and review](../specs/minimal-implementation-plan.md).
 
+This records the initial implementation at `fa87c659faafa1f37c83e7ead8372b737bacb693`.
+The subsequent canonical-query simplification has its own
+[verification and release evidence](canonical-query-boundary.md).
+
 ## Verified dependency and application boundary
 
 - Salesforce source `4ce491c3266e052bf1e1f6a70e8f7d2aed86f9f1`, unchanged wheel version 0.1.1.

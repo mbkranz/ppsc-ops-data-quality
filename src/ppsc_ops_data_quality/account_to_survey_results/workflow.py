@@ -1,11 +1,13 @@
 """Account survey history workflow and its validated request/result boundaries."""
 
 import json
+import sys
 from collections.abc import Callable
 from datetime import date, datetime
 from hashlib import sha256
 from pathlib import Path
 from typing import Any, Literal, Self
+from uuid import uuid4
 
 import great_expectations as gx
 from great_expectations.core import RunIdentifier
@@ -38,9 +40,19 @@ from ppsc_ops_data_quality.runtime import (
     ReportConfiguration,
     check_catalog,
     guard_query_size,
+    prepare_query,
     prepare_validation,
+    query_asset_sql,
     query_source_tables,
     run_validations_with_reports,
+)
+from ppsc_ops_data_quality.views import (
+    ViewConfiguration,
+    ViewRequest,
+    create_query_view,
+    create_view_sql,
+    drop_query_view,
+    extract_cte_view,
 )
 
 
@@ -86,6 +98,7 @@ class ValidationConfiguration(Configuration):
     require_repeatable_reads: bool = True
     event: EventConfiguration
     rollups: RollupConfiguration
+    flow_view: ViewConfiguration | None = None
 
     @model_validator(mode="after")
     def validate_selected_locations(self) -> Self:
@@ -149,6 +162,11 @@ def run_validation(
     athena = request.athena
     reporting = request.reports
     event = request.event
+    query_options = {
+        "QueryExecutionContext": {"Catalog": athena.catalog_name, "Database": athena.database},
+        "ResultConfiguration": {"OutputLocation": athena.s3_staging_dir},
+        "WorkGroup": athena.work_group,
+    }
     bindings = inputs["tables"]
     if set(request.locations) != set(bindings):
         raise ValueError("Configured locations do not match the selected APMP dataset set")
@@ -205,11 +223,7 @@ def run_validation(
         locations=request.locations,
         data_versions=request.data_versions,
         athena_client=client,
-        query_options={
-            "QueryExecutionContext": {"Catalog": athena.catalog_name, "Database": athena.database},
-            "ResultConfiguration": {"OutputLocation": athena.s3_staging_dir},
-            "WorkGroup": athena.work_group,
-        },
+        query_options=query_options,
         require_repeatable_reads=request.require_repeatable_reads,
     )
     table_versions = {
@@ -238,7 +252,76 @@ def run_validation(
     )
     engine = source.get_execution_engine()
     listener, statement_sizes = guard_query_size(engine.engine)
+    sources = {
+        name: {
+            "source_tables": query_source_tables(
+                query.sql(dialect="athena"), locations=request.locations
+            )
+        }
+        for name, query in queries.items()
+    }
+    locations = dict(request.locations)
+    view_receipt = None
+    view_request = None
+    view_audit = {}
+
+    def versions_for(query):
+        tables = query_source_tables(query.sql(dialect="athena"), locations=locations)
+        return {
+            identity: value
+            for identity, value in table_versions.items()
+            if ".".join(identity) in tables
+        }
+
     try:
+        if request.flow_view is not None:
+            settings = request.flow_view
+            view_request = ViewRequest(
+                location=RelationLocation(
+                    catalog=athena.catalog_name,
+                    database=settings.database,
+                    relation=settings.prefix + "_" + uuid4().hex,
+                ),
+                timeout_seconds=settings.timeout_seconds,
+            )
+            expected, comparison = extract_cte_view(
+                queries["flow"], cte_name="Expected_Account", location=view_request.location
+            )
+            expected = prepare_query(expected, table_versions=versions_for(expected))
+            ddl = create_view_sql(expected, view_request)
+            locations["flow_expected_view"] = view_request.location
+            # Validate both statements before creating any catalog object.
+            query_asset_sql(comparison, table_versions=versions_for(comparison))
+            view_directory = run_directory / "views"
+            view_directory.mkdir()
+            (view_directory / "flow_expected.sql").write_text(ddl, encoding="utf-8")
+            dependency = {
+                "relation": view_request.location.identity,
+                "definition_sql": ddl,
+                "definition_sha256": sha256(ddl.encode()).hexdigest(),
+                "outputs": {p.alias_or_name: p.meta.get("ppsc", {}) for p in expected.selects},
+                "lineage": expected.meta.get("ppsc", {}),
+            }
+            (view_directory / "flow_expected.lineage.json").write_text(
+                json.dumps(dependency, indent=2), encoding="utf-8"
+            )
+            try:
+                view_receipt = create_query_view(
+                    expected, view_request, athena_client=client, query_options=query_options
+                )
+            except Exception as creation_error:
+                # No ownership receipt: never DROP an existing/ambiguously created view.
+                view_audit.update(
+                    location=view_request.location.model_dump(mode="json"),
+                    creation="failed_or_unknown",
+                    error=str(creation_error),
+                )
+                (view_directory / "receipt.json").write_text(json.dumps(view_audit, indent=2))
+                raise
+            view_audit.update(view_receipt.model_dump(mode="json"), cleanup="pending")
+            (view_directory / "receipt.json").write_text(json.dumps(view_audit, indent=2))
+            sources["flow"]["query_dependencies"] = [dependency]
+            queries["flow"] = comparison
         prepared = []
         for name, query in queries.items():
             suite = context.suites.add(
@@ -259,14 +342,7 @@ def run_validation(
                     name=name,
                     metadata={"run_name": run_directory.name},
                     projection_lineage=projection_lineage(query),
-                    table_versions={
-                        identity: value
-                        for identity, value in table_versions.items()
-                        if ".".join(identity)
-                        in query_source_tables(
-                            query.sql(dialect="athena"), locations=request.locations
-                        )
-                    },
+                    table_versions=versions_for(query),
                     sql_path=run_directory / "sql" / f"{name}.sql",
                 )
             )
@@ -277,9 +353,7 @@ def run_validation(
             s3_uri=reporting.s3_uri,
             sources={
                 definition.name: {
-                    "source_tables": query_source_tables(
-                        definition.data.data_asset.query, locations=request.locations
-                    ),
+                    **sources[definition.name],
                     "source_query": definition.data.data_asset.query,
                     "source_query_dialect": "athena",
                 }
@@ -289,6 +363,7 @@ def run_validation(
                 **(run_metadata or {}),
                 "metadata_inputs": compiled_inputs,
                 "submitted_statement_utf8_bytes": statement_sizes,
+                "query_view": view_audit,
                 "provenance_version": "native-salesforce",
                 "configuration_sha256": run_configuration_sha256,
                 "catalog_preflight": [item.model_dump(mode="json") for item in preflight],
@@ -322,8 +397,32 @@ def run_validation(
     finally:
         from sqlalchemy import event as sqlalchemy_event
 
-        sqlalchemy_event.remove(engine.engine, "before_cursor_execute", listener)
-        engine.close()
+        active_error = sys.exception()
+        try:
+            if view_receipt is not None:
+                try:
+                    query_id = drop_query_view(
+                        view_receipt,
+                        athena_client=client,
+                        query_options=query_options,
+                        timeout_seconds=view_request.timeout_seconds,
+                    )
+                    view_audit.update(cleanup="dropped", cleanup_query_id=query_id)
+                except Exception as cleanup_error:
+                    view_audit.update(cleanup="failed", cleanup_error=str(cleanup_error))
+                    if active_error is not None:
+                        raise ExceptionGroup(
+                            "Validation and query-view cleanup failed",
+                            [active_error, cleanup_error],
+                        ) from None
+                    raise
+                finally:
+                    (run_directory / "views" / "receipt.json").write_text(
+                        json.dumps(view_audit, indent=2), encoding="utf-8"
+                    )
+        finally:
+            sqlalchemy_event.remove(engine.engine, "before_cursor_execute", listener)
+            engine.close()
 
 
 def prepare_authored_validation(

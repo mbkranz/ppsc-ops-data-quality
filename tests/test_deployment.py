@@ -338,9 +338,23 @@ reports:
 
 
 @pytest.mark.parametrize(
-    "outcome,code", [(True, 0), (False, 1), ("error", None), ("diagnostic", 0)]
+    "outcome,code,use_view",
+    [
+        (True, 0, False),
+        (False, 1, False),
+        ("error", None, False),
+        ("diagnostic", 0, False),
+        (True, 0, True),
+        (False, 1, True),
+        ("error", None, True),
+        ("cleanup_error", None, True),
+        ("error_and_cleanup", None, True),
+        ("create_error", None, True),
+    ],
 )
-def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypatch, outcome, code):
+def test_account_workflow_runs_both_suites_and_closes_engine(
+    tmp_path, monkeypatch, outcome, code, use_view
+):
     import re
     from types import SimpleNamespace
 
@@ -354,6 +368,12 @@ def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypat
     config.write_text(
         re.sub(r"REPLACE_WITH_[A-Z_]+", "fixture", (ROOT / "params.example.yaml").read_text())
     )
+    if use_view:
+        import yaml
+
+        values = yaml.safe_load(config.read_text())
+        values["flow_view"] = {"database": "dq", "prefix": "test_flow"}
+        config.write_text(yaml.safe_dump(values))
     if outcome == "diagnostic":
         import yaml
 
@@ -406,7 +426,7 @@ def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypat
     ):
         assert projection_lineage
         assert len(table_versions) == (
-            0 if outcome == "diagnostic" else (3 if name == "flow" else 2)
+            0 if outcome == "diagnostic" else ((1 if use_view else 3) if name == "flow" else 2)
         )
         prepared.append((name, suite))
         return SimpleNamespace(
@@ -440,7 +460,11 @@ def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypat
         assert len(kwargs["sources"]["flow"]["source_tables"]) == 3
         assert len(kwargs["sources"]["rollups"]["source_tables"]) == 2
         assert kwargs["s3_uri"] == "s3://fixture/ppsc-data-quality/"
-        if outcome == "error":
+        if use_view:
+            assert kwargs["sources"]["flow"]["query_dependencies"]
+            assert len(kwargs["sources"]["flow"]["source_query"].encode()) < 32_768
+            assert kwargs["run_metadata"]["query_view"]["query_id"]
+        if outcome in {"error", "error_and_cleanup"}:
             raise RuntimeError("publication failed")
         reports = kwargs["run_directory"]
         reports.mkdir(parents=True)
@@ -458,16 +482,37 @@ def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypat
     )["tables"]
 
     class Athena:
+        ddl = []
+
         def get_table_metadata(self, **kwargs):
             table = next(item for item in catalog_tables if item["Name"] == kwargs["TableName"])
             self.selected = {**table, "Parameters": {"table_type": "ICEBERG"}}
             return {"TableMetadata": self.selected}
 
         def start_query_execution(self, **kwargs):
-            assert "FOR VERSION AS OF 123456789" in kwargs["QueryString"]
+            sql = kwargs["QueryString"]
+            if sql.startswith("DROP VIEW"):
+                self.ddl.append("DROP")
+                if outcome in {"cleanup_error", "error_and_cleanup"}:
+                    raise RuntimeError("cleanup failed")
+            else:
+                assert "FOR VERSION AS OF 123456789" in sql
+                if sql.startswith("CREATE VIEW"):
+                    self.ddl.append("CREATE")
+                    assert "REPLACE" not in sql
+                    assert kwargs["QueryExecutionContext"] == {
+                        "Catalog": "AwsDataCatalog",
+                        "Database": "dq",
+                    }
             return {"QueryExecutionId": "snapshot-schema"}
 
         def get_query_execution(self, **kwargs):
+            if outcome == "create_error" and self.ddl == ["CREATE"]:
+                return {
+                    "QueryExecution": {
+                        "Status": {"State": "FAILED", "StateChangeReason": "view already exists"}
+                    }
+                }
             return {"QueryExecution": {"Status": {"State": "SUCCEEDED"}}}
 
         def get_query_results(self, **kwargs):
@@ -494,14 +539,35 @@ def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypat
     client = Athena()
     monkeypatch.setattr(job, "prepare_validation", prepare)
     monkeypatch.setattr(job, "run_validations_with_reports", execute)
-    if outcome == "error":
-        with pytest.raises(RuntimeError, match="publication failed"):
+    if outcome in {"error", "cleanup_error", "error_and_cleanup", "create_error"}:
+        exception = (
+            ValueError
+            if outcome == "create_error"
+            else (ExceptionGroup if outcome == "error_and_cleanup" else RuntimeError)
+        )
+        message = (
+            "CREATE query view failed"
+            if outcome == "create_error"
+            else "cleanup failed"
+            if outcome == "cleanup_error"
+            else (
+                "Validation and query-view cleanup failed"
+                if outcome == "error_and_cleanup"
+                else "publication failed"
+            )
+        )
+        with pytest.raises(exception, match=message) as caught:
             job.run_validation(
                 load_validation_configuration(config),
                 run_directory=tmp_path / "run",
                 athena_client=client,
                 run_metadata={"release_revision": "a" * 40},
             )
+        if outcome == "error_and_cleanup":
+            assert [str(e) for e in caught.value.exceptions] == [
+                "publication failed",
+                "cleanup failed",
+            ]
     else:
         assert (
             job.run_validation(
@@ -512,8 +578,16 @@ def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypat
             ).exit_code
             == code
         )
-    assert len(prepared) == 2
+    assert len(prepared) == (0 if outcome == "create_error" else 2)
     assert closed == [True]
+    if use_view:
+        assert client.ddl == (["CREATE"] if outcome == "create_error" else ["CREATE", "DROP"])
+        audit = json.loads((tmp_path / "run/views/receipt.json").read_text())
+        if outcome == "create_error":
+            assert audit["creation"] == "failed_or_unknown"
+            assert "snapshot-schema" in audit["error"]
+        else:
+            assert audit["cleanup"] == ("failed" if "cleanup" in str(outcome) else "dropped")
 
 
 def test_yaml_job_template_configures_hosting_and_rejects_unquoted_accounts(

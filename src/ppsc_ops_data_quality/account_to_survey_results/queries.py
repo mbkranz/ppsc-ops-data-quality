@@ -1119,6 +1119,24 @@ def _named(value, name):
     return exp.alias_(value, name, quoted=True)
 
 
+def _rename_output_metadata(metadata: dict, aliases: Mapping[str, str]) -> dict:
+    """Remap current output references, retaining native names as source provenance."""
+    result = deepcopy(metadata)
+    keys = ("value_column", "assigned_column", "deterministic_column")
+    original = {key: result[key] for key in keys if key in result}
+    if original:
+        result.setdefault("native_output_columns", original)
+        for key, value in original.items():
+            result[key] = aliases.get(value, value)
+    for field, evidence in result.get("outputs", {}).items():
+        result["outputs"][field] = _rename_output_metadata(evidence, aliases)
+    if "record_identity" in result:
+        identity = result["record_identity"]
+        identity.setdefault("native_column", identity["column"])
+        identity["column"] = aliases.get(identity["column"], identity["column"])
+    return result
+
+
 def expected_flow_account_query(
     history: Mapping[str, ir.Table],
     *,
@@ -1239,12 +1257,14 @@ def expected_flow_account_query(
     # An extra SELECT wrapper would repeat every field and lookup diagnostic.
     final = native.copy()
     outputs = []
+    aliases = {}
     identities = {"flow_target_id": "Id", "flow_record_id": "survey_result_id"}
     for projection in native.selects:
         name = projection.alias_or_name
         if name == "flow_row_id":
             continue
         canonical = identities.get(name, name.removeprefix("expected__").removeprefix("__ops."))
+        aliases[name] = canonical
         output = _named(projection.unalias().copy(), canonical)
         field = canonical.removesuffix("__assigned").removesuffix("__deterministic")
         if name.startswith("expected__") and field in native.meta["ppsc"]["outputs"]:
@@ -1252,8 +1272,11 @@ def expected_flow_account_query(
         outputs.append(output)
     final.set("expressions", outputs)
     final.set("with_", exp.With(expressions=ctes))
+    for output in final.selects:
+        if "ppsc" in output.meta:
+            output.meta["ppsc"] = _rename_output_metadata(output.meta["ppsc"], aliases)
     final.meta["ppsc"] = {
-        **deepcopy(native.meta["ppsc"]),
+        **_rename_output_metadata(native.meta["ppsc"], aliases),
         "lake_bindings": metadata_receipt(inputs),
         "temporal_roles": {"before": str(account_before_at), "execution": str(execution_at)},
         "eligibility": eligibility,
@@ -1373,11 +1396,15 @@ def flow_account_comparison(Expected: exp.Select, Observed: exp.Select) -> exp.S
         join_type="LEFT",
     )
     final.set("with_", exp.With(expressions=ctes))
-    final.meta["ppsc"] = deepcopy(Expected.meta["ppsc"])
+    aliases = {name: "expected." + name for name in comparison_fields}
+    aliases["Id"] = "expected.Id"
+    final.meta["ppsc"] = _rename_output_metadata(Expected.meta["ppsc"], aliases)
     for column in final.selects:
         name = column.alias_or_name
         if name.startswith("expected."):
-            column.meta["ppsc"] = deepcopy(expected_lineage[name.removeprefix("expected.")])
+            column.meta["ppsc"] = _rename_output_metadata(
+                expected_lineage[name.removeprefix("expected.")], aliases
+            )
         elif name.startswith("observed."):
             column.meta["ppsc"] = {
                 "target_field": "Account." + name.removeprefix("observed."),

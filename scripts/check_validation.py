@@ -29,7 +29,9 @@ from ppsc_ops_data_quality.account_to_survey_results.suites import (
     flow_account_suite,
     rollup_account_suite,
 )
+from ppsc_ops_data_quality.io import RelationLocation
 from ppsc_ops_data_quality.runtime import query_asset_sql, run_validations_with_reports, save_suite
+from ppsc_ops_data_quality.views import ViewRequest, create_view_sql, extract_cte_view
 
 
 def fixture_schemas():
@@ -47,7 +49,7 @@ AFTER_AT = datetime(2026, 10, 21, 12, 5)
 FLOW_RUN_DATE = date(2026, 10, 21)
 
 
-def comparisons(history):
+def comparisons(history, *, eligibility: bool | None = True):
     """Compose examples with independently declared BEFORE and AFTER boundaries."""
     return {
         "flow": flow_account_query(
@@ -57,7 +59,7 @@ def comparisons(history):
             execution_at=EXECUTION_AT,
             account_after_at=AFTER_AT,
             flow_run_date=FLOW_RUN_DATE,
-            eligibility=True,
+            eligibility=eligibility,
             inputs=metadata_inputs(),
         ),
         "rollups": to_sqlglot(
@@ -135,7 +137,8 @@ def compile_comparisons(output: Path):
     """Compile illustrative Athena comparisons and export native suite definitions."""
     history = history_tables(inputs=metadata_inputs())
     output.mkdir(parents=True, exist_ok=False)
-    for name, query in comparisons(history).items():
+    queries = comparisons(history)
+    for name, query in queries.items():
         (output / f"{name}.sql").write_text(
             query_asset_sql(query, projection_lineage=projection_lineage(query)) + ";\n",
             encoding="utf-8",
@@ -147,14 +150,43 @@ def compile_comparisons(output: Path):
         )
         assert len(suite.expectations) == (29 if name == "flow" else 25)
         save_suite(suite, output / f"{name}.suite.json")
-    return {"mode": "compile", "output": str(output), "live_queries": False}
+    sizes = render_view_example(queries["flow"], output=output)
+    return {
+        "mode": "compile",
+        "output": str(output),
+        "live_queries": False,
+        "view_sql_utf8_bytes": sizes,
+    }
+
+
+def render_view_example(query, *, output: Path) -> dict[str, int]:
+    """Save an illustrative view definition and its small GX comparison; no DDL effects."""
+    request = ViewRequest(
+        location=RelationLocation(
+            catalog="AwsDataCatalog", database="dq_example", relation="flow_expected_example"
+        )
+    )
+    expected, comparison = extract_cte_view(
+        query, cte_name="Expected_Account", location=request.location
+    )
+    statements = {
+        "flow_expected_view": create_view_sql(expected, request),
+        "flow_via_view": query_asset_sql(comparison),
+    }
+    for name, sql in statements.items():
+        (output / f"{name}.sql").write_text(
+            "-- Illustrative offline bindings; not live acceptance.\n" + sql + ";\n",
+            encoding="utf-8",
+        )
+    return {name: len(sql.encode()) for name, sql in statements.items()}
 
 
 def render_examples(output: Path, *, suite_output: Path):
     """Regenerate illustrative SQL and native suite examples from their builders."""
     history = history_tables(inputs=metadata_inputs())
     output.mkdir(parents=True, exist_ok=True)
-    for name, query in comparisons(history).items():
+    queries = comparisons(history)
+    for name, query in queries.items():
         (output / f"{name}.sql").write_text(
             "-- Illustrative offline bindings; not live acceptance.\n"
             + query_asset_sql(query)
@@ -171,11 +203,13 @@ def render_examples(output: Path, *, suite_output: Path):
         path = suite_output / f"{suite.name}.json"
         path.unlink(missing_ok=True)
         save_suite(suite, path)
+    sizes = render_view_example(queries["flow"], output=output)
     return {
         "mode": "render",
         "output": str(output),
         "suite_output": str(suite_output),
         "live_queries": False,
+        "view_sql_utf8_bytes": sizes,
     }
 
 

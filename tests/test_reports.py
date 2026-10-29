@@ -76,6 +76,12 @@ def test_native_reports_publish_json_html_and_typed_parquet(tmp_path):
     context, definitions, parameters, sources = report_inputs()
     client = MemoryS3()
     directory = tmp_path / "run"
+    sources["passing"]["query_dependencies"] = [
+        {
+            "relation": "fixture_view",
+            "definition_sql": "CREATE VIEW fixture_view AS SELECT 1 AS value",
+        }
+    ]
     results = run_validations_with_reports(
         context,
         definitions,
@@ -93,6 +99,11 @@ def test_native_reports_publish_json_html_and_typed_parquet(tmp_path):
     manifest = json.loads((directory / "manifest.json").read_text())
     artifact_id = manifest["run_id"]
     assert client.calls[-1] == f"quality/runs/{artifact_id}/manifest.json"
+    dependency_key = f"quality/runs/{artifact_id}/queries/000_passing.dependencies.json"
+    assert (
+        json.loads(client.objects[dependency_key]["Body"])
+        == sources["passing"]["query_dependencies"]
+    )
     assert manifest["success"] is False
     assert manifest["run_status"] == "completed"
     assert any("/data_docs/validations/" in key and key.endswith(".html") for key in client.objects)

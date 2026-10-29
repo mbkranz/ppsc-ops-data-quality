@@ -438,6 +438,8 @@ def run_validations_with_reports(
         for key in ("source_query", "source_query_dialect"):
             if not isinstance(source.get(key), str) or not source[key].strip():
                 raise ValueError(f"{key} must be supplied explicitly")
+        if "query_dependencies" in source:
+            _json(source["query_dependencies"])
     if s3_uri is not None:
         _s3_location(s3_uri)
     run_metadata = dict(run_metadata or {})
@@ -478,6 +480,11 @@ def run_validations_with_reports(
         )
         query_path.parent.mkdir(parents=True, exist_ok=True)
         query_path.write_text(sources[definition.name]["source_query"], encoding="utf-8")
+        dependencies = sources[definition.name].get("query_dependencies")
+        if dependencies is not None:
+            query_path.with_suffix(".dependencies.json").write_text(
+                _json(dependencies) + "\n", encoding="utf-8"
+            )
     error = None
     results = {}
     try:
@@ -642,25 +649,57 @@ def snapshot_sql(location: RelationLocation, columns: tuple[str, ...], snapshot_
     )
 
 
-def _query_schema(athena_client: Any, sql: str, *, query_options: dict, timeout_seconds: float):
+def execute_athena_query(
+    athena_client: Any,
+    sql: str,
+    *,
+    query_options: dict,
+    timeout_seconds: float,
+    operation: str,
+) -> str:
+    """Submit one bounded statement, wait for success and retain its query ID on errors."""
+    if not 0 < timeout_seconds <= 3600:
+        raise ValueError("Athena statement timeout must be between 0 and 3600 seconds")
+    if len(sql.encode("utf-8")) > 262_144:
+        raise ValueError("Athena statement exceeds the 262144-byte query limit")
     execution = athena_client.start_query_execution(QueryString=sql, **query_options)[
         "QueryExecutionId"
     ]
     deadline = monotonic() + timeout_seconds
     while True:
-        state = athena_client.get_query_execution(QueryExecutionId=execution)["QueryExecution"][
-            "Status"
-        ]
+        try:
+            state = athena_client.get_query_execution(QueryExecutionId=execution)["QueryExecution"][
+                "Status"
+            ]
+        except Exception as status_error:
+            raise RuntimeError(
+                f"{operation} status unavailable ({execution}): {status_error}"
+            ) from status_error
         if state["State"] == "SUCCEEDED":
-            break
+            return execution
         if state["State"] in {"FAILED", "CANCELLED"}:
             raise ValueError(
-                f"Snapshot schema preflight failed: {state.get('StateChangeReason', state['State'])}"
+                f"{operation} failed ({execution}): {state.get('StateChangeReason', state['State'])}"
             )
         if monotonic() >= deadline:
-            athena_client.stop_query_execution(QueryExecutionId=execution)
-            raise TimeoutError("Snapshot schema preflight exceeded its bounded timeout")
+            try:
+                athena_client.stop_query_execution(QueryExecutionId=execution)
+            except Exception as cancellation_error:
+                raise TimeoutError(
+                    f"{operation} exceeded its bounded timeout ({execution}); cancellation failed: {cancellation_error}"
+                ) from cancellation_error
+            raise TimeoutError(f"{operation} exceeded its bounded timeout ({execution})")
         sleep(0.25)
+
+
+def _query_schema(athena_client: Any, sql: str, *, query_options: dict, timeout_seconds: float):
+    execution = execute_athena_query(
+        athena_client,
+        sql,
+        query_options=query_options,
+        timeout_seconds=timeout_seconds,
+        operation="Snapshot schema preflight",
+    )
     response = athena_client.get_query_results(QueryExecutionId=execution, MaxResults=1)
     columns = response["ResultSet"]["ResultSetMetadata"]["ColumnInfo"]
     return _catalog_schema(columns), execution
@@ -830,13 +869,13 @@ def query_asset_sql(
     projection_lineage: Mapping[str, Mapping[str, object]] | None = None,
     table_versions: Mapping[tuple[str, str, str], str] | None = None,
 ) -> str:
-    """Return one Athena SELECT, with lineage comments and no terminal semicolon.
+    """Return one compact Athena SELECT and no terminal semicolon.
 
     Compose Ibis first. to_sqlglot() resolves and annotates the final projections.
     Shared CTEs remain inside a named input relation with an explicit SELECT list.
     No SQL string substitution is performed.
-    The SQL text carries comments; structured meta remains in the annotated AST
-    and canonical lineage mapping rather than being serialized into SQL.
+    Structured lineage remains in the annotated AST and canonical lineage mapping;
+    executable SQL omits comments.
     """
     query = prepare_query(
         comparison, projection_lineage=projection_lineage, table_versions=table_versions

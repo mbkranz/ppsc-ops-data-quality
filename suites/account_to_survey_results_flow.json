@@ -389,11 +389,16 @@
             "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Age_at_Time_of_Consent__pc",
-          "assigned_column": "expected__Age_at_Time_of_Consent__pc__assigned",
-          "deterministic_column": "expected__Age_at_Time_of_Consent__pc__deterministic",
+          "value_column": "expected.Age_at_Time_of_Consent__pc",
+          "assigned_column": "expected.Age_at_Time_of_Consent__pc__assigned",
+          "deterministic_column": "expected.Age_at_Time_of_Consent__pc__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Age_at_Time_of_Consent__pc",
+            "assigned_column": "expected__Age_at_Time_of_Consent__pc__assigned",
+            "deterministic_column": "expected__Age_at_Time_of_Consent__pc__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -521,11 +526,16 @@
             "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__CABOR_Completion_Date__c",
-          "assigned_column": "expected__CABOR_Completion_Date__c__assigned",
-          "deterministic_column": "expected__CABOR_Completion_Date__c__deterministic",
+          "value_column": "expected.CABOR_Completion_Date__c",
+          "assigned_column": "expected.CABOR_Completion_Date__c__assigned",
+          "deterministic_column": "expected.CABOR_Completion_Date__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__CABOR_Completion_Date__c",
+            "assigned_column": "expected__CABOR_Completion_Date__c__assigned",
+            "deterministic_column": "expected__CABOR_Completion_Date__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -639,11 +649,16 @@
             "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Earliest_Primary_Consent_Date_for_Report__c",
-          "assigned_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned",
-          "deterministic_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic",
+          "value_column": "expected.Earliest_Primary_Consent_Date_for_Report__c",
+          "assigned_column": "expected.Earliest_Primary_Consent_Date_for_Report__c__assigned",
+          "deterministic_column": "expected.Earliest_Primary_Consent_Date_for_Report__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Earliest_Primary_Consent_Date_for_Report__c",
+            "assigned_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned",
+            "deterministic_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -763,11 +778,16 @@
             "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Latest_Primary_Consent_Date_for_Report__c",
-          "assigned_column": "expected__Latest_Primary_Consent_Date_for_Report__c__assigned",
-          "deterministic_column": "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic",
+          "value_column": "expected.Latest_Primary_Consent_Date_for_Report__c",
+          "assigned_column": "expected.Latest_Primary_Consent_Date_for_Report__c__assigned",
+          "deterministic_column": "expected.Latest_Primary_Consent_Date_for_Report__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Latest_Primary_Consent_Date_for_Report__c",
+            "assigned_column": "expected__Latest_Primary_Consent_Date_for_Report__c__assigned",
+            "deterministic_column": "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -863,11 +883,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__EHR_Consent_Date_Time__c",
-          "assigned_column": "expected__EHR_Consent_Date_Time__c__assigned",
-          "deterministic_column": "expected__EHR_Consent_Date_Time__c__deterministic",
+          "value_column": "expected.EHR_Consent_Date_Time__c",
+          "assigned_column": "expected.EHR_Consent_Date_Time__c__assigned",
+          "deterministic_column": "expected.EHR_Consent_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__EHR_Consent_Date_Time__c",
+            "assigned_column": "expected__EHR_Consent_Date_Time__c__assigned",
+            "deterministic_column": "expected__EHR_Consent_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -963,11 +988,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__EHR_Reconsent_Date_Time__c",
-          "assigned_column": "expected__EHR_Reconsent_Date_Time__c__assigned",
-          "deterministic_column": "expected__EHR_Reconsent_Date_Time__c__deterministic",
+          "value_column": "expected.EHR_Reconsent_Date_Time__c",
+          "assigned_column": "expected.EHR_Reconsent_Date_Time__c__assigned",
+          "deterministic_column": "expected.EHR_Reconsent_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__EHR_Reconsent_Date_Time__c",
+            "assigned_column": "expected__EHR_Reconsent_Date_Time__c__assigned",
+            "deterministic_column": "expected__EHR_Reconsent_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1054,11 +1084,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Update_to_Primary_Consent_Completed__c",
-          "assigned_column": "expected__Update_to_Primary_Consent_Completed__c__assigned",
-          "deterministic_column": "expected__Update_to_Primary_Consent_Completed__c__deterministic",
+          "value_column": "expected.Update_to_Primary_Consent_Completed__c",
+          "assigned_column": "expected.Update_to_Primary_Consent_Completed__c__assigned",
+          "deterministic_column": "expected.Update_to_Primary_Consent_Completed__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Update_to_Primary_Consent_Completed__c",
+            "assigned_column": "expected__Update_to_Primary_Consent_Completed__c__assigned",
+            "deterministic_column": "expected__Update_to_Primary_Consent_Completed__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1145,11 +1180,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Basics_Date_Time__c",
-          "assigned_column": "expected__Basics_Date_Time__c__assigned",
-          "deterministic_column": "expected__Basics_Date_Time__c__deterministic",
+          "value_column": "expected.Basics_Date_Time__c",
+          "assigned_column": "expected.Basics_Date_Time__c__assigned",
+          "deterministic_column": "expected.Basics_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Basics_Date_Time__c",
+            "assigned_column": "expected__Basics_Date_Time__c__assigned",
+            "deterministic_column": "expected__Basics_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1236,11 +1276,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Overall_Health_Date_Time__c",
-          "assigned_column": "expected__Overall_Health_Date_Time__c__assigned",
-          "deterministic_column": "expected__Overall_Health_Date_Time__c__deterministic",
+          "value_column": "expected.Overall_Health_Date_Time__c",
+          "assigned_column": "expected.Overall_Health_Date_Time__c__assigned",
+          "deterministic_column": "expected.Overall_Health_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Overall_Health_Date_Time__c",
+            "assigned_column": "expected__Overall_Health_Date_Time__c__assigned",
+            "deterministic_column": "expected__Overall_Health_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1327,11 +1372,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Lifestyle_Date_Time__c",
-          "assigned_column": "expected__Lifestyle_Date_Time__c__assigned",
-          "deterministic_column": "expected__Lifestyle_Date_Time__c__deterministic",
+          "value_column": "expected.Lifestyle_Date_Time__c",
+          "assigned_column": "expected.Lifestyle_Date_Time__c__assigned",
+          "deterministic_column": "expected.Lifestyle_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Lifestyle_Date_Time__c",
+            "assigned_column": "expected__Lifestyle_Date_Time__c__assigned",
+            "deterministic_column": "expected__Lifestyle_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1418,11 +1468,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Personal_and_Family_History_Complete__c",
-          "assigned_column": "expected__Personal_and_Family_History_Complete__c__assigned",
-          "deterministic_column": "expected__Personal_and_Family_History_Complete__c__deterministic",
+          "value_column": "expected.Personal_and_Family_History_Complete__c",
+          "assigned_column": "expected.Personal_and_Family_History_Complete__c__assigned",
+          "deterministic_column": "expected.Personal_and_Family_History_Complete__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Personal_and_Family_History_Complete__c",
+            "assigned_column": "expected__Personal_and_Family_History_Complete__c__assigned",
+            "deterministic_column": "expected__Personal_and_Family_History_Complete__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1509,11 +1564,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__HC_Access_Date_Time__c",
-          "assigned_column": "expected__HC_Access_Date_Time__c__assigned",
-          "deterministic_column": "expected__HC_Access_Date_Time__c__deterministic",
+          "value_column": "expected.HC_Access_Date_Time__c",
+          "assigned_column": "expected.HC_Access_Date_Time__c__assigned",
+          "deterministic_column": "expected.HC_Access_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__HC_Access_Date_Time__c",
+            "assigned_column": "expected__HC_Access_Date_Time__c__assigned",
+            "deterministic_column": "expected__HC_Access_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1600,11 +1660,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Life_Functioning_Date_Time__c",
-          "assigned_column": "expected__Life_Functioning_Date_Time__c__assigned",
-          "deterministic_column": "expected__Life_Functioning_Date_Time__c__deterministic",
+          "value_column": "expected.Life_Functioning_Date_Time__c",
+          "assigned_column": "expected.Life_Functioning_Date_Time__c__assigned",
+          "deterministic_column": "expected.Life_Functioning_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Life_Functioning_Date_Time__c",
+            "assigned_column": "expected__Life_Functioning_Date_Time__c__assigned",
+            "deterministic_column": "expected__Life_Functioning_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1696,11 +1761,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__First_Physical_Measurement_Date_Time__c",
-          "assigned_column": "expected__First_Physical_Measurement_Date_Time__c__assigned",
-          "deterministic_column": "expected__First_Physical_Measurement_Date_Time__c__deterministic",
+          "value_column": "expected.First_Physical_Measurement_Date_Time__c",
+          "assigned_column": "expected.First_Physical_Measurement_Date_Time__c__assigned",
+          "deterministic_column": "expected.First_Physical_Measurement_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__First_Physical_Measurement_Date_Time__c",
+            "assigned_column": "expected__First_Physical_Measurement_Date_Time__c__assigned",
+            "deterministic_column": "expected__First_Physical_Measurement_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1792,11 +1862,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Last_Physical_Measurement_Date_Time__c",
-          "assigned_column": "expected__Last_Physical_Measurement_Date_Time__c__assigned",
-          "deterministic_column": "expected__Last_Physical_Measurement_Date_Time__c__deterministic",
+          "value_column": "expected.Last_Physical_Measurement_Date_Time__c",
+          "assigned_column": "expected.Last_Physical_Measurement_Date_Time__c__assigned",
+          "deterministic_column": "expected.Last_Physical_Measurement_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Last_Physical_Measurement_Date_Time__c",
+            "assigned_column": "expected__Last_Physical_Measurement_Date_Time__c__assigned",
+            "deterministic_column": "expected__Last_Physical_Measurement_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1883,11 +1958,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__EH_Date_Time__c",
-          "assigned_column": "expected__EH_Date_Time__c__assigned",
-          "deterministic_column": "expected__EH_Date_Time__c__deterministic",
+          "value_column": "expected.EH_Date_Time__c",
+          "assigned_column": "expected.EH_Date_Time__c__assigned",
+          "deterministic_column": "expected.EH_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__EH_Date_Time__c",
+            "assigned_column": "expected__EH_Date_Time__c__assigned",
+            "deterministic_column": "expected__EH_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -1974,11 +2054,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Behavioral_Health_Completion__c",
-          "assigned_column": "expected__Behavioral_Health_Completion__c__assigned",
-          "deterministic_column": "expected__Behavioral_Health_Completion__c__deterministic",
+          "value_column": "expected.Behavioral_Health_Completion__c",
+          "assigned_column": "expected.Behavioral_Health_Completion__c__assigned",
+          "deterministic_column": "expected.Behavioral_Health_Completion__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Behavioral_Health_Completion__c",
+            "assigned_column": "expected__Behavioral_Health_Completion__c__assigned",
+            "deterministic_column": "expected__Behavioral_Health_Completion__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -2065,11 +2150,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Environmental_Exposures_Date_Time__c",
-          "assigned_column": "expected__Environmental_Exposures_Date_Time__c__assigned",
-          "deterministic_column": "expected__Environmental_Exposures_Date_Time__c__deterministic",
+          "value_column": "expected.Environmental_Exposures_Date_Time__c",
+          "assigned_column": "expected.Environmental_Exposures_Date_Time__c__assigned",
+          "deterministic_column": "expected.Environmental_Exposures_Date_Time__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Environmental_Exposures_Date_Time__c",
+            "assigned_column": "expected__Environmental_Exposures_Date_Time__c__assigned",
+            "deterministic_column": "expected__Environmental_Exposures_Date_Time__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -2156,11 +2246,16 @@
             "Survey_Result__c.Consent_Status__c"
           ],
           "dependency_scope": "selected control and data closure",
-          "value_column": "expected__Social_Determinants_of_Health_Completion__c",
-          "assigned_column": "expected__Social_Determinants_of_Health_Completion__c__assigned",
-          "deterministic_column": "expected__Social_Determinants_of_Health_Completion__c__deterministic",
+          "value_column": "expected.Social_Determinants_of_Health_Completion__c",
+          "assigned_column": "expected.Social_Determinants_of_Health_Completion__c__assigned",
+          "deterministic_column": "expected.Social_Determinants_of_Health_Completion__c__deterministic",
           "native": {},
-          "definition_status": "unresolved"
+          "definition_status": "unresolved",
+          "native_output_columns": {
+            "value_column": "expected__Social_Determinants_of_Health_Completion__c",
+            "assigned_column": "expected__Social_Determinants_of_Health_Completion__c__assigned",
+            "deterministic_column": "expected__Social_Determinants_of_Health_Completion__c__deterministic"
+          }
         },
         "both_null_policy": "accepted; native missing_count reports these excluded pairs",
         "denominator": "scoped deterministic rows with valid keys, excluding both-null pairs"
@@ -2295,11 +2390,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Age_at_Time_of_Consent__pc",
-        "assigned_column": "expected__Age_at_Time_of_Consent__pc__assigned",
-        "deterministic_column": "expected__Age_at_Time_of_Consent__pc__deterministic",
+        "value_column": "expected.Age_at_Time_of_Consent__pc",
+        "assigned_column": "expected.Age_at_Time_of_Consent__pc__assigned",
+        "deterministic_column": "expected.Age_at_Time_of_Consent__pc__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Age_at_Time_of_Consent__pc",
+          "assigned_column": "expected__Age_at_Time_of_Consent__pc__assigned",
+          "deterministic_column": "expected__Age_at_Time_of_Consent__pc__deterministic"
+        }
       },
       "expected.Age_at_Time_of_Consent__pc__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -2369,11 +2469,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Age_at_Time_of_Consent__pc",
-        "assigned_column": "expected__Age_at_Time_of_Consent__pc__assigned",
-        "deterministic_column": "expected__Age_at_Time_of_Consent__pc__deterministic",
+        "value_column": "expected.Age_at_Time_of_Consent__pc",
+        "assigned_column": "expected.Age_at_Time_of_Consent__pc__assigned",
+        "deterministic_column": "expected.Age_at_Time_of_Consent__pc__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Age_at_Time_of_Consent__pc",
+          "assigned_column": "expected__Age_at_Time_of_Consent__pc__assigned",
+          "deterministic_column": "expected__Age_at_Time_of_Consent__pc__deterministic"
+        }
       },
       "expected.Age_at_Time_of_Consent__pc__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -2443,11 +2548,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Age_at_Time_of_Consent__pc",
-        "assigned_column": "expected__Age_at_Time_of_Consent__pc__assigned",
-        "deterministic_column": "expected__Age_at_Time_of_Consent__pc__deterministic",
+        "value_column": "expected.Age_at_Time_of_Consent__pc",
+        "assigned_column": "expected.Age_at_Time_of_Consent__pc__assigned",
+        "deterministic_column": "expected.Age_at_Time_of_Consent__pc__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Age_at_Time_of_Consent__pc",
+          "assigned_column": "expected__Age_at_Time_of_Consent__pc__assigned",
+          "deterministic_column": "expected__Age_at_Time_of_Consent__pc__deterministic"
+        }
       },
       "expected.CABOR_Completion_Date__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -2517,11 +2627,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__CABOR_Completion_Date__c",
-        "assigned_column": "expected__CABOR_Completion_Date__c__assigned",
-        "deterministic_column": "expected__CABOR_Completion_Date__c__deterministic",
+        "value_column": "expected.CABOR_Completion_Date__c",
+        "assigned_column": "expected.CABOR_Completion_Date__c__assigned",
+        "deterministic_column": "expected.CABOR_Completion_Date__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__CABOR_Completion_Date__c",
+          "assigned_column": "expected__CABOR_Completion_Date__c__assigned",
+          "deterministic_column": "expected__CABOR_Completion_Date__c__deterministic"
+        }
       },
       "expected.CABOR_Completion_Date__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -2591,11 +2706,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__CABOR_Completion_Date__c",
-        "assigned_column": "expected__CABOR_Completion_Date__c__assigned",
-        "deterministic_column": "expected__CABOR_Completion_Date__c__deterministic",
+        "value_column": "expected.CABOR_Completion_Date__c",
+        "assigned_column": "expected.CABOR_Completion_Date__c__assigned",
+        "deterministic_column": "expected.CABOR_Completion_Date__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__CABOR_Completion_Date__c",
+          "assigned_column": "expected__CABOR_Completion_Date__c__assigned",
+          "deterministic_column": "expected__CABOR_Completion_Date__c__deterministic"
+        }
       },
       "expected.CABOR_Completion_Date__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -2665,11 +2785,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__CABOR_Completion_Date__c",
-        "assigned_column": "expected__CABOR_Completion_Date__c__assigned",
-        "deterministic_column": "expected__CABOR_Completion_Date__c__deterministic",
+        "value_column": "expected.CABOR_Completion_Date__c",
+        "assigned_column": "expected.CABOR_Completion_Date__c__assigned",
+        "deterministic_column": "expected.CABOR_Completion_Date__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__CABOR_Completion_Date__c",
+          "assigned_column": "expected__CABOR_Completion_Date__c__assigned",
+          "deterministic_column": "expected__CABOR_Completion_Date__c__deterministic"
+        }
       },
       "expected.Earliest_Primary_Consent_Date_for_Report__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -2733,11 +2858,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Earliest_Primary_Consent_Date_for_Report__c",
-        "assigned_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned",
-        "deterministic_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic",
+        "value_column": "expected.Earliest_Primary_Consent_Date_for_Report__c",
+        "assigned_column": "expected.Earliest_Primary_Consent_Date_for_Report__c__assigned",
+        "deterministic_column": "expected.Earliest_Primary_Consent_Date_for_Report__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Earliest_Primary_Consent_Date_for_Report__c",
+          "assigned_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned",
+          "deterministic_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic"
+        }
       },
       "expected.Earliest_Primary_Consent_Date_for_Report__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -2801,11 +2931,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Earliest_Primary_Consent_Date_for_Report__c",
-        "assigned_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned",
-        "deterministic_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic",
+        "value_column": "expected.Earliest_Primary_Consent_Date_for_Report__c",
+        "assigned_column": "expected.Earliest_Primary_Consent_Date_for_Report__c__assigned",
+        "deterministic_column": "expected.Earliest_Primary_Consent_Date_for_Report__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Earliest_Primary_Consent_Date_for_Report__c",
+          "assigned_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned",
+          "deterministic_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic"
+        }
       },
       "expected.Earliest_Primary_Consent_Date_for_Report__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -2869,11 +3004,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Earliest_Primary_Consent_Date_for_Report__c",
-        "assigned_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned",
-        "deterministic_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic",
+        "value_column": "expected.Earliest_Primary_Consent_Date_for_Report__c",
+        "assigned_column": "expected.Earliest_Primary_Consent_Date_for_Report__c__assigned",
+        "deterministic_column": "expected.Earliest_Primary_Consent_Date_for_Report__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Earliest_Primary_Consent_Date_for_Report__c",
+          "assigned_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__assigned",
+          "deterministic_column": "expected__Earliest_Primary_Consent_Date_for_Report__c__deterministic"
+        }
       },
       "expected.Latest_Primary_Consent_Date_for_Report__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -2943,11 +3083,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Latest_Primary_Consent_Date_for_Report__c",
-        "assigned_column": "expected__Latest_Primary_Consent_Date_for_Report__c__assigned",
-        "deterministic_column": "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic",
+        "value_column": "expected.Latest_Primary_Consent_Date_for_Report__c",
+        "assigned_column": "expected.Latest_Primary_Consent_Date_for_Report__c__assigned",
+        "deterministic_column": "expected.Latest_Primary_Consent_Date_for_Report__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Latest_Primary_Consent_Date_for_Report__c",
+          "assigned_column": "expected__Latest_Primary_Consent_Date_for_Report__c__assigned",
+          "deterministic_column": "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic"
+        }
       },
       "expected.Latest_Primary_Consent_Date_for_Report__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -3017,11 +3162,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Latest_Primary_Consent_Date_for_Report__c",
-        "assigned_column": "expected__Latest_Primary_Consent_Date_for_Report__c__assigned",
-        "deterministic_column": "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic",
+        "value_column": "expected.Latest_Primary_Consent_Date_for_Report__c",
+        "assigned_column": "expected.Latest_Primary_Consent_Date_for_Report__c__assigned",
+        "deterministic_column": "expected.Latest_Primary_Consent_Date_for_Report__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Latest_Primary_Consent_Date_for_Report__c",
+          "assigned_column": "expected__Latest_Primary_Consent_Date_for_Report__c__assigned",
+          "deterministic_column": "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic"
+        }
       },
       "expected.Latest_Primary_Consent_Date_for_Report__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -3091,11 +3241,16 @@
           "Survey_Result__c.Participant__r.Account.Earliest_Primary_Consent_Date_for_Report__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Latest_Primary_Consent_Date_for_Report__c",
-        "assigned_column": "expected__Latest_Primary_Consent_Date_for_Report__c__assigned",
-        "deterministic_column": "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic",
+        "value_column": "expected.Latest_Primary_Consent_Date_for_Report__c",
+        "assigned_column": "expected.Latest_Primary_Consent_Date_for_Report__c__assigned",
+        "deterministic_column": "expected.Latest_Primary_Consent_Date_for_Report__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Latest_Primary_Consent_Date_for_Report__c",
+          "assigned_column": "expected__Latest_Primary_Consent_Date_for_Report__c__assigned",
+          "deterministic_column": "expected__Latest_Primary_Consent_Date_for_Report__c__deterministic"
+        }
       },
       "expected.EHR_Consent_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -3141,11 +3296,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__EHR_Consent_Date_Time__c",
-        "assigned_column": "expected__EHR_Consent_Date_Time__c__assigned",
-        "deterministic_column": "expected__EHR_Consent_Date_Time__c__deterministic",
+        "value_column": "expected.EHR_Consent_Date_Time__c",
+        "assigned_column": "expected.EHR_Consent_Date_Time__c__assigned",
+        "deterministic_column": "expected.EHR_Consent_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__EHR_Consent_Date_Time__c",
+          "assigned_column": "expected__EHR_Consent_Date_Time__c__assigned",
+          "deterministic_column": "expected__EHR_Consent_Date_Time__c__deterministic"
+        }
       },
       "expected.EHR_Consent_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -3191,11 +3351,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__EHR_Consent_Date_Time__c",
-        "assigned_column": "expected__EHR_Consent_Date_Time__c__assigned",
-        "deterministic_column": "expected__EHR_Consent_Date_Time__c__deterministic",
+        "value_column": "expected.EHR_Consent_Date_Time__c",
+        "assigned_column": "expected.EHR_Consent_Date_Time__c__assigned",
+        "deterministic_column": "expected.EHR_Consent_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__EHR_Consent_Date_Time__c",
+          "assigned_column": "expected__EHR_Consent_Date_Time__c__assigned",
+          "deterministic_column": "expected__EHR_Consent_Date_Time__c__deterministic"
+        }
       },
       "expected.EHR_Consent_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -3241,11 +3406,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__EHR_Consent_Date_Time__c",
-        "assigned_column": "expected__EHR_Consent_Date_Time__c__assigned",
-        "deterministic_column": "expected__EHR_Consent_Date_Time__c__deterministic",
+        "value_column": "expected.EHR_Consent_Date_Time__c",
+        "assigned_column": "expected.EHR_Consent_Date_Time__c__assigned",
+        "deterministic_column": "expected.EHR_Consent_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__EHR_Consent_Date_Time__c",
+          "assigned_column": "expected__EHR_Consent_Date_Time__c__assigned",
+          "deterministic_column": "expected__EHR_Consent_Date_Time__c__deterministic"
+        }
       },
       "expected.EHR_Reconsent_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -3291,11 +3461,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__EHR_Reconsent_Date_Time__c",
-        "assigned_column": "expected__EHR_Reconsent_Date_Time__c__assigned",
-        "deterministic_column": "expected__EHR_Reconsent_Date_Time__c__deterministic",
+        "value_column": "expected.EHR_Reconsent_Date_Time__c",
+        "assigned_column": "expected.EHR_Reconsent_Date_Time__c__assigned",
+        "deterministic_column": "expected.EHR_Reconsent_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__EHR_Reconsent_Date_Time__c",
+          "assigned_column": "expected__EHR_Reconsent_Date_Time__c__assigned",
+          "deterministic_column": "expected__EHR_Reconsent_Date_Time__c__deterministic"
+        }
       },
       "expected.EHR_Reconsent_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -3341,11 +3516,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__EHR_Reconsent_Date_Time__c",
-        "assigned_column": "expected__EHR_Reconsent_Date_Time__c__assigned",
-        "deterministic_column": "expected__EHR_Reconsent_Date_Time__c__deterministic",
+        "value_column": "expected.EHR_Reconsent_Date_Time__c",
+        "assigned_column": "expected.EHR_Reconsent_Date_Time__c__assigned",
+        "deterministic_column": "expected.EHR_Reconsent_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__EHR_Reconsent_Date_Time__c",
+          "assigned_column": "expected__EHR_Reconsent_Date_Time__c__assigned",
+          "deterministic_column": "expected__EHR_Reconsent_Date_Time__c__deterministic"
+        }
       },
       "expected.EHR_Reconsent_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -3391,11 +3571,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__EHR_Reconsent_Date_Time__c",
-        "assigned_column": "expected__EHR_Reconsent_Date_Time__c__assigned",
-        "deterministic_column": "expected__EHR_Reconsent_Date_Time__c__deterministic",
+        "value_column": "expected.EHR_Reconsent_Date_Time__c",
+        "assigned_column": "expected.EHR_Reconsent_Date_Time__c__assigned",
+        "deterministic_column": "expected.EHR_Reconsent_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__EHR_Reconsent_Date_Time__c",
+          "assigned_column": "expected__EHR_Reconsent_Date_Time__c__assigned",
+          "deterministic_column": "expected__EHR_Reconsent_Date_Time__c__deterministic"
+        }
       },
       "expected.Update_to_Primary_Consent_Completed__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -3432,11 +3617,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Update_to_Primary_Consent_Completed__c",
-        "assigned_column": "expected__Update_to_Primary_Consent_Completed__c__assigned",
-        "deterministic_column": "expected__Update_to_Primary_Consent_Completed__c__deterministic",
+        "value_column": "expected.Update_to_Primary_Consent_Completed__c",
+        "assigned_column": "expected.Update_to_Primary_Consent_Completed__c__assigned",
+        "deterministic_column": "expected.Update_to_Primary_Consent_Completed__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Update_to_Primary_Consent_Completed__c",
+          "assigned_column": "expected__Update_to_Primary_Consent_Completed__c__assigned",
+          "deterministic_column": "expected__Update_to_Primary_Consent_Completed__c__deterministic"
+        }
       },
       "expected.Update_to_Primary_Consent_Completed__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -3473,11 +3663,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Update_to_Primary_Consent_Completed__c",
-        "assigned_column": "expected__Update_to_Primary_Consent_Completed__c__assigned",
-        "deterministic_column": "expected__Update_to_Primary_Consent_Completed__c__deterministic",
+        "value_column": "expected.Update_to_Primary_Consent_Completed__c",
+        "assigned_column": "expected.Update_to_Primary_Consent_Completed__c__assigned",
+        "deterministic_column": "expected.Update_to_Primary_Consent_Completed__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Update_to_Primary_Consent_Completed__c",
+          "assigned_column": "expected__Update_to_Primary_Consent_Completed__c__assigned",
+          "deterministic_column": "expected__Update_to_Primary_Consent_Completed__c__deterministic"
+        }
       },
       "expected.Update_to_Primary_Consent_Completed__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -3514,11 +3709,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Update_to_Primary_Consent_Completed__c",
-        "assigned_column": "expected__Update_to_Primary_Consent_Completed__c__assigned",
-        "deterministic_column": "expected__Update_to_Primary_Consent_Completed__c__deterministic",
+        "value_column": "expected.Update_to_Primary_Consent_Completed__c",
+        "assigned_column": "expected.Update_to_Primary_Consent_Completed__c__assigned",
+        "deterministic_column": "expected.Update_to_Primary_Consent_Completed__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Update_to_Primary_Consent_Completed__c",
+          "assigned_column": "expected__Update_to_Primary_Consent_Completed__c__assigned",
+          "deterministic_column": "expected__Update_to_Primary_Consent_Completed__c__deterministic"
+        }
       },
       "expected.Basics_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -3555,11 +3755,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Basics_Date_Time__c",
-        "assigned_column": "expected__Basics_Date_Time__c__assigned",
-        "deterministic_column": "expected__Basics_Date_Time__c__deterministic",
+        "value_column": "expected.Basics_Date_Time__c",
+        "assigned_column": "expected.Basics_Date_Time__c__assigned",
+        "deterministic_column": "expected.Basics_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Basics_Date_Time__c",
+          "assigned_column": "expected__Basics_Date_Time__c__assigned",
+          "deterministic_column": "expected__Basics_Date_Time__c__deterministic"
+        }
       },
       "expected.Basics_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -3596,11 +3801,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Basics_Date_Time__c",
-        "assigned_column": "expected__Basics_Date_Time__c__assigned",
-        "deterministic_column": "expected__Basics_Date_Time__c__deterministic",
+        "value_column": "expected.Basics_Date_Time__c",
+        "assigned_column": "expected.Basics_Date_Time__c__assigned",
+        "deterministic_column": "expected.Basics_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Basics_Date_Time__c",
+          "assigned_column": "expected__Basics_Date_Time__c__assigned",
+          "deterministic_column": "expected__Basics_Date_Time__c__deterministic"
+        }
       },
       "expected.Basics_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -3637,11 +3847,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Basics_Date_Time__c",
-        "assigned_column": "expected__Basics_Date_Time__c__assigned",
-        "deterministic_column": "expected__Basics_Date_Time__c__deterministic",
+        "value_column": "expected.Basics_Date_Time__c",
+        "assigned_column": "expected.Basics_Date_Time__c__assigned",
+        "deterministic_column": "expected.Basics_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Basics_Date_Time__c",
+          "assigned_column": "expected__Basics_Date_Time__c__assigned",
+          "deterministic_column": "expected__Basics_Date_Time__c__deterministic"
+        }
       },
       "expected.Overall_Health_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -3678,11 +3893,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Overall_Health_Date_Time__c",
-        "assigned_column": "expected__Overall_Health_Date_Time__c__assigned",
-        "deterministic_column": "expected__Overall_Health_Date_Time__c__deterministic",
+        "value_column": "expected.Overall_Health_Date_Time__c",
+        "assigned_column": "expected.Overall_Health_Date_Time__c__assigned",
+        "deterministic_column": "expected.Overall_Health_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Overall_Health_Date_Time__c",
+          "assigned_column": "expected__Overall_Health_Date_Time__c__assigned",
+          "deterministic_column": "expected__Overall_Health_Date_Time__c__deterministic"
+        }
       },
       "expected.Overall_Health_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -3719,11 +3939,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Overall_Health_Date_Time__c",
-        "assigned_column": "expected__Overall_Health_Date_Time__c__assigned",
-        "deterministic_column": "expected__Overall_Health_Date_Time__c__deterministic",
+        "value_column": "expected.Overall_Health_Date_Time__c",
+        "assigned_column": "expected.Overall_Health_Date_Time__c__assigned",
+        "deterministic_column": "expected.Overall_Health_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Overall_Health_Date_Time__c",
+          "assigned_column": "expected__Overall_Health_Date_Time__c__assigned",
+          "deterministic_column": "expected__Overall_Health_Date_Time__c__deterministic"
+        }
       },
       "expected.Overall_Health_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -3760,11 +3985,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Overall_Health_Date_Time__c",
-        "assigned_column": "expected__Overall_Health_Date_Time__c__assigned",
-        "deterministic_column": "expected__Overall_Health_Date_Time__c__deterministic",
+        "value_column": "expected.Overall_Health_Date_Time__c",
+        "assigned_column": "expected.Overall_Health_Date_Time__c__assigned",
+        "deterministic_column": "expected.Overall_Health_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Overall_Health_Date_Time__c",
+          "assigned_column": "expected__Overall_Health_Date_Time__c__assigned",
+          "deterministic_column": "expected__Overall_Health_Date_Time__c__deterministic"
+        }
       },
       "expected.Lifestyle_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -3801,11 +4031,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Lifestyle_Date_Time__c",
-        "assigned_column": "expected__Lifestyle_Date_Time__c__assigned",
-        "deterministic_column": "expected__Lifestyle_Date_Time__c__deterministic",
+        "value_column": "expected.Lifestyle_Date_Time__c",
+        "assigned_column": "expected.Lifestyle_Date_Time__c__assigned",
+        "deterministic_column": "expected.Lifestyle_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Lifestyle_Date_Time__c",
+          "assigned_column": "expected__Lifestyle_Date_Time__c__assigned",
+          "deterministic_column": "expected__Lifestyle_Date_Time__c__deterministic"
+        }
       },
       "expected.Lifestyle_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -3842,11 +4077,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Lifestyle_Date_Time__c",
-        "assigned_column": "expected__Lifestyle_Date_Time__c__assigned",
-        "deterministic_column": "expected__Lifestyle_Date_Time__c__deterministic",
+        "value_column": "expected.Lifestyle_Date_Time__c",
+        "assigned_column": "expected.Lifestyle_Date_Time__c__assigned",
+        "deterministic_column": "expected.Lifestyle_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Lifestyle_Date_Time__c",
+          "assigned_column": "expected__Lifestyle_Date_Time__c__assigned",
+          "deterministic_column": "expected__Lifestyle_Date_Time__c__deterministic"
+        }
       },
       "expected.Lifestyle_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -3883,11 +4123,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Lifestyle_Date_Time__c",
-        "assigned_column": "expected__Lifestyle_Date_Time__c__assigned",
-        "deterministic_column": "expected__Lifestyle_Date_Time__c__deterministic",
+        "value_column": "expected.Lifestyle_Date_Time__c",
+        "assigned_column": "expected.Lifestyle_Date_Time__c__assigned",
+        "deterministic_column": "expected.Lifestyle_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Lifestyle_Date_Time__c",
+          "assigned_column": "expected__Lifestyle_Date_Time__c__assigned",
+          "deterministic_column": "expected__Lifestyle_Date_Time__c__deterministic"
+        }
       },
       "expected.Personal_and_Family_History_Complete__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -3924,11 +4169,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Personal_and_Family_History_Complete__c",
-        "assigned_column": "expected__Personal_and_Family_History_Complete__c__assigned",
-        "deterministic_column": "expected__Personal_and_Family_History_Complete__c__deterministic",
+        "value_column": "expected.Personal_and_Family_History_Complete__c",
+        "assigned_column": "expected.Personal_and_Family_History_Complete__c__assigned",
+        "deterministic_column": "expected.Personal_and_Family_History_Complete__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Personal_and_Family_History_Complete__c",
+          "assigned_column": "expected__Personal_and_Family_History_Complete__c__assigned",
+          "deterministic_column": "expected__Personal_and_Family_History_Complete__c__deterministic"
+        }
       },
       "expected.Personal_and_Family_History_Complete__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -3965,11 +4215,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Personal_and_Family_History_Complete__c",
-        "assigned_column": "expected__Personal_and_Family_History_Complete__c__assigned",
-        "deterministic_column": "expected__Personal_and_Family_History_Complete__c__deterministic",
+        "value_column": "expected.Personal_and_Family_History_Complete__c",
+        "assigned_column": "expected.Personal_and_Family_History_Complete__c__assigned",
+        "deterministic_column": "expected.Personal_and_Family_History_Complete__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Personal_and_Family_History_Complete__c",
+          "assigned_column": "expected__Personal_and_Family_History_Complete__c__assigned",
+          "deterministic_column": "expected__Personal_and_Family_History_Complete__c__deterministic"
+        }
       },
       "expected.Personal_and_Family_History_Complete__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -4006,11 +4261,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Personal_and_Family_History_Complete__c",
-        "assigned_column": "expected__Personal_and_Family_History_Complete__c__assigned",
-        "deterministic_column": "expected__Personal_and_Family_History_Complete__c__deterministic",
+        "value_column": "expected.Personal_and_Family_History_Complete__c",
+        "assigned_column": "expected.Personal_and_Family_History_Complete__c__assigned",
+        "deterministic_column": "expected.Personal_and_Family_History_Complete__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Personal_and_Family_History_Complete__c",
+          "assigned_column": "expected__Personal_and_Family_History_Complete__c__assigned",
+          "deterministic_column": "expected__Personal_and_Family_History_Complete__c__deterministic"
+        }
       },
       "expected.HC_Access_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -4047,11 +4307,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__HC_Access_Date_Time__c",
-        "assigned_column": "expected__HC_Access_Date_Time__c__assigned",
-        "deterministic_column": "expected__HC_Access_Date_Time__c__deterministic",
+        "value_column": "expected.HC_Access_Date_Time__c",
+        "assigned_column": "expected.HC_Access_Date_Time__c__assigned",
+        "deterministic_column": "expected.HC_Access_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__HC_Access_Date_Time__c",
+          "assigned_column": "expected__HC_Access_Date_Time__c__assigned",
+          "deterministic_column": "expected__HC_Access_Date_Time__c__deterministic"
+        }
       },
       "expected.HC_Access_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -4088,11 +4353,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__HC_Access_Date_Time__c",
-        "assigned_column": "expected__HC_Access_Date_Time__c__assigned",
-        "deterministic_column": "expected__HC_Access_Date_Time__c__deterministic",
+        "value_column": "expected.HC_Access_Date_Time__c",
+        "assigned_column": "expected.HC_Access_Date_Time__c__assigned",
+        "deterministic_column": "expected.HC_Access_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__HC_Access_Date_Time__c",
+          "assigned_column": "expected__HC_Access_Date_Time__c__assigned",
+          "deterministic_column": "expected__HC_Access_Date_Time__c__deterministic"
+        }
       },
       "expected.HC_Access_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -4129,11 +4399,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__HC_Access_Date_Time__c",
-        "assigned_column": "expected__HC_Access_Date_Time__c__assigned",
-        "deterministic_column": "expected__HC_Access_Date_Time__c__deterministic",
+        "value_column": "expected.HC_Access_Date_Time__c",
+        "assigned_column": "expected.HC_Access_Date_Time__c__assigned",
+        "deterministic_column": "expected.HC_Access_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__HC_Access_Date_Time__c",
+          "assigned_column": "expected__HC_Access_Date_Time__c__assigned",
+          "deterministic_column": "expected__HC_Access_Date_Time__c__deterministic"
+        }
       },
       "expected.Life_Functioning_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -4170,11 +4445,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Life_Functioning_Date_Time__c",
-        "assigned_column": "expected__Life_Functioning_Date_Time__c__assigned",
-        "deterministic_column": "expected__Life_Functioning_Date_Time__c__deterministic",
+        "value_column": "expected.Life_Functioning_Date_Time__c",
+        "assigned_column": "expected.Life_Functioning_Date_Time__c__assigned",
+        "deterministic_column": "expected.Life_Functioning_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Life_Functioning_Date_Time__c",
+          "assigned_column": "expected__Life_Functioning_Date_Time__c__assigned",
+          "deterministic_column": "expected__Life_Functioning_Date_Time__c__deterministic"
+        }
       },
       "expected.Life_Functioning_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -4211,11 +4491,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Life_Functioning_Date_Time__c",
-        "assigned_column": "expected__Life_Functioning_Date_Time__c__assigned",
-        "deterministic_column": "expected__Life_Functioning_Date_Time__c__deterministic",
+        "value_column": "expected.Life_Functioning_Date_Time__c",
+        "assigned_column": "expected.Life_Functioning_Date_Time__c__assigned",
+        "deterministic_column": "expected.Life_Functioning_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Life_Functioning_Date_Time__c",
+          "assigned_column": "expected__Life_Functioning_Date_Time__c__assigned",
+          "deterministic_column": "expected__Life_Functioning_Date_Time__c__deterministic"
+        }
       },
       "expected.Life_Functioning_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -4252,11 +4537,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Life_Functioning_Date_Time__c",
-        "assigned_column": "expected__Life_Functioning_Date_Time__c__assigned",
-        "deterministic_column": "expected__Life_Functioning_Date_Time__c__deterministic",
+        "value_column": "expected.Life_Functioning_Date_Time__c",
+        "assigned_column": "expected.Life_Functioning_Date_Time__c__assigned",
+        "deterministic_column": "expected.Life_Functioning_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Life_Functioning_Date_Time__c",
+          "assigned_column": "expected__Life_Functioning_Date_Time__c__assigned",
+          "deterministic_column": "expected__Life_Functioning_Date_Time__c__deterministic"
+        }
       },
       "expected.First_Physical_Measurement_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -4298,11 +4588,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__First_Physical_Measurement_Date_Time__c",
-        "assigned_column": "expected__First_Physical_Measurement_Date_Time__c__assigned",
-        "deterministic_column": "expected__First_Physical_Measurement_Date_Time__c__deterministic",
+        "value_column": "expected.First_Physical_Measurement_Date_Time__c",
+        "assigned_column": "expected.First_Physical_Measurement_Date_Time__c__assigned",
+        "deterministic_column": "expected.First_Physical_Measurement_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__First_Physical_Measurement_Date_Time__c",
+          "assigned_column": "expected__First_Physical_Measurement_Date_Time__c__assigned",
+          "deterministic_column": "expected__First_Physical_Measurement_Date_Time__c__deterministic"
+        }
       },
       "expected.First_Physical_Measurement_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -4344,11 +4639,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__First_Physical_Measurement_Date_Time__c",
-        "assigned_column": "expected__First_Physical_Measurement_Date_Time__c__assigned",
-        "deterministic_column": "expected__First_Physical_Measurement_Date_Time__c__deterministic",
+        "value_column": "expected.First_Physical_Measurement_Date_Time__c",
+        "assigned_column": "expected.First_Physical_Measurement_Date_Time__c__assigned",
+        "deterministic_column": "expected.First_Physical_Measurement_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__First_Physical_Measurement_Date_Time__c",
+          "assigned_column": "expected__First_Physical_Measurement_Date_Time__c__assigned",
+          "deterministic_column": "expected__First_Physical_Measurement_Date_Time__c__deterministic"
+        }
       },
       "expected.First_Physical_Measurement_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -4390,11 +4690,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__First_Physical_Measurement_Date_Time__c",
-        "assigned_column": "expected__First_Physical_Measurement_Date_Time__c__assigned",
-        "deterministic_column": "expected__First_Physical_Measurement_Date_Time__c__deterministic",
+        "value_column": "expected.First_Physical_Measurement_Date_Time__c",
+        "assigned_column": "expected.First_Physical_Measurement_Date_Time__c__assigned",
+        "deterministic_column": "expected.First_Physical_Measurement_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__First_Physical_Measurement_Date_Time__c",
+          "assigned_column": "expected__First_Physical_Measurement_Date_Time__c__assigned",
+          "deterministic_column": "expected__First_Physical_Measurement_Date_Time__c__deterministic"
+        }
       },
       "expected.Last_Physical_Measurement_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -4436,11 +4741,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Last_Physical_Measurement_Date_Time__c",
-        "assigned_column": "expected__Last_Physical_Measurement_Date_Time__c__assigned",
-        "deterministic_column": "expected__Last_Physical_Measurement_Date_Time__c__deterministic",
+        "value_column": "expected.Last_Physical_Measurement_Date_Time__c",
+        "assigned_column": "expected.Last_Physical_Measurement_Date_Time__c__assigned",
+        "deterministic_column": "expected.Last_Physical_Measurement_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Last_Physical_Measurement_Date_Time__c",
+          "assigned_column": "expected__Last_Physical_Measurement_Date_Time__c__assigned",
+          "deterministic_column": "expected__Last_Physical_Measurement_Date_Time__c__deterministic"
+        }
       },
       "expected.Last_Physical_Measurement_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -4482,11 +4792,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Last_Physical_Measurement_Date_Time__c",
-        "assigned_column": "expected__Last_Physical_Measurement_Date_Time__c__assigned",
-        "deterministic_column": "expected__Last_Physical_Measurement_Date_Time__c__deterministic",
+        "value_column": "expected.Last_Physical_Measurement_Date_Time__c",
+        "assigned_column": "expected.Last_Physical_Measurement_Date_Time__c__assigned",
+        "deterministic_column": "expected.Last_Physical_Measurement_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Last_Physical_Measurement_Date_Time__c",
+          "assigned_column": "expected__Last_Physical_Measurement_Date_Time__c__assigned",
+          "deterministic_column": "expected__Last_Physical_Measurement_Date_Time__c__deterministic"
+        }
       },
       "expected.Last_Physical_Measurement_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -4528,11 +4843,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Last_Physical_Measurement_Date_Time__c",
-        "assigned_column": "expected__Last_Physical_Measurement_Date_Time__c__assigned",
-        "deterministic_column": "expected__Last_Physical_Measurement_Date_Time__c__deterministic",
+        "value_column": "expected.Last_Physical_Measurement_Date_Time__c",
+        "assigned_column": "expected.Last_Physical_Measurement_Date_Time__c__assigned",
+        "deterministic_column": "expected.Last_Physical_Measurement_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Last_Physical_Measurement_Date_Time__c",
+          "assigned_column": "expected__Last_Physical_Measurement_Date_Time__c__assigned",
+          "deterministic_column": "expected__Last_Physical_Measurement_Date_Time__c__deterministic"
+        }
       },
       "expected.EH_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -4569,11 +4889,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__EH_Date_Time__c",
-        "assigned_column": "expected__EH_Date_Time__c__assigned",
-        "deterministic_column": "expected__EH_Date_Time__c__deterministic",
+        "value_column": "expected.EH_Date_Time__c",
+        "assigned_column": "expected.EH_Date_Time__c__assigned",
+        "deterministic_column": "expected.EH_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__EH_Date_Time__c",
+          "assigned_column": "expected__EH_Date_Time__c__assigned",
+          "deterministic_column": "expected__EH_Date_Time__c__deterministic"
+        }
       },
       "expected.EH_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -4610,11 +4935,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__EH_Date_Time__c",
-        "assigned_column": "expected__EH_Date_Time__c__assigned",
-        "deterministic_column": "expected__EH_Date_Time__c__deterministic",
+        "value_column": "expected.EH_Date_Time__c",
+        "assigned_column": "expected.EH_Date_Time__c__assigned",
+        "deterministic_column": "expected.EH_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__EH_Date_Time__c",
+          "assigned_column": "expected__EH_Date_Time__c__assigned",
+          "deterministic_column": "expected__EH_Date_Time__c__deterministic"
+        }
       },
       "expected.EH_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -4651,11 +4981,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__EH_Date_Time__c",
-        "assigned_column": "expected__EH_Date_Time__c__assigned",
-        "deterministic_column": "expected__EH_Date_Time__c__deterministic",
+        "value_column": "expected.EH_Date_Time__c",
+        "assigned_column": "expected.EH_Date_Time__c__assigned",
+        "deterministic_column": "expected.EH_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__EH_Date_Time__c",
+          "assigned_column": "expected__EH_Date_Time__c__assigned",
+          "deterministic_column": "expected__EH_Date_Time__c__deterministic"
+        }
       },
       "expected.Behavioral_Health_Completion__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -4692,11 +5027,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Behavioral_Health_Completion__c",
-        "assigned_column": "expected__Behavioral_Health_Completion__c__assigned",
-        "deterministic_column": "expected__Behavioral_Health_Completion__c__deterministic",
+        "value_column": "expected.Behavioral_Health_Completion__c",
+        "assigned_column": "expected.Behavioral_Health_Completion__c__assigned",
+        "deterministic_column": "expected.Behavioral_Health_Completion__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Behavioral_Health_Completion__c",
+          "assigned_column": "expected__Behavioral_Health_Completion__c__assigned",
+          "deterministic_column": "expected__Behavioral_Health_Completion__c__deterministic"
+        }
       },
       "expected.Behavioral_Health_Completion__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -4733,11 +5073,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Behavioral_Health_Completion__c",
-        "assigned_column": "expected__Behavioral_Health_Completion__c__assigned",
-        "deterministic_column": "expected__Behavioral_Health_Completion__c__deterministic",
+        "value_column": "expected.Behavioral_Health_Completion__c",
+        "assigned_column": "expected.Behavioral_Health_Completion__c__assigned",
+        "deterministic_column": "expected.Behavioral_Health_Completion__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Behavioral_Health_Completion__c",
+          "assigned_column": "expected__Behavioral_Health_Completion__c__assigned",
+          "deterministic_column": "expected__Behavioral_Health_Completion__c__deterministic"
+        }
       },
       "expected.Behavioral_Health_Completion__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -4774,11 +5119,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Behavioral_Health_Completion__c",
-        "assigned_column": "expected__Behavioral_Health_Completion__c__assigned",
-        "deterministic_column": "expected__Behavioral_Health_Completion__c__deterministic",
+        "value_column": "expected.Behavioral_Health_Completion__c",
+        "assigned_column": "expected.Behavioral_Health_Completion__c__assigned",
+        "deterministic_column": "expected.Behavioral_Health_Completion__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Behavioral_Health_Completion__c",
+          "assigned_column": "expected__Behavioral_Health_Completion__c__assigned",
+          "deterministic_column": "expected__Behavioral_Health_Completion__c__deterministic"
+        }
       },
       "expected.Environmental_Exposures_Date_Time__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -4815,11 +5165,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Environmental_Exposures_Date_Time__c",
-        "assigned_column": "expected__Environmental_Exposures_Date_Time__c__assigned",
-        "deterministic_column": "expected__Environmental_Exposures_Date_Time__c__deterministic",
+        "value_column": "expected.Environmental_Exposures_Date_Time__c",
+        "assigned_column": "expected.Environmental_Exposures_Date_Time__c__assigned",
+        "deterministic_column": "expected.Environmental_Exposures_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Environmental_Exposures_Date_Time__c",
+          "assigned_column": "expected__Environmental_Exposures_Date_Time__c__assigned",
+          "deterministic_column": "expected__Environmental_Exposures_Date_Time__c__deterministic"
+        }
       },
       "expected.Environmental_Exposures_Date_Time__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -4856,11 +5211,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Environmental_Exposures_Date_Time__c",
-        "assigned_column": "expected__Environmental_Exposures_Date_Time__c__assigned",
-        "deterministic_column": "expected__Environmental_Exposures_Date_Time__c__deterministic",
+        "value_column": "expected.Environmental_Exposures_Date_Time__c",
+        "assigned_column": "expected.Environmental_Exposures_Date_Time__c__assigned",
+        "deterministic_column": "expected.Environmental_Exposures_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Environmental_Exposures_Date_Time__c",
+          "assigned_column": "expected__Environmental_Exposures_Date_Time__c__assigned",
+          "deterministic_column": "expected__Environmental_Exposures_Date_Time__c__deterministic"
+        }
       },
       "expected.Environmental_Exposures_Date_Time__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -4897,11 +5257,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Environmental_Exposures_Date_Time__c",
-        "assigned_column": "expected__Environmental_Exposures_Date_Time__c__assigned",
-        "deterministic_column": "expected__Environmental_Exposures_Date_Time__c__deterministic",
+        "value_column": "expected.Environmental_Exposures_Date_Time__c",
+        "assigned_column": "expected.Environmental_Exposures_Date_Time__c__assigned",
+        "deterministic_column": "expected.Environmental_Exposures_Date_Time__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Environmental_Exposures_Date_Time__c",
+          "assigned_column": "expected__Environmental_Exposures_Date_Time__c__assigned",
+          "deterministic_column": "expected__Environmental_Exposures_Date_Time__c__deterministic"
+        }
       },
       "expected.Social_Determinants_of_Health_Completion__c": {
         "Id": "301SL00000dpJqKYAU",
@@ -4938,11 +5303,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Social_Determinants_of_Health_Completion__c",
-        "assigned_column": "expected__Social_Determinants_of_Health_Completion__c__assigned",
-        "deterministic_column": "expected__Social_Determinants_of_Health_Completion__c__deterministic",
+        "value_column": "expected.Social_Determinants_of_Health_Completion__c",
+        "assigned_column": "expected.Social_Determinants_of_Health_Completion__c__assigned",
+        "deterministic_column": "expected.Social_Determinants_of_Health_Completion__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Social_Determinants_of_Health_Completion__c",
+          "assigned_column": "expected__Social_Determinants_of_Health_Completion__c__assigned",
+          "deterministic_column": "expected__Social_Determinants_of_Health_Completion__c__deterministic"
+        }
       },
       "expected.Social_Determinants_of_Health_Completion__c__assigned": {
         "Id": "301SL00000dpJqKYAU",
@@ -4979,11 +5349,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Social_Determinants_of_Health_Completion__c",
-        "assigned_column": "expected__Social_Determinants_of_Health_Completion__c__assigned",
-        "deterministic_column": "expected__Social_Determinants_of_Health_Completion__c__deterministic",
+        "value_column": "expected.Social_Determinants_of_Health_Completion__c",
+        "assigned_column": "expected.Social_Determinants_of_Health_Completion__c__assigned",
+        "deterministic_column": "expected.Social_Determinants_of_Health_Completion__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Social_Determinants_of_Health_Completion__c",
+          "assigned_column": "expected__Social_Determinants_of_Health_Completion__c__assigned",
+          "deterministic_column": "expected__Social_Determinants_of_Health_Completion__c__deterministic"
+        }
       },
       "expected.Social_Determinants_of_Health_Completion__c__deterministic": {
         "Id": "301SL00000dpJqKYAU",
@@ -5020,11 +5395,16 @@
           "Survey_Result__c.Consent_Status__c"
         ],
         "dependency_scope": "selected control and data closure",
-        "value_column": "expected__Social_Determinants_of_Health_Completion__c",
-        "assigned_column": "expected__Social_Determinants_of_Health_Completion__c__assigned",
-        "deterministic_column": "expected__Social_Determinants_of_Health_Completion__c__deterministic",
+        "value_column": "expected.Social_Determinants_of_Health_Completion__c",
+        "assigned_column": "expected.Social_Determinants_of_Health_Completion__c__assigned",
+        "deterministic_column": "expected.Social_Determinants_of_Health_Completion__c__deterministic",
         "native": {},
-        "definition_status": "unresolved"
+        "definition_status": "unresolved",
+        "native_output_columns": {
+          "value_column": "expected__Social_Determinants_of_Health_Completion__c",
+          "assigned_column": "expected__Social_Determinants_of_Health_Completion__c__assigned",
+          "deterministic_column": "expected__Social_Determinants_of_Health_Completion__c__deterministic"
+        }
       },
       "getEarliestPrimaryConsent.Id": {
         "description": "getEarliestPrimaryConsent.Id",

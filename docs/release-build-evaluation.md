@@ -1,5 +1,7 @@
 # Release build decision
 
+Historical record. Current interfaces and acceptance are described in [the native Flow SQL plan](specs/minimal-implementation-plan.md).
+
 DVC now owns the real requirements → dependency wheels and application wheel →
 runtime bundle graph. Durable retrieval and promotion of the same bytes justify
 this narrow adoption. Live validation, deployment and report publication remain

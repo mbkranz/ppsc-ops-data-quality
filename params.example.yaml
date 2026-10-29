@@ -1,4 +1,5 @@
-# Illustrative pinned APMP selection. Replace locations and actual Iceberg snapshot IDs.
+# Reviewed native captures and separately selected lake DDL are required for live runs.
+input_directory: REPLACE_WITH_CAPTURE_DIRECTORY
 metadata:
   org: qa2
   flow_version_id: 301SL00000dpJqKYAU
@@ -11,6 +12,7 @@ athena:
 reports:
   s3_uri: s3://REPLACE_WITH_REPORTS_BUCKET/ppsc-data-quality/
 event:
+  eligibility: true  # Verified trigger transition, exemptions and settled asynchronous path.
   survey_result_id: REPLACE_WITH_VERIFIED_EVENT_ID
   account_before_at: 2026-10-21 11:59:59
   execution_at: 2026-10-21 12:00:00

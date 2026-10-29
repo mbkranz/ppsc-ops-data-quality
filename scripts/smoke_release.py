@@ -65,9 +65,9 @@ def smoke_release(*, root: Path) -> SmokeResult:
         str(python),
         "-I",
         "-c",
-        "from ppsc_ops_data_quality.account_to_survey_results.metadata import metadata_receipt; "
+        "from ppsc_ops_data_quality.account_to_survey_results.queries import metadata_receipt; "
         "import sys; receipt = metadata_receipt(); "
-        "assert receipt['compiler_version'] == '0.1.1'; "
+        "assert receipt['compiler_commit'] == '4ce491c3266e052bf1e1f6a70e8f7d2aed86f9f1'; "
         "assert receipt['flow_version_id'] == '301SL00000dpJqKYAU'; "
         "assert receipt['provisional']; assert not {'simple_salesforce', 'zeep', 'open_data_contract_standard', 'apmp_data_lake'} & set(sys.modules)",
     )

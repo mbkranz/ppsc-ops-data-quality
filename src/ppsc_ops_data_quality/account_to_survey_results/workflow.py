@@ -12,30 +12,36 @@ from great_expectations.core import RunIdentifier
 from pydantic import BaseModel, ConfigDict, model_validator
 from sqlalchemy.engine import URL
 
-from ppsc_ops_data_quality.account_to_survey_results.gx import (
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
+    RelationLocation,
+    check_native_columns,
+    flow_account_query,
+    logical_schema,
+    metadata_inputs,
+    metadata_receipt,
+    projection_lineage,
+    rollup_account_query,
+    rollup_projection_lineage,
+    source_relation,
+    to_sqlglot,
+)
+from ppsc_ops_data_quality.account_to_survey_results.suites import (
     flow_account_suite,
     rollup_account_suite,
 )
-from ppsc_ops_data_quality.account_to_survey_results.lineage import PROJECTION_LINEAGE
-from ppsc_ops_data_quality.account_to_survey_results.metadata import (
-    metadata_inputs,
-    metadata_receipt,
-)
-from ppsc_ops_data_quality.account_to_survey_results.queries import (
-    flow_account_query,
-    rollup_account_query,
-)
-from ppsc_ops_data_quality.core.configuration import load_yaml
-from ppsc_ops_data_quality.runtime import run_validations_with_reports
-from ppsc_ops_data_quality.runtime.athena import prepare_validation, query_source_tables
-from ppsc_ops_data_quality.runtime.configuration import (
+from ppsc_ops_data_quality.io import load_yaml
+from ppsc_ops_data_quality.runtime import (
     AthenaConfiguration,
     Configuration,
+    DataVersionBinding,
     Name,
     ReportConfiguration,
+    check_catalog,
+    guard_query_size,
+    prepare_validation,
+    query_source_tables,
+    run_validations_with_reports,
 )
-from ppsc_ops_data_quality.runtime.preflight import DataVersionBinding, check_catalog
-from ppsc_ops_data_quality.sources.apmp import RelationLocation, logical_schema, source_relation
 
 
 class EventConfiguration(Configuration):
@@ -43,6 +49,7 @@ class EventConfiguration(Configuration):
     account_before_at: date | datetime
     execution_at: date | datetime
     account_after_at: date | datetime
+    eligibility: bool | None
     flow_run_date: date
 
     @model_validator(mode="after")
@@ -70,6 +77,7 @@ class MetadataSelection(Configuration):
 
 
 class ValidationConfiguration(Configuration):
+    input_directory: str
     metadata: MetadataSelection
     athena: AthenaConfiguration
     reports: ReportConfiguration
@@ -78,24 +86,6 @@ class ValidationConfiguration(Configuration):
     require_repeatable_reads: bool = True
     event: EventConfiguration
     rollups: RollupConfiguration
-
-    @model_validator(mode="before")
-    @classmethod
-    def reject_legacy_types(cls, values):
-        if not isinstance(values, dict):
-            return values
-        values = dict(values)
-        if "schema_overrides" in values:
-            overrides = values.pop("schema_overrides")
-            if not isinstance(overrides, dict) or any(overrides.values()):
-                raise ValueError(
-                    "schema_overrides is retired; change the reviewed APMP definition and regenerate its pinned handoff"
-                )
-        if "databases" in values:
-            raise ValueError(
-                "Database-only history bindings are retired; supply explicit APMP dataset locations with catalog/database/relation"
-            )
-        return values
 
     @model_validator(mode="after")
     def validate_selected_locations(self) -> Self:
@@ -144,16 +134,21 @@ def run_validation(
     The caller supplies validated configuration and a fresh workspace. Both local
     and Glue hosts use this function; the runner retains native partial results.
     """
-    compiled_inputs = metadata_receipt()
+    inputs = metadata_inputs(Path(request.input_directory))
+    compiled_inputs = metadata_receipt(inputs)
+    if not compiled_inputs["native_definitions_available"] or compiled_inputs["provisional"]:
+        raise ValueError(
+            "Live validation requires selected native field captures and reviewed lake DDL; bundled profiles are offline only"
+        )
     if (
-        request.metadata.org != compiled_inputs["org"]
+        request.metadata.org != compiled_inputs["source_org"]
         or request.metadata.flow_version_id != compiled_inputs["flow_version_id"]
     ):
         raise ValueError("Configured metadata org/version does not match the compiled input set")
+    check_native_columns(inputs)
     athena = request.athena
     reporting = request.reports
     event = request.event
-    inputs = metadata_inputs()
     bindings = inputs["tables"]
     if set(request.locations) != set(bindings):
         raise ValueError("Configured locations do not match the selected APMP dataset set")
@@ -177,9 +172,14 @@ def run_validation(
         for dataset_id, binding in bindings.items()
     }
     queries = {
-        "flow": flow_account_query(history, **event.model_dump()),
-        "rollups": rollup_account_query(history, as_of=request.rollups.as_of),
+        "flow": flow_account_query(history, inputs=inputs, **event.model_dump()),
+        "rollups": to_sqlglot(
+            rollup_account_query(history, as_of=request.rollups.as_of),
+            projection_lineage=rollup_projection_lineage(),
+        ),
     }
+    for query in queries.values():
+        query_source_tables(query.sql(dialect="athena"), locations=request.locations)
     connection_string = URL.create(
         "awsathena+rest",
         host=f"athena.{athena.region}.amazonaws.com",
@@ -237,11 +237,16 @@ def run_validation(
         name="athena", connection_string=connection_string, create_temp_table=False
     )
     engine = source.get_execution_engine()
+    listener, statement_sizes = guard_query_size(engine.engine)
     try:
         prepared = []
         for name, query in queries.items():
             suite = context.suites.add(
-                flow_account_suite(expected_row_count=1)
+                flow_account_suite(
+                    expected_row_count=1,
+                    provenance=compiled_inputs,
+                    lineage=projection_lineage(query),
+                )
                 if name == "flow"
                 else rollup_account_suite()
             )
@@ -253,8 +258,15 @@ def run_validation(
                     suite,
                     name=name,
                     metadata={"run_name": run_directory.name},
-                    projection_lineage=PROJECTION_LINEAGE,
-                    table_versions=table_versions,
+                    projection_lineage=projection_lineage(query),
+                    table_versions={
+                        identity: value
+                        for identity, value in table_versions.items()
+                        if ".".join(identity)
+                        in query_source_tables(
+                            query.sql(dialect="athena"), locations=request.locations
+                        )
+                    },
                     sql_path=run_directory / "sql" / f"{name}.sql",
                 )
             )
@@ -276,6 +288,7 @@ def run_validation(
             run_metadata={
                 **(run_metadata or {}),
                 "metadata_inputs": compiled_inputs,
+                "submitted_statement_utf8_bytes": statement_sizes,
                 "provenance_version": "native-salesforce",
                 "configuration_sha256": run_configuration_sha256,
                 "catalog_preflight": [item.model_dump(mode="json") for item in preflight],
@@ -307,4 +320,38 @@ def run_validation(
             validations={name: result.statistics for name, result in results.items()},
         )
     finally:
+        from sqlalchemy import event as sqlalchemy_event
+
+        sqlalchemy_event.remove(engine.engine, "before_cursor_execute", listener)
         engine.close()
+
+
+def prepare_authored_validation(
+    context,
+    source,
+    suite,
+    *,
+    sql_path: Path,
+    contract_path: Path,
+    values: dict,
+    output_path: Path,
+    table_versions=None,
+):
+    """Explicit file execution path with a caller-built native suite and scalar values."""
+    from .queries import SqlContract, bind_authored_select
+
+    contract = SqlContract.model_validate(load_yaml(contract_path))
+    query = bind_authored_select(
+        sql_path.read_text(), contract, values=values, suite_name=suite.name
+    )
+    query.meta["ppsc"]["sidecar_sha256"] = sha256(contract_path.read_bytes()).hexdigest()
+    return prepare_validation(
+        context,
+        source,
+        query,
+        suite,
+        name=contract.definition_id,
+        projection_lineage=projection_lineage(query),
+        table_versions=table_versions,
+        sql_path=output_path,
+    )

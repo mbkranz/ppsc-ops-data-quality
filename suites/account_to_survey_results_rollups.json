@@ -136,7 +136,6 @@
           "expression": "ehr_authorized_indicator",
           "branches": [
             {
-              "rule_id": "count_completed_ehr_authorization",
               "output_fields": [
                 "Account.EHR_Authorized__pc",
                 "Account.Count_of_Completed_EHR_Auth__pc"
@@ -150,13 +149,14 @@
                 465
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_completed_ehr_authorization"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "ehr_authorized_indicator",
           "target_field": "Account.EHR_Authorized__pc",
-          "description": "Ehr authorized",
+          "description": "ehr authorized indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.EHR_Authorized__pc"
           ]
@@ -188,7 +188,6 @@
           "expression": "count_of_completed_ehr_auth_indicator",
           "branches": [
             {
-              "rule_id": "count_completed_ehr_authorization",
               "output_fields": [
                 "Account.EHR_Authorized__pc",
                 "Account.Count_of_Completed_EHR_Auth__pc"
@@ -202,13 +201,14 @@
                 465
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_completed_ehr_authorization"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "count_of_completed_ehr_auth_indicator",
           "target_field": "Account.Count_of_Completed_EHR_Auth__pc",
-          "description": "Count of completed ehr auth",
+          "description": "count of completed ehr auth indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.Count_of_Completed_EHR_Auth__pc"
           ]
@@ -240,7 +240,6 @@
           "expression": "count_of_completed_primary_consent_indicator",
           "branches": [
             {
-              "rule_id": "count_completed_primary_consent",
               "output_fields": [
                 "Account.Count_of_Completed_Primary_Consent__pc"
               ],
@@ -251,13 +250,14 @@
                 466
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_completed_primary_consent"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "count_of_completed_primary_consent_indicator",
           "target_field": "Account.Count_of_Completed_Primary_Consent__pc",
-          "description": "Count of completed primary consent",
+          "description": "count of completed primary consent indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.Count_of_Completed_Primary_Consent__pc"
           ]
@@ -289,7 +289,6 @@
           "expression": "count_of_completed_reconsent_indicator",
           "branches": [
             {
-              "rule_id": "count_completed_primary_consent_updates",
               "output_fields": [
                 "Account.Count_of_Completed_Reconsent__pc"
               ],
@@ -300,13 +299,14 @@
                 467
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_completed_primary_consent_updates"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "count_of_completed_reconsent_indicator",
           "target_field": "Account.Count_of_Completed_Reconsent__pc",
-          "description": "Count of completed reconsent",
+          "description": "count of completed reconsent indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.Count_of_Completed_Reconsent__pc"
           ]
@@ -338,7 +338,6 @@
           "expression": "ppi_2_completion_count_indicator",
           "branches": [
             {
-              "rule_id": "count_completed_lifestyle_surveys",
               "output_fields": [
                 "Account.PPI_2_Completion_Count__pc"
               ],
@@ -349,13 +348,14 @@
                 468
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_completed_lifestyle_surveys"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "ppi_2_completion_count_indicator",
           "target_field": "Account.PPI_2_Completion_Count__pc",
-          "description": "Ppi 2 completion count",
+          "description": "ppi 2 completion count indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.PPI_2_Completion_Count__pc"
           ]
@@ -387,7 +387,6 @@
           "expression": "ppi_3_completion_count_indicator",
           "branches": [
             {
-              "rule_id": "count_completed_overall_health_surveys",
               "output_fields": [
                 "Account.PPI_3_Completion_Count__pc"
               ],
@@ -398,13 +397,14 @@
                 469
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_completed_overall_health_surveys"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "ppi_3_completion_count_indicator",
           "target_field": "Account.PPI_3_Completion_Count__pc",
-          "description": "Ppi 3 completion count",
+          "description": "ppi 3 completion count indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.PPI_3_Completion_Count__pc"
           ]
@@ -436,7 +436,6 @@
           "expression": "ehr_consent_active_indicator",
           "branches": [
             {
-              "rule_id": "count_active_ehr_consent",
               "output_fields": [
                 "Account.EHR_Consent_Active__pc"
               ],
@@ -447,13 +446,14 @@
                 443
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_active_ehr_consent"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "ehr_consent_active_indicator",
           "target_field": "Account.EHR_Consent_Active__pc",
-          "description": "Ehr consent active",
+          "description": "ehr consent active indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.EHR_Consent_Active__pc"
           ]
@@ -485,7 +485,6 @@
           "expression": "ehr_consent_declined_indicator",
           "branches": [
             {
-              "rule_id": "count_declined_ehr_consent",
               "output_fields": [
                 "Account.EHR_Consent_Declined__pc"
               ],
@@ -496,13 +495,14 @@
                 540
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_declined_ehr_consent"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "ehr_consent_declined_indicator",
           "target_field": "Account.EHR_Consent_Declined__pc",
-          "description": "Ehr consent declined",
+          "description": "ehr consent declined indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.EHR_Consent_Declined__pc"
           ]
@@ -534,7 +534,6 @@
           "expression": "pp1_basics_survey_complete_indicator",
           "branches": [
             {
-              "rule_id": "count_completed_unrevoked_basics_surveys",
               "output_fields": [
                 "Account.PP1_Basics_Survey_Complete__pc"
               ],
@@ -545,13 +544,14 @@
                 541
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_completed_unrevoked_basics_surveys"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "pp1_basics_survey_complete_indicator",
           "target_field": "Account.PP1_Basics_Survey_Complete__pc",
-          "description": "Pp1 basics survey complete",
+          "description": "pp1 basics survey complete indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.PP1_Basics_Survey_Complete__pc"
           ]
@@ -583,7 +583,6 @@
           "expression": "re_consent_declined_indicator",
           "branches": [
             {
-              "rule_id": "count_declined_primary_consent_updates",
               "output_fields": [
                 "Account.Re_Consent_Declined__pc"
               ],
@@ -594,13 +593,14 @@
                 542
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_declined_primary_consent_updates"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "re_consent_declined_indicator",
           "target_field": "Account.Re_Consent_Declined__pc",
-          "description": "Re consent declined",
+          "description": "re consent declined indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.Re_Consent_Declined__pc"
           ]
@@ -632,7 +632,6 @@
           "expression": "re_consent_active_indicator",
           "branches": [
             {
-              "rule_id": "count_active_primary_consent_updates",
               "output_fields": [
                 "Account.Re_consent_Active__pc"
               ],
@@ -643,13 +642,14 @@
                 543
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_active_primary_consent_updates"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "re_consent_active_indicator",
           "target_field": "Account.Re_consent_Active__pc",
-          "description": "Re consent active",
+          "description": "re consent active indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.Re_consent_Active__pc"
           ]
@@ -681,7 +681,6 @@
           "expression": "primary_consent_declined_indicator",
           "branches": [
             {
-              "rule_id": "count_declined_primary_consent",
               "output_fields": [
                 "Account.Primary_Consent_Declined__pc"
               ],
@@ -692,13 +691,14 @@
                 555
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_declined_primary_consent"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "primary_consent_declined_indicator",
           "target_field": "Account.Primary_Consent_Declined__pc",
-          "description": "Primary consent declined",
+          "description": "primary consent declined indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.Primary_Consent_Declined__pc"
           ]
@@ -730,7 +730,6 @@
           "expression": "ehr_consent_ever_indicator",
           "branches": [
             {
-              "rule_id": "count_ever_authorized_ehr_consent",
               "output_fields": [
                 "Account.EHR_Consent_Ever__pc"
               ],
@@ -741,13 +740,14 @@
                 562
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_ever_authorized_ehr_consent"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "ehr_consent_ever_indicator",
           "target_field": "Account.EHR_Consent_Ever__pc",
-          "description": "Ehr consent ever",
+          "description": "ehr consent ever indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.EHR_Consent_Ever__pc"
           ]
@@ -779,7 +779,6 @@
           "expression": "assent_completion_count_indicator",
           "branches": [
             {
-              "rule_id": "count_completed_active_assent",
               "output_fields": [
                 "Account.Assent_Completion_Count__pc"
               ],
@@ -790,13 +789,14 @@
                 594
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_completed_active_assent"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "assent_completion_count_indicator",
           "target_field": "Account.Assent_Completion_Count__pc",
-          "description": "Assent completion count",
+          "description": "assent completion count indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.Assent_Completion_Count__pc"
           ]
@@ -828,7 +828,6 @@
           "expression": "pediatric_permission_completion_count_indicator",
           "branches": [
             {
-              "rule_id": "count_completed_active_pediatric_permission",
               "output_fields": [
                 "Account.Pediatric_Permission_Completion_Count__pc"
               ],
@@ -839,13 +838,14 @@
                 595
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_completed_active_pediatric_permission"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "pediatric_permission_completion_count_indicator",
           "target_field": "Account.Pediatric_Permission_Completion_Count__pc",
-          "description": "Pediatric permission completion count",
+          "description": "pediatric permission completion count indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.Pediatric_Permission_Completion_Count__pc"
           ]
@@ -877,7 +877,6 @@
           "expression": "x0_6_peds_permission_count_indicator",
           "branches": [
             {
-              "rule_id": "count_active_permission_ages_zero_to_six",
               "output_fields": [
                 "Account.X0_6_Peds_Permission_Count__pc"
               ],
@@ -888,13 +887,14 @@
                 622
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_active_permission_ages_zero_to_six"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "x0_6_peds_permission_count_indicator",
           "target_field": "Account.X0_6_Peds_Permission_Count__pc",
-          "description": "X0 6 peds permission count",
+          "description": "x0 6 peds permission count indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.X0_6_Peds_Permission_Count__pc"
           ]
@@ -926,7 +926,6 @@
           "expression": "x0_6_peds_permission_declined_count_indicator",
           "branches": [
             {
-              "rule_id": "count_declined_permission_ages_zero_to_six",
               "output_fields": [
                 "Account.X0_6_Peds_Permission_Declined_Count__pc"
               ],
@@ -937,13 +936,14 @@
                 623
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_declined_permission_ages_zero_to_six"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "x0_6_peds_permission_declined_count_indicator",
           "target_field": "Account.X0_6_Peds_Permission_Declined_Count__pc",
-          "description": "X0 6 peds permission declined count",
+          "description": "x0 6 peds permission declined count indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.X0_6_Peds_Permission_Declined_Count__pc"
           ]
@@ -975,7 +975,6 @@
           "expression": "x0_6_peds_permission_revoked_count_indicator",
           "branches": [
             {
-              "rule_id": "count_revoked_permission_ages_zero_to_six",
               "output_fields": [
                 "Account.X0_6_Peds_Permission_Revoked_Count__pc"
               ],
@@ -986,13 +985,14 @@
                 624
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_revoked_permission_ages_zero_to_six"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "x0_6_peds_permission_revoked_count_indicator",
           "target_field": "Account.X0_6_Peds_Permission_Revoked_Count__pc",
-          "description": "X0 6 peds permission revoked count",
+          "description": "x0 6 peds permission revoked count indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.X0_6_Peds_Permission_Revoked_Count__pc"
           ]
@@ -1024,7 +1024,6 @@
           "expression": "ehr_pediatric_complete_indicator",
           "branches": [
             {
-              "rule_id": "count_completed_active_pediatric_ehr_consent",
               "output_fields": [
                 "Account.EHR_Pediatric_Complete__pc"
               ],
@@ -1035,13 +1034,14 @@
                 626
               ],
               "entity_type": "AccountRollup",
-              "workbook_tab": "datamodel-Fields"
+              "workbook_tab": "datamodel-Fields",
+              "rule_id": "count_completed_active_pediatric_ehr_consent"
             }
           ],
           "entity_type": "AccountRollup",
-          "rule_id": "ehr_pediatric_complete_indicator",
           "target_field": "Account.EHR_Pediatric_Complete__pc",
-          "description": "Ehr pediatric complete",
+          "description": "ehr pediatric complete indicator",
+          "comparison_role": "expected",
           "source_entities": [
             "Account.EHR_Pediatric_Complete__pc"
           ]

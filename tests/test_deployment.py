@@ -252,8 +252,8 @@ def glue_driver():
 
 
 def test_glue_calls_shared_runner_with_verified_config_and_provenance(monkeypatch):
+    from ppsc_ops_data_quality import glue as module
     from ppsc_ops_data_quality.account_to_survey_results.workflow import ValidationOutcome
-    from ppsc_ops_data_quality.runtime import glue as module
 
     content = re.sub(
         r"REPLACE_WITH_[A-Z_]+", "fixture", (ROOT / "params.example.yaml").read_text()
@@ -348,7 +348,7 @@ def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypat
     from ppsc_ops_data_quality.account_to_survey_results.workflow import (
         load_validation_configuration,
     )
-    from ppsc_ops_data_quality.gx_queries import query_asset_sql
+    from ppsc_ops_data_quality.runtime import query_asset_sql
 
     config = tmp_path / "params.yaml"
     config.write_text(
@@ -361,8 +361,29 @@ def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypat
         values["require_repeatable_reads"] = False
         values["data_versions"] = {key: {"mode": "mutable"} for key in values["locations"]}
         config.write_text(yaml.safe_dump(values))
+    # This test isolates orchestration; native capture compatibility has separate tests.
+    from ppsc_ops_data_quality.account_to_survey_results.queries import (
+        metadata_inputs as fixture_inputs,
+    )
+
+    fixture = fixture_inputs()
+    for binding in fixture["tables"].values():
+        binding["provisional"] = False
+    fixture["field_definitions"] = [{"fixture": True}]
+    monkeypatch.setattr(job, "metadata_inputs", lambda *_: fixture)
+    monkeypatch.setattr(job, "check_native_columns", lambda inputs: None)
+    original_query = job.flow_account_query
+
+    def compose(*args, inputs, **kwargs):
+        return original_query(*args, inputs={**inputs, "field_definitions": []}, **kwargs)
+
+    monkeypatch.setattr(job, "flow_account_query", compose)
     closed = []
-    engine = SimpleNamespace(close=lambda: closed.append(True))
+    import sqlalchemy as sa
+
+    engine = SimpleNamespace(
+        engine=sa.create_engine("sqlite://"), close=lambda: closed.append(True)
+    )
     source = SimpleNamespace(get_execution_engine=lambda: engine)
     context = SimpleNamespace(
         data_sources=SimpleNamespace(add_sql=lambda **kwargs: source),
@@ -384,7 +405,9 @@ def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypat
         table_versions,
     ):
         assert projection_lineage
-        assert len(table_versions) == (0 if outcome == "diagnostic" else 3)
+        assert len(table_versions) == (
+            0 if outcome == "diagnostic" else (3 if name == "flow" else 2)
+        )
         prepared.append((name, suite))
         return SimpleNamespace(
             name=name,
@@ -449,7 +472,7 @@ def test_account_workflow_runs_both_suites_and_closes_engine(tmp_path, monkeypat
 
         def get_query_results(self, **kwargs):
             # Query result columns retain the selected order, not catalog order.
-            from ppsc_ops_data_quality.sources.apmp import physical_schema
+            from ppsc_ops_data_quality.account_to_survey_results.queries import physical_schema
 
             inputs = job.metadata_inputs()
             dataset_id = next(

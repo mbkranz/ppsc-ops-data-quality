@@ -17,11 +17,9 @@ import sqlglot
 from great_expectations.core import RunIdentifier
 from great_expectations.expectations.row_conditions import Column
 
-from ppsc_ops_data_quality.runtime.report_schemas import (
+from ppsc_ops_data_quality.runtime import (
     EXPECTATION_RUN_RESULTS,
     VALIDATION_RUN_RESULTS,
-)
-from ppsc_ops_data_quality.runtime.reports import (
     publish_report_files,
     run_validations_with_reports,
 )

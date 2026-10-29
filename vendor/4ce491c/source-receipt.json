@@ -1,0 +1,24 @@
+{
+  "repository": "https://github.com/mbkranz/ppsc-salesforce",
+  "source_branch": "codex/flow-sql-projections",
+  "source_commit": "4ce491c3266e052bf1e1f6a70e8f7d2aed86f9f1",
+  "source_tree": "4ed363798f010139f2d7e80715bbc01539714c22",
+  "base_commit": "d024c15c95e581fbc10eaaf9b62e7b50630edda9",
+  "wheel": "ppsc_salesforce-0.1.1-py3-none-any.whl",
+  "wheel_sha256": "c625b6f4273241ee29bde7b4cdfbcebc9ddf4ab5b0e2caf1840727de4fb67c9b",
+  "source_date_epoch": 315532800,
+  "plan_and_review": "https://github.com/mbkranz/ppsc-salesforce/blob/4ce491c3266e052bf1e1f6a70e8f7d2aed86f9f1/docs/specs/flow-sql-implementation-plan.md",
+  "verification": {
+    "repository_tests_passed": 1004,
+    "independent_ops_tests_passed": 46,
+    "installed_files_verified": 169,
+    "core_only": true,
+    "outputs": 19,
+    "faithful_ctes": 79,
+    "simplified_ctes": 8,
+    "faithful_utf8_bytes": 1117034,
+    "simplified_utf8_bytes": 219251,
+    "wheel_sha256": "c625b6f4273241ee29bde7b4cdfbcebc9ddf4ab5b0e2caf1840727de4fb67c9b"
+  },
+  "live_acceptance": "not established; offline synthetic and installed-wheel verification only"
+}

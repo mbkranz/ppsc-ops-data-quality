@@ -1,5 +1,7 @@
 > Historical pre-migration review. The active v2 boundary is documented in [metadata-compiler.md](metadata-compiler.md).
 
+Historical record. Current interfaces and acceptance are described in [the native Flow SQL plan](specs/minimal-implementation-plan.md).
+
 # Verified compilation snapshot
 
 Follow-up to the cached-metadata finding in the October 24 Spaces plan. The

@@ -1,5 +1,7 @@
 # Reusing expected-value comparisons across sources
 
+Current modules are `account_to_survey_results.queries` and `.suites`; the shared runtime accepts native SELECTs. Retired source adapters are replaced by the [explicit native query path](query-design.md).
+
 The shared consumer accepts native Ibis relations and explicit, validated column
 bindings. Object names, field lists, Flow IDs, survey launch dates, eligibility,
 lookup resolution and source interpretation stay outside core. There is no
@@ -14,13 +16,13 @@ bind separate source-computation determinism, assignment, required and
 must-be-null evidence columns. These must be boolean; unknown remains NULL.
 
 ```python
-from ppsc_ops_data_quality.core.comparison import (
+from ppsc_ops_data_quality.account_to_survey_results.queries import (
     ComparisonSpec,
     KeyBinding,
     ValueBinding,
     compare_values,
 )
-from ppsc_ops_data_quality.core.comparison_gx import comparison_suite
+from ppsc_ops_data_quality.account_to_survey_results.suites import comparison_suite
 
 spec = ComparisonSpec(
     keys=(
